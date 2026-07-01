@@ -230,7 +230,7 @@
       <a href="#how" class="link">Как работает</a>
       <a href="#feats" class="link">Возможности</a>
       <a href="#price" class="link">Цена</a>
-      <a href="#download" class="btn primary">Скачать</a>
+      <a href="#download" class="btn primary js-dl">Скачать</a>
     </nav>
   </div>
 </header>
@@ -246,7 +246,7 @@
         <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
       </div>
       <div class="hero-btns">
-        <a href="#download" class="btn primary lg">Скачать и попробовать</a>
+        <a href="#download" class="btn primary lg js-dl">Скачать и попробовать</a>
         <a href="#demo" class="btn ghost lg">Смотреть пример</a>
       </div>
       <div class="price-tag">
@@ -341,7 +341,7 @@
           <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Оплата USDT — ключ приходит автоматически</li>
           <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Бесплатный триал — попробуй до покупки</li>
         </ul>
-        <a href="#download" class="btn primary lg" style="width:100%">Скачать и оформить</a>
+        <a href="#download" class="btn primary lg js-dl" style="width:100%">Скачать и оформить</a>
         <div class="counter">Осталось <b id="slots">—</b> мест по $97</div>
       </div>
     </div>
@@ -413,12 +413,12 @@
     document.querySelectorAll('.counter').forEach(c=>c.style.display='none');
   });
 
-  // download link — GitHub Releases (заменить на реальную ссылку релиза)
-  const DL="#"; // TODO: https://github.com/<user>/videorils/releases/latest
-  document.getElementById('dl').addEventListener('click',e=>{
-    if(DL==="#"){e.preventDefault();alert('Ссылка на скачивание появится после публикации релиза.');}
-    else location.href=DL;
-  });
+  // download link — GitHub Releases
+  const DL="https://github.com/admin11111111113/videorils-site/releases/download/v1.0/VideoRilsMini.zip";
+  function goDownload(e){ if(e)e.preventDefault(); location.href=DL; }
+  const dlBtn=document.getElementById('dl');
+  if(dlBtn) dlBtn.addEventListener('click',goDownload);
+  document.querySelectorAll('.js-dl').forEach(b=>b.addEventListener('click',goDownload));
 </script>
 </body>
 </html>
