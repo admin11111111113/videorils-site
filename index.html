@@ -305,14 +305,9 @@
           <div class="price-note">Скоро в продаже</div>
         </div>
         <div class="phone-wrap">
-          <div class="phone phone-logo lite">
-            <div class="plogo">
-              <div class="picon">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8h18M3 8l2.2-3.2a1 1 0 0 1 .8-.4h12a1 1 0 0 1 .8.4L21 8M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M7 4.5 5 8m5-3.5L8 8m5-3.5L11 8m5-3.5L14 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div><div class="pname">Видеорилс</div><div class="ptier">Лайт</div></div>
-            </div>
-            <div class="phone-badge"><span class="pdot"></span>скоро</div>
+          <div class="phone">
+            <video src="media/lite.mp4" poster="media/lite.jpg" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="phone-badge"><span class="pdot"></span>пример рилса</div>
           </div>
         </div>
       </div>
@@ -336,14 +331,9 @@
           <div class="price-note">Скоро в продаже</div>
         </div>
         <div class="phone-wrap">
-          <div class="phone phone-logo pro">
-            <div class="plogo">
-              <div class="picon">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8h18M3 8l2.2-3.2a1 1 0 0 1 .8-.4h12a1 1 0 0 1 .8.4L21 8M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M7 4.5 5 8m5-3.5L8 8m5-3.5L11 8m5-3.5L14 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <div><div class="pname">Видеорилс</div><div class="ptier">Про</div></div>
-            </div>
-            <div class="phone-badge"><span class="pdot"></span>скоро</div>
+          <div class="phone">
+            <video src="media/pro.mp4" poster="media/pro.jpg" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="phone-badge"><span class="pdot"></span>пример рилса</div>
           </div>
         </div>
       </div>
@@ -366,6 +356,8 @@
 .hslides{display:flex;transition:transform .55s cubic-bezier(.4,0,.2,1);will-change:transform}
 .hslide{min-width:100%;padding:64px 0 46px;position:relative}
 .hslide::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none}
+.hslide[data-accent="lite"]{background:linear-gradient(160deg,#061726 0%,#0a2437 55%,#0e2c44 100%)}
+.hslide[data-accent="pro"]{background:linear-gradient(160deg,#1a070d 0%,#2a0b14 55%,#210812 100%)}
 .hslide[data-accent="mini"]::before{background:radial-gradient(1100px 480px at 74% 32%,rgba(52,232,158,.14),transparent 60%)}
 .hslide[data-accent="lite"]::before{background:radial-gradient(1100px 480px at 74% 32%,rgba(92,245,180,.18),transparent 62%)}
 .hslide[data-accent="pro"]::before{background:radial-gradient(900px 460px at 66% 26%,rgba(255,77,94,.16),transparent 58%),radial-gradient(900px 520px at 60% 78%,rgba(16,185,129,.15),transparent 62%)}
