@@ -747,11 +747,11 @@
         <div class="install">
           <div class="install-title">Как установить (3 шага)</div>
           <ol class="install-steps">
-            <li><b>Распакуй</b> скачанный VideoRilsMini.zip в любую папку (правый клик → «Извлечь всё»).</li>
-            <li><b>Запусти</b> ВидеорилсМини.exe из распакованной папки.</li>
+            <li><b>Запусти</b> скачанный VideoRilsMiniSetup.exe.</li>
+            <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
             <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
           </ol>
-          <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа. Ничего устанавливать не нужно, программа портативная.</div>
+          <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа.</div>
         </div>
         <div class="counter">Осталось <b id="slots">—</b> мест по $97</div>
         <p class="win-note">🛡️ При первом запуске Windows может показать «Система защитила ваш компьютер» (неизвестный издатель). Это нормально: нажмите «Подробнее» → «Выполнить в любом случае». Программа не подписана платным сертификатом — иначе цену пришлось бы поднять.</p>
@@ -769,7 +769,7 @@
     </div>
     <div class="faq">
       <details class="qa rv"><summary>Как попробовать бесплатно?<span class="plus">+</span></summary><p>Скачай программу и запусти — доступен бесплатный триал: соберёшь рилс на бесплатных голосах и своём бесплатном AI-ключе (получить его — пара минут, без карты). Понравится — оформишь лицензию.</p></details>
-      <details class="qa rv"><summary>Что нужно для работы?<span class="plus">+</span></summary><p>Windows-компьютер. Программа скачивается архивом, распаковал — запустил. Ничего устанавливать не нужно. Для полной версии — свои ключи сервисов озвучки и видеостока (бесплатные тарифы подходят).</p></details>
+      <details class="qa rv"><summary>Что нужно для работы?<span class="plus">+</span></summary><p>Windows-компьютер. Скачал установщик, запустил — программа установится за пару кликов. Для полной версии — свои ключи сервисов озвучки и видеостока (бесплатные тарифы подходят).</p></details>
       <details class="qa rv"><summary>Как оплатить и получить ключ?<span class="plus">+</span></summary><p>Оплата в USDT (TRC-20). После перевода сервер автоматически проверяет платёж и выдаёт лицензионный ключ прямо в программу — вручную ничего пересылать не нужно.</p></details>
       <details class="qa rv"><summary>Лицензия навсегда или подписка?<span class="plus">+</span></summary><p>Навсегда. Платишь один раз, пользуешься без ограничений по времени. Лицензия привязывается к одному компьютеру.</p></details>
       <details class="qa rv"><summary>На каком языке делает рилсы?<span class="plus">+</span></summary><p>Основной язык — русский: озвучка, субтитры и AI-сценарии на русском. Интерфейс переключается RU / EN.</p></details>
@@ -826,7 +826,7 @@
   });
 
   // download link — GitHub Releases
-  const DL="https://github.com/admin11111111113/videorils-site/releases/download/v1.0/VideoRilsMini.zip";
+  const DL="https://github.com/admin11111111113/videorils-site/releases/download/v1.0/VideoRilsMiniSetup.exe";
   function goDownload(e){ if(e)e.preventDefault(); location.href=DL; }
   const dlBtn=document.getElementById('dl');
   if(dlBtn) dlBtn.addEventListener('click',goDownload);
