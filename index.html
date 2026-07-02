@@ -256,10 +256,23 @@
         <div class="hero-txt">
           <span class="eyebrow"><span class="dot"></span>Работает на твоём ПК · Windows</span>
           <h1>Вставь текст —<br>получи <span class="hl">готовый рилс</span></h1>
-          <p class="lead">Программа сама озвучит, подберёт видеоряд, впишет крупные субтитры и соберёт вертикальное видео для TikTok, Reels и Shorts.</p>
+          <p class="lead">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Reels и Shorts. Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
           <div class="flow">
             <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
           </div>
+          <ul class="perks">
+            <li><b>Сценарий пишет ИИ</b> — вставь тему, получи готовый текст</li>
+            <li>Озвучка на выбор: <b>бесплатная</b> или <b>живые голоса</b></li>
+            <li>Видеоряд подбирается <b>автоматически</b> под каждую сцену</li>
+            <li>Крупные субтитры уже вписаны — яркие стили на выбор</li>
+            <li><b>Свой голос</b> — можно озвучить рилс собственным голосом</li>
+            <li>Финальный кадр-призыв с <b>QR-кодом</b> на твой канал</li>
+            <li><b>Выбор цвета</b> финального кадра</li>
+            <li>Фоновая музыка по желанию</li>
+            <li>Готовый <b>mp4</b> + подпись и хэштеги для поста</li>
+            <li>Работает <b>офлайн</b> на ПК (Windows), без подписок</li>
+            <li><b>Оплата один раз</b> — пользуешься навсегда</li>
+          </ul>
           <div class="hero-btns">
             <a href="#examples" class="btn ghost lg">Смотреть пример</a>
             <a href="#how" class="btn ghost lg">Подробнее о приложении</a>
@@ -280,13 +293,14 @@
         <div class="hero-txt">
           <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
           <h1>Видеорилс <span class="hl">Лайт</span></h1>
-          <p class="lead">Всё из Мини — плюс пакетная сборка, длинные рилсы и ручной контроль над раскадровкой.</p>
+          <p class="lead">Всё из версии Мини — плюс пакетная сборка, длинные рилсы и полный контроль над раскадровкой.</p>
           <ul class="dev-list">
-            <li>Пакет: до <b>5 рилсов</b> за один запуск</li>
-            <li>До <b>5 ключей</b> на каждый сервис</li>
+            <li>Пакет: до <b>5 рилсов</b> за один запуск — генерируй пачкой</li>
+            <li>До <b>5 ключей</b> на каждый сервис — не упираешься в лимиты</li>
             <li>Длина рилса — <b>до 120 секунд</b></li>
-            <li>Ручной режим раскадровки — правишь сцены сам</li>
-            <li>Режим «Из видео» — пересборка готового ролика</li>
+            <li>Ручной режим раскадровки — правишь и переставляешь сцены сам</li>
+            <li>Режим «Из видео» — пересборка готового ролика в новый рилс</li>
+            <li>Всё из Мини: озвучка, видеоряд, субтитры, финальный кадр, свой голос</li>
           </ul>
           <div class="hero-btns">
             <span class="btn dev lg">🛠 В разработке</span>
@@ -374,6 +388,12 @@
 .dev-list li{position:relative;padding-left:24px;color:var(--dim);font-size:15px}
 .dev-list li::before{content:"+";position:absolute;left:0;top:-1px;color:var(--mint);font-weight:800}
 .dev-list li b{color:var(--txt)}
+/* компактный список плюсов hero Мини — 2 колонки, чтобы не «разорвать» hero-grid */
+.perks{list-style:none;margin:14px 0 18px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 20px;max-width:600px}
+.perks li{position:relative;padding-left:21px;color:var(--dim);font-size:13px;line-height:1.35}
+.perks li::before{content:"✓";position:absolute;left:0;top:0;color:var(--mint);font-weight:800}
+.perks li b{color:var(--txt);font-weight:700}
+@media(max-width:720px){.perks{grid-template-columns:1fr;gap:7px}}
 
 /* телефон с логотипом (Лайт/Про) */
 .phone-logo .plogo{width:100%;height:100%;border-radius:28px;display:flex;flex-direction:column;
