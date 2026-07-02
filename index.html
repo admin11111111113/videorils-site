@@ -170,6 +170,12 @@
   .plist li svg{flex:none;margin-top:3px}
   .counter{text-align:center;font-size:13px;color:var(--dim);margin-top:18px;font-family:'JetBrains Mono',monospace}
   .win-note{margin-top:14px;font-size:12.5px;line-height:1.5;color:var(--dim);text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .install{margin-top:16px;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .install-title{font-weight:800;font-size:14px;margin-bottom:8px;color:var(--txt)}
+  .install-steps{margin:0;padding-left:20px;display:grid;gap:7px}
+  .install-steps li{font-size:13.5px;color:var(--dim);line-height:1.5}
+  .install-steps li b{color:var(--txt)}
+  .install-note{margin-top:10px;font-size:12.5px;color:var(--dim)}
   .counter b{color:var(--warn)}
 
   /* faq */
@@ -738,6 +744,15 @@
           <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Бесплатный триал — попробуй до покупки</li>
         </ul>
         <a href="#download" class="btn primary lg js-dl" style="width:100%">Скачать и оформить</a>
+        <div class="install">
+          <div class="install-title">Как установить (3 шага)</div>
+          <ol class="install-steps">
+            <li><b>Распакуй</b> скачанный VideoRilsMini.zip в любую папку (правый клик → «Извлечь всё»).</li>
+            <li><b>Запусти</b> ВидеорилсМини.exe из распакованной папки.</li>
+            <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
+          </ol>
+          <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа. Ничего устанавливать не нужно, программа портативная.</div>
+        </div>
         <div class="counter">Осталось <b id="slots">—</b> мест по $97</div>
         <p class="win-note">🛡️ При первом запуске Windows может показать «Система защитила ваш компьютер» (неизвестный издатель). Это нормально: нажмите «Подробнее» → «Выполнить в любом случае». Программа не подписана платным сертификатом — иначе цену пришлось бы поднять.</p>
       </div>
