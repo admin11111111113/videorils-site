@@ -242,35 +242,206 @@
 </header>
 
 <!-- HERO -->
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-txt">
-      <span class="eyebrow"><span class="dot"></span>Работает на твоём ПК · Windows</span>
-      <h1>Вставь текст —<br>получи <span class="hl">готовый рилс</span></h1>
-      <p class="lead">Программа сама озвучит, подберёт видеоряд, впишет крупные субтитры и соберёт вертикальное видео для TikTok, Reels и Shorts.</p>
-      <div class="flow">
-        <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
+<section class="hero hero-carousel" id="hero">
+  <div class="hslides">
+
+    <!-- ===== СЛАЙД 1 · МИНИ (как сейчас) ===== -->
+    <div class="hslide" data-accent="mini">
+      <div class="wrap hero-grid">
+        <div class="hero-txt">
+          <span class="eyebrow"><span class="dot"></span>Работает на твоём ПК · Windows</span>
+          <h1>Вставь текст —<br>получи <span class="hl">готовый рилс</span></h1>
+          <p class="lead">Программа сама озвучит, подберёт видеоряд, впишет крупные субтитры и соберёт вертикальное видео для TikTok, Reels и Shorts.</p>
+          <div class="flow">
+            <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
+          </div>
+          <div class="hero-btns">
+            <a href="#download" class="btn primary lg js-dl">Скачать и попробовать</a>
+            <a href="#examples" class="btn ghost lg">Смотреть пример</a>
+          </div>
+          <div class="price-tag">
+            <span class="old">$300</span>
+            <span class="new">$97</span>
+            <span class="per">один раз · навсегда</span>
+          </div>
+          <div class="price-note">🔥 Цена запуска для первых покупателей</div>
+        </div>
+        <div class="phone-wrap">
+          <div class="phone">
+            <video src="media/demo.mp4" poster="media/poster.jpg" muted loop playsinline autoplay preload="metadata"></video>
+            <div class="phone-badge"><span class="pdot"></span>сделано программой</div>
+          </div>
+        </div>
       </div>
-      <div class="hero-btns">
-        <a href="#download" class="btn primary lg js-dl">Скачать и попробовать</a>
-        <a href="#examples" class="btn ghost lg">Смотреть пример</a>
-      </div>
-      <div class="price-tag">
-        <span class="old">$300</span>
-        <span class="new">$97</span>
-        <span class="per">один раз · навсегда</span>
-      </div>
-      <div class="price-note">🔥 Цена запуска для первых покупателей</div>
     </div>
 
-    <div class="phone-wrap">
-      <div class="phone" id="demo">
-        <video src="media/demo.mp4" poster="media/poster.jpg" muted loop playsinline autoplay preload="metadata"></video>
-        <div class="phone-badge"><span class="pdot"></span>сделано программой</div>
+    <!-- ===== СЛАЙД 2 · ЛАЙТ ===== -->
+    <div class="hslide" data-accent="lite">
+      <div class="wrap hero-grid">
+        <div class="hero-txt">
+          <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
+          <h1>Видеорилс <span class="hl">Лайт</span></h1>
+          <p class="lead">Всё из Мини — плюс пакетная сборка, длинные рилсы и ручной контроль над раскадровкой.</p>
+          <ul class="dev-list">
+            <li>Пакет: до <b>5 рилсов</b> за один запуск</li>
+            <li>До <b>5 ключей</b> на каждый сервис</li>
+            <li>Длина рилса — <b>до 120 секунд</b></li>
+            <li>Ручной режим раскадровки — правишь сцены сам</li>
+            <li>Режим «Из видео» — пересборка готового ролика</li>
+          </ul>
+          <div class="hero-btns">
+            <span class="btn dev lg">🛠 В разработке</span>
+          </div>
+          <div class="price-tag">
+            <span class="old">$500</span>
+            <span class="new">$199</span>
+            <span class="per">один раз · навсегда</span>
+          </div>
+          <div class="price-note">Скоро в продаже</div>
+        </div>
+        <div class="phone-wrap">
+          <div class="phone phone-logo lite">
+            <div class="plogo">
+              <div class="picon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8h18M3 8l2.2-3.2a1 1 0 0 1 .8-.4h12a1 1 0 0 1 .8.4L21 8M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M7 4.5 5 8m5-3.5L8 8m5-3.5L11 8m5-3.5L14 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div class="pname">Видеорилс</div><div class="ptier">Лайт</div></div>
+            </div>
+            <div class="phone-badge"><span class="pdot"></span>скоро</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- ===== СЛАЙД 3 · ПРО ===== -->
+    <div class="hslide" data-accent="pro">
+      <div class="wrap hero-grid">
+        <div class="hero-txt">
+          <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
+          <h1>Видеорилс <span class="hl">Про</span></h1>
+          <p class="lead">Максимум автоматизации и объёма — старшая версия линейки. Состав функций анонсируем позже.</p>
+          <div class="hero-btns">
+            <span class="btn dev lg">🛠 В разработке</span>
+          </div>
+          <div class="price-tag">
+            <span class="old">$700</span>
+            <span class="new">$299</span>
+            <span class="per">один раз · навсегда</span>
+          </div>
+          <div class="price-note">Скоро в продаже</div>
+        </div>
+        <div class="phone-wrap">
+          <div class="phone phone-logo pro">
+            <div class="plogo">
+              <div class="picon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 8h18M3 8l2.2-3.2a1 1 0 0 1 .8-.4h12a1 1 0 0 1 .8.4L21 8M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8M7 4.5 5 8m5-3.5L8 8m5-3.5L11 8m5-3.5L14 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div><div class="pname">Видеорилс</div><div class="ptier">Про</div></div>
+            </div>
+            <div class="phone-badge"><span class="pdot"></span>скоро</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="hnav prev" aria-label="Назад">‹</button>
+  <button class="hnav next" aria-label="Вперёд">›</button>
+  <div class="hdots">
+    <button class="hdot is-active" aria-label="Мини"></button>
+    <button class="hdot" aria-label="Лайт"></button>
+    <button class="hdot" aria-label="Про"></button>
   </div>
 </section>
+
+<style>
+/* ===== карусель тарифов ===== */
+.hero-carousel{position:relative;overflow:hidden;padding:0}
+.hslides{display:flex;transition:transform .55s cubic-bezier(.4,0,.2,1);will-change:transform}
+.hslide{min-width:100%;padding:64px 0 46px;position:relative}
+.hslide::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none}
+.hslide[data-accent="mini"]::before{background:radial-gradient(1100px 480px at 74% 32%,rgba(52,232,158,.14),transparent 60%)}
+.hslide[data-accent="lite"]::before{background:radial-gradient(1100px 480px at 74% 32%,rgba(92,245,180,.18),transparent 62%)}
+.hslide[data-accent="pro"]::before{background:radial-gradient(900px 460px at 66% 26%,rgba(255,77,94,.16),transparent 58%),radial-gradient(900px 520px at 60% 78%,rgba(16,185,129,.15),transparent 62%)}
+.hslide .wrap{position:relative;z-index:1}
+
+/* стрелки */
+.hnav{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(10,23,18,.55);backdrop-filter:blur(6px);color:var(--txt);
+  font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
+.hnav:hover{border-color:var(--mint);background:rgba(10,23,18,.8)}
+.hnav.prev{left:14px}.hnav.next{right:14px}
+
+/* точки */
+.hdots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:9px}
+.hdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.28);border:none;cursor:pointer;padding:0;transition:width .25s,background .25s}
+.hdot.is-active{background:var(--mint);width:26px;border-radius:6px}
+
+/* акценты слайдов */
+.hslide[data-accent="lite"] .eyebrow:not(.dev),.hslide[data-accent="lite"] .flow b{color:#5cf5b4}
+.hslide[data-accent="lite"] h1 .hl{background:linear-gradient(120deg,#5cf5b4,#9dffd4);-webkit-background-clip:text;background-clip:text}
+.hslide[data-accent="pro"] h1 .hl{background:linear-gradient(120deg,#ff5b6b,#10d98b);-webkit-background-clip:text;background-clip:text}
+
+/* бейдж "в разработке" */
+.eyebrow.dev{color:#ffce5a;background:rgba(255,206,90,.09)}
+.eyebrow.dev .dot{background:#ffce5a;box-shadow:0 0 0 4px rgba(255,206,90,.2)}
+
+/* неактивная кнопка */
+.btn.dev{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--dim);cursor:not-allowed;pointer-events:none}
+
+/* список отличий */
+.dev-list{list-style:none;margin:8px 0 4px;padding:0;display:grid;gap:9px}
+.dev-list li{position:relative;padding-left:24px;color:var(--dim);font-size:15px}
+.dev-list li::before{content:"+";position:absolute;left:0;top:-1px;color:var(--mint);font-weight:800}
+.dev-list li b{color:var(--txt)}
+
+/* телефон с логотипом (Лайт/Про) */
+.phone-logo .plogo{width:100%;height:100%;border-radius:28px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;text-align:center}
+.phone-logo.lite .plogo{background:linear-gradient(160deg,#0f2e22,#0a1712);box-shadow:inset 0 0 130px rgba(92,245,180,.2)}
+.phone-logo.pro .plogo{background:linear-gradient(160deg,#2a0f14,#0a1712);box-shadow:inset 0 0 120px rgba(255,77,94,.18),inset 0 0 170px rgba(16,185,129,.14)}
+.plogo .picon{width:96px;height:96px;border-radius:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 34px rgba(0,0,0,.4)}
+.phone-logo.lite .picon{background:linear-gradient(135deg,#34e89e,#5cf5b4)}
+.phone-logo.pro .picon{background:linear-gradient(135deg,#ff5b6b,#10d98b)}
+.plogo .picon svg{width:52px;height:52px}
+.plogo .pname{font-size:26px;font-weight:850;letter-spacing:-.02em;color:#fff;line-height:1.1}
+.plogo .ptier{font-size:15px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin-top:4px}
+.phone-logo.lite .ptier{color:#5cf5b4}
+.phone-logo.pro .ptier{color:#ff8a94}
+
+@media(max-width:720px){
+  .hnav{width:38px;height:38px;font-size:22px}
+  .hslide{padding:44px 0 44px}
+}
+</style>
+
+<script>
+(function(){
+  var car=document.getElementById('hero'); if(!car) return;
+  var track=car.querySelector('.hslides');
+  var slides=car.querySelectorAll('.hslide');
+  var dots=car.querySelectorAll('.hdot');
+  var i=0, n=slides.length, timer=null;
+  function go(k){ i=(k+n)%n; track.style.transform='translateX('+(-i*100)+'%)';
+    dots.forEach(function(d,x){ d.classList.toggle('is-active', x===i); }); }
+  function next(){ go(i+1); } function prev(){ go(i-1); }
+  function start(){ stop(); timer=setInterval(next,6000); }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+  var nx=car.querySelector('.hnav.next'), pv=car.querySelector('.hnav.prev');
+  if(nx) nx.addEventListener('click',function(){ next(); start(); });
+  if(pv) pv.addEventListener('click',function(){ prev(); start(); });
+  dots.forEach(function(d,x){ d.addEventListener('click',function(){ go(x); start(); }); });
+  car.addEventListener('mouseenter',stop);
+  car.addEventListener('mouseleave',start);
+  var x0=null;
+  car.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; },{passive:true});
+  car.addEventListener('touchend',function(e){ if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>40){ dx<0?next():prev(); start(); } x0=null; });
+  start();
+})();
+</script>
 
 <!-- TRUST STRIP -->
 <div class="strip">
