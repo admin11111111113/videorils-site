@@ -127,6 +127,11 @@
 
   /* how it works — storyboard style */
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:s}
+  .how-demo{max-width:760px;margin:34px auto 0;text-align:center}
+  .how-demo__v{width:100%;aspect-ratio:1312/1060;object-fit:cover;display:block;
+    border-radius:18px;border:1px solid var(--line);background:#000;
+    box-shadow:0 12px 34px rgba(0,0,0,.35)}
+  .how-demo__cap{color:var(--dim);font-size:13.5px;margin-top:12px}
   .step{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px 24px;position:relative;overflow:hidden}
   .step::before{counter-increment:s;content:"0" counter(s);
     position:absolute;top:16px;right:20px;font-family:'JetBrains Mono',monospace;
@@ -301,6 +306,12 @@
         <h3>Публикуй</h3>
         <p>Готовый mp4 плюс подпись и хэштеги для поста. Осталось выложить в TikTok, Reels или Shorts.</p>
       </div>
+    </div>
+    <div class="how-demo rv">
+      <video class="how-demo__v" controls preload="none" playsinline poster="media/kak-rabotaet.jpg">
+        <source src="media/kak-rabotaet.mp4" type="video/mp4">
+      </video>
+      <p class="how-demo__cap">Реальная запись: от текста до готового рилса — и сам результат в конце.</p>
     </div>
   </div>
 </section>
