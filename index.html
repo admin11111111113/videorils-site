@@ -151,7 +151,7 @@
   .feat p{color:var(--dim);font-size:14px}
 
   /* pricing */
-  .pricing{max-width:520px;margin:0 auto}
+  .pricing{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
   .price-card{background:linear-gradient(160deg,var(--panel),var(--bg2));
     border:1px solid rgba(52,232,158,.3);border-radius:24px;padding:40px;position:relative;overflow:hidden;
     box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -176,6 +176,28 @@
   .install-steps li b{color:var(--txt)}
   .install-note{margin-top:10px;font-size:12.5px;color:var(--dim)}
   .counter b{color:var(--warn)}
+
+  /* three tier cards */
+  .pricing .price-card{padding:32px 26px;display:flex;flex-direction:column}
+  .pricing .price-card .big .now{font-size:46px}
+  .price-card .plan-name{font-family:'JetBrains Mono',monospace;font-size:14px;
+    font-weight:700;color:var(--dim);letter-spacing:.02em;margin-bottom:14px}
+  .price-card .big .per{font-size:15px;color:var(--dim);font-weight:600}
+  .price-card .plist{flex:1}
+  .price-card.reco{border-color:var(--mint);
+    box-shadow:0 24px 70px rgba(0,0,0,.5),0 0 40px rgba(52,232,158,.12)}
+  .price-card.reco .plan-name{color:var(--mint)}
+  .tag-reco{position:absolute;top:16px;right:16px;display:inline-flex;align-items:center;
+    gap:6px;background:linear-gradient(135deg,var(--mint),var(--mint-2));color:#04140d;
+    font-size:12px;font-weight:800;padding:5px 11px;border-radius:100px;
+    box-shadow:0 4px 14px rgba(52,232,158,.4)}
+  .upgrade-note{font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:14px;
+    padding-top:14px;border-top:1px solid var(--line)}
+  .upgrade-note b{color:var(--mint)}
+  @media (max-width:900px){
+    .pricing{grid-template-columns:1fr;max-width:520px}
+    .price-card.reco{order:-1}
+  }
 
   /* faq */
   .faq{max-width:760px;margin:0 auto}
@@ -717,12 +739,41 @@
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">цена</div>
-      <h2>Один раз — и навсегда</h2>
-      <p class="sec-sub">Без подписок и ежемесячных платежей. Купил — пользуешься всегда.</p>
+      <h2>Выбери тариф</h2>
+      <p class="sec-sub">Месяц, год или навсегда — оплата в USDT (TRC-20), ключ приходит автоматически.</p>
     </div>
     <div class="pricing rv">
+
+      <!-- Месяц -->
       <div class="price-card">
-        <span class="flame">🔥 Цена запуска для первых покупателей</span>
+        <div class="plan-name">// Месяц</div>
+        <div class="big"><span class="now">15</span><span class="cur">USDT</span><span class="per">/ мес</span></div>
+        <div class="lifetime">// подписка на 30 дней, 1 ПК</div>
+        <ul class="plist">
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Безлимит рилсов 30 дней</li>
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Все функции: озвучка, видеоряд, субтитры, AI</li>
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Оплата USDT — ключ приходит автоматически</li>
+        </ul>
+        <a href="#price" class="btn ghost lg js-buy" data-plan="monthly" style="width:100%">Выбрать «Месяц»</a>
+      </div>
+
+      <!-- Год -->
+      <div class="price-card">
+        <div class="plan-name">// Год</div>
+        <div class="big"><span class="old">$180</span><span class="now">79</span><span class="cur">USDT</span><span class="per">/ год</span></div>
+        <div class="lifetime">// подписка на 365 дней, 1 ПК</div>
+        <ul class="plist">
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Безлимит рилсов 365 дней</li>
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Все функции: озвучка, видеоряд, субтитры, AI</li>
+          <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Выгоднее помесячной почти вдвое</li>
+        </ul>
+        <a href="#price" class="btn ghost lg js-buy" data-plan="yearly" style="width:100%">Выбрать «Год»</a>
+      </div>
+
+      <!-- Lifetime (рекомендуемый) -->
+      <div class="price-card reco">
+        <span class="tag-reco">★ Выгоднее</span>
+        <div class="plan-name">// Lifetime</div>
         <div class="big"><span class="old">$300</span><span class="now">97</span><span class="cur">USDT</span></div>
         <div class="lifetime">// лицензия навсегда, на 1 ПК</div>
         <ul class="plist">
@@ -731,18 +782,21 @@
           <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Оплата USDT — ключ приходит автоматически</li>
           <li><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9.5l3.5 3.5L14 5.5" stroke="#34e89e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Бесплатный триал — попробуй до покупки</li>
         </ul>
-        <a href="#price" class="btn primary lg js-dl" style="width:100%">Скачать и оформить</a>
-        <div class="install">
-          <div class="install-title">Как установить (3 шага)</div>
-          <ol class="install-steps">
-            <li><b>Запусти</b> скачанный VideoRilsMiniSetup.exe.</li>
-            <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
-            <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
-          </ol>
-          <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа.</div>
-        </div>
+        <a href="#price" class="btn primary lg js-buy js-dl" data-plan="lifetime" style="width:100%">Скачать и оформить</a>
+        <p class="upgrade-note">Уже на «Месяц»/«Год»? <b>Оплаченное засчитывается</b> при переходе на Lifetime — доплата видна в приложении.</p>
         <div class="counter">Осталось <b id="slots">—</b> мест по $97</div>
       </div>
+
+    </div>
+
+    <div class="install rv" style="max-width:560px;margin:26px auto 0">
+      <div class="install-title">Как установить (3 шага)</div>
+      <ol class="install-steps">
+        <li><b>Запусти</b> скачанный VideoRilsMiniSetup.exe.</li>
+        <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
+        <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
+      </ol>
+      <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа.</div>
     </div>
   </div>
 </section>
@@ -796,12 +850,19 @@
     document.querySelectorAll('.counter').forEach(c=>c.style.display='none');
   });
 
-  // download link — GitHub Releases
+  // download link — GitHub Releases. Выбранный тариф пробрасываем параметром
+  // plan=monthly/yearly/lifetime: сохраняем локально (приложение подхватит при
+  // оформлении) и добавляем в URL — оплата идёт тем же флоу USDT (TRC-20), где
+  // сервер лицензий разбирает план по своим эндпоинтам.
   const DL="https://github.com/admin11111111113/videorils-site/releases/download/v1.0/VideoRilsMiniSetup.exe";
-  function goDownload(e){ if(e)e.preventDefault(); location.href=DL; }
-  const dlBtn=document.getElementById('dl');
-  if(dlBtn) dlBtn.addEventListener('click',goDownload);
-  document.querySelectorAll('.js-dl').forEach(b=>b.addEventListener('click',goDownload));
+  function goDownload(e, plan){
+    if(e)e.preventDefault();
+    plan = plan || 'lifetime';
+    try{ localStorage.setItem('vr_plan', plan); }catch(_){}
+    location.href = DL + '?plan=' + encodeURIComponent(plan);
+  }
+  document.querySelectorAll('.js-buy').forEach(b=>
+    b.addEventListener('click', ev=>goDownload(ev, b.dataset.plan)));
 </script>
 </body>
 </html>
