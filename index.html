@@ -277,6 +277,30 @@
     .sec-head{margin-bottom:32px}
     .sec-head h2,h2{font-size:clamp(24px,6.5vw,34px);overflow-wrap:break-word}
   }
+  /* ===== сравнение продуктов: Мини (зелёный) vs Лайт (фиолетовый) ===== */
+  .cmp-grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}
+  .cmp-card{position:relative;background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:20px;padding:32px 26px;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  .cmp-card.cmp-mini{border-color:rgba(52,232,158,.35)}
+  .cmp-card.cmp-lite{border-color:rgba(168,85,247,.42)}
+  .cmp-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+  .cmp-card.cmp-mini::before{background:linear-gradient(90deg,#34e89e,#22d3ee)}
+  .cmp-card.cmp-lite::before{background:linear-gradient(90deg,#8b5cf6,#a855f7)}
+  .cmp-badge{align-self:flex-start;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(52,232,158,.14);color:#34e89e;margin-bottom:14px}
+  .cmp-badge.soon{background:rgba(168,85,247,.16);color:#c084fc}
+  .cmp-card h3{font-size:24px;margin:0 0 4px;font-weight:850}
+  .cmp-card.cmp-lite h3 b{color:#a855f7}
+  .cmp-card.cmp-mini h3 b{color:#34e89e}
+  .cmp-tag{color:var(--dim);font-size:14px;margin-bottom:18px}
+  .cmp-price{font-size:16px;color:var(--dim)}
+  .cmp-price b{font-size:40px;color:var(--txt);font-weight:850;letter-spacing:-.02em}
+  .cmp-plans{font-size:13px;color:var(--dimmer);font-family:'JetBrains Mono',monospace;margin:4px 0 20px}
+  .cmp-list{list-style:none;padding:0;margin:0 0 22px;flex:1;display:flex;flex-direction:column;gap:10px}
+  .cmp-list li{font-size:14.5px;color:var(--txt);padding-left:24px;position:relative;overflow-wrap:break-word}
+  .cmp-list li::before{content:"✓";position:absolute;left:0;color:#34e89e;font-weight:800}
+  .cmp-lite .cmp-list li::before{color:#a855f7}
+  .cmp-btn{width:100%}
+  .cmp-soon{cursor:default;opacity:.9}
+  @media(max-width:560px){.cmp-grid{grid-template-columns:1fr;gap:16px}.cmp-card{padding:26px 20px}.cmp-price b{font-size:34px}}
 </style>
 </head>
 <body>
@@ -827,6 +851,47 @@
         <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
       </ol>
       <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа.</div>
+    </div>
+  </div>
+</section>
+
+<!-- СРАВНЕНИЕ: МИНИ vs ЛАЙТ -->
+<section class="pad" id="compare" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">два продукта</div>
+      <h2>Мини или Лайт?</h2>
+      <p class="sec-sub">Начни с Мини — простой и доступный. Нужен масштаб (пакет, длинные рилсы, вирусная Нарезка) — бери Лайт.</p>
+    </div>
+    <div class="cmp-grid rv">
+      <div class="cmp-card cmp-mini">
+        <div class="cmp-badge">✓ Доступно сейчас</div>
+        <h3>Видеорилс <b>Мини</b></h3>
+        <div class="cmp-tag">Вставь текст — получи готовый рилс</div>
+        <div class="cmp-price">от <b>15</b> <span>USDT</span></div>
+        <div class="cmp-plans">$15 месяц · $79 год · $97 навсегда</div>
+        <ul class="cmp-list">
+          <li>1 рилс за раз, до 40 секунд</li>
+          <li>Озвучка, видеоряд, субтитры, AI-сценарий</li>
+          <li>Свой голос, финальный кадр-призыв с QR</li>
+          <li>1 ключ на сервис</li>
+        </ul>
+        <a href="#price" class="btn primary lg cmp-btn js-buy js-dl" data-plan="lifetime">Скачать Мини</a>
+      </div>
+      <div class="cmp-card cmp-lite">
+        <div class="cmp-badge soon">🔔 Скоро</div>
+        <h3>Видеорилс <b>Лайт</b></h3>
+        <div class="cmp-tag">Массовый контент + вирусная Нарезка</div>
+        <div class="cmp-price">от <b>29</b> <span>USDT</span></div>
+        <div class="cmp-plans">$29 месяц · $149 год · $197 навсегда</div>
+        <ul class="cmp-list">
+          <li><b>Пакет: до 5 рилсов</b> за один запуск</li>
+          <li><b>Клип-микс (Нарезка):</b> 15-30 клипов под музыку</li>
+          <li>До 5 ключей на сервис — без лимитов</li>
+          <li>Длина до 120 сек · всё из Мини</li>
+        </ul>
+        <span class="btn ghost lg cmp-btn cmp-soon">Скоро — следи за анонсом</span>
+      </div>
     </div>
   </div>
 </section>
