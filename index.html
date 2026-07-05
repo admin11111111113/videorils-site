@@ -79,7 +79,7 @@
     padding:6px 13px;border-radius:100px;margin-bottom:22px}
   .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);
     box-shadow:0 0 0 4px rgba(52,232,158,.2)}
-  h1{font-size:clamp(38px,5.2vw,60px);line-height:1.04;font-weight:850;letter-spacing:-.03em;margin-bottom:22px}
+  h1{font-size:clamp(26px,5.2vw,60px);line-height:1.06;font-weight:850;letter-spacing:-.03em;margin-bottom:22px;overflow-wrap:break-word}
   h1 .hl{color:transparent;background:linear-gradient(120deg,var(--mint),#5cf5b4);-webkit-background-clip:text;background-clip:text}
   .lead{font-size:18.5px;color:var(--dim);max-width:520px;margin-bottom:14px}
   .flow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
@@ -247,6 +247,35 @@
     .price-card{padding:30px 24px}
     .price-card .big .now{font-size:44px}
     .final{padding:44px 24px}
+  }
+  /* ===== телефоны 360-414px: всё влезает, ничего не обрезается ===== */
+  @media (max-width:560px){
+    .wrap{padding:0 16px}
+    /* grid/flex-элементы по умолчанию не сжимаются ниже min-content -> текст
+       вылезал за экран. min-width:0 разрешает сжатие, слова переносятся. */
+    .hero-grid,.hero-txt,.perks,.dev-list,.steps,.feats,.pricing{min-width:0}
+    .hero-txt{max-width:100%}
+    .perks li,.dev-list li,.lead,.flow,.qa,.feat{overflow-wrap:break-word;word-break:break-word;min-width:0}
+    .phone{width:min(280px,76vw)}
+    .flow{max-width:100%}
+    .nav{height:56px}
+    .logo{font-size:16px;gap:8px}
+    .logo .mk{width:30px;height:30px}
+    .nav-cta{gap:8px}
+    .nav-cta .btn{padding:9px 13px;font-size:13.5px;border-radius:10px}
+    .hero{padding:32px 0 14px}
+    h1{font-size:clamp(24px,7vw,40px)}
+    .lead{font-size:15.5px}
+    .hero-btns{gap:10px;width:100%}
+    .hero-btns .btn{width:100%}
+    .btn.lg{padding:13px 20px;font-size:15px}
+    .hnav{display:none!important}   /* стрелки прячем — свайп + точки, не перекрывают текст */
+    .hdots{bottom:10px}
+    .perks li{font-size:13.5px}
+    .price-card .big .now{font-size:40px}
+    .price-card .big .old{font-size:22px}
+    .sec-head{margin-bottom:32px}
+    .sec-head h2,h2{font-size:clamp(24px,6.5vw,34px);overflow-wrap:break-word}
   }
 </style>
 </head>
@@ -447,8 +476,9 @@
   function go(k){ i=(k+n)%n; track.style.transform='translateX('+(-i*100)+'%)';
     dots.forEach(function(d,x){ d.classList.toggle('is-active', x===i); }); }
   function next(){ go(i+1); } function prev(){ go(i-1); }
-  function start(){ stop(); timer=setInterval(next,6000); }
-  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+  // Автопрокрутка ОТКЛЮЧЕНА: слайд не улетает сам — читатель листает в своём темпе
+  // (точки снизу, стрелки, свайп на мобильном). Так люди успевают дочитать.
+  function start(){} function stop(){}
   var nx=car.querySelector('.hnav.next'), pv=car.querySelector('.hnav.prev');
   if(nx) nx.addEventListener('click',function(){ next(); start(); });
   if(pv) pv.addEventListener('click',function(){ prev(); start(); });
