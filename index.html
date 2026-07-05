@@ -299,7 +299,8 @@
   .cmp-list li::before{content:"✓";position:absolute;left:0;color:#34e89e;font-weight:800}
   .cmp-lite .cmp-list li::before{color:#a855f7}
   .cmp-btn{width:100%}
-  .cmp-soon{cursor:default;opacity:.9}
+  .cmp-lite-dl{background:linear-gradient(135deg,#8b5cf6,#a855f7);color:#fff;border:none;box-shadow:0 6px 20px rgba(139,92,246,.3)}
+  .cmp-lite-dl:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(139,92,246,.42)}
   @media(max-width:560px){.cmp-grid{grid-template-columns:1fr;gap:16px}.cmp-card{padding:26px 20px}.cmp-price b{font-size:34px}}
 </style>
 </head>
@@ -366,19 +367,19 @@
     <div class="hslide" data-accent="lite">
       <div class="wrap hero-grid">
         <div class="hero-txt">
-          <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
+          <span class="eyebrow"><span class="dot"></span>✦ Новинка · Windows</span>
           <h1>Видеорилс <span class="hl">Лайт</span></h1>
-          <p class="lead">Всё из версии Мини — плюс пакетная сборка, длинные рилсы и полный контроль над раскадровкой.</p>
+          <p class="lead">Всё из версии Мини — плюс пакетная сборка (до 5 рилсов), длинные рилсы и вирусная Нарезка (клип-микс).</p>
           <ul class="dev-list">
             <li>Пакет: до <b>5 рилсов</b> за один запуск — генерируй пачкой</li>
             <li>До <b>5 ключей</b> на каждый сервис — не упираешься в лимиты</li>
             <li>Длина рилса — <b>до 120 секунд</b></li>
-            <li>Ручной режим раскадровки — правишь и переставляешь сцены сам</li>
+            <li><b>🎬 Нарезка (клип-микс)</b> — 15-30 клипов под музыку</li>
             <li>Режим «Из видео» — пересборка готового ролика в новый рилс</li>
             <li>Всё из Мини: озвучка, видеоряд, субтитры, финальный кадр, свой голос</li>
           </ul>
           <div class="hero-btns">
-            <span class="btn dev lg">🛠 В разработке</span>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.1/VideoRilsLiteSetup.exe" class="btn lg cmp-lite-dl">Скачать Лайт</a>
           </div>
         </div>
         <div class="phone-wrap">
@@ -879,7 +880,7 @@
         <a href="#price" class="btn primary lg cmp-btn js-buy js-dl" data-plan="lifetime">Скачать Мини</a>
       </div>
       <div class="cmp-card cmp-lite">
-        <div class="cmp-badge soon">🔔 Скоро</div>
+        <div class="cmp-badge soon">✦ Новинка</div>
         <h3>Видеорилс <b>Лайт</b></h3>
         <div class="cmp-tag">Массовый контент + вирусная Нарезка</div>
         <div class="cmp-price">от <b>29</b> <span>USDT</span></div>
@@ -890,7 +891,7 @@
           <li>До 5 ключей на сервис — без лимитов</li>
           <li>Длина до 120 сек · всё из Мини</li>
         </ul>
-        <span class="btn ghost lg cmp-btn cmp-soon">Скоро — следи за анонсом</span>
+        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.1/VideoRilsLiteSetup.exe" class="btn lg cmp-btn cmp-lite-dl">Скачать Лайт</a>
       </div>
     </div>
   </div>
