@@ -793,11 +793,47 @@
 <section class="pad" id="price">
   <div class="wrap">
     <div class="sec-head rv">
-      <div class="sec-eyebrow">цена</div>
-      <h2>Выбери тариф</h2>
-      <p class="sec-sub">Месяц, год или навсегда — оплата в USDT (TRC-20), ключ приходит автоматически.</p>
+      <div class="sec-eyebrow">цены</div>
+      <h2>Мини или Лайт?</h2>
+      <p class="sec-sub">Посмотри стоимость и скачай. Тариф выберешь и оплатишь в приложении — один раз, в одном месте.</p>
     </div>
-    <div class="pricing rv">
+    <div class="cmp-grid rv">
+      <div class="cmp-card cmp-mini">
+        <div class="cmp-badge">✓ Доступно сейчас</div>
+        <h3>Видеорилс <b>Мини</b></h3>
+        <div class="cmp-tag">Вставь текст — получи готовый рилс</div>
+        <div class="cmp-tariffs" style="border-top:1px solid var(--line);margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--dim);font-size:14px">Месяц</span><b style="font-size:17px">$15</b></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--dim);font-size:14px">Год</span><b style="font-size:17px">$79</b></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--txt);font-weight:700">Навсегда</span><b style="color:#34e89e;font-size:20px">$97</b></div>
+        </div>
+        <ul class="cmp-list">
+          <li>Озвучка, видеоряд, субтитры, AI-сценарий</li>
+          <li>Свой голос, финальный кадр-призыв с QR</li>
+          <li>Бесплатный триал — 1 видео до покупки</li>
+        </ul>
+        <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.13/VideoRilsMiniSetup.exe" class="btn primary lg cmp-btn">↓ Скачать Мини</a>
+      </div>
+      <div class="cmp-card cmp-lite">
+        <div class="cmp-badge soon">✦ Новинка</div>
+        <h3>Видеорилс <b>Лайт</b></h3>
+        <div class="cmp-tag">Массовый контент + вирусная Нарезка</div>
+        <div class="cmp-tariffs" style="border-top:1px solid var(--line);margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--dim);font-size:14px">Месяц</span><b style="font-size:17px">$29</b></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--dim);font-size:14px">Год</span><b style="font-size:17px">$149</b></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 2px;border-bottom:1px solid var(--line)"><span style="color:var(--txt);font-weight:700">Навсегда</span><b style="color:#c084fc;font-size:20px">$197</b></div>
+        </div>
+        <ul class="cmp-list">
+          <li><b>Пакет: до 5 рилсов</b> + <b>Клип-микс (Нарезка)</b></li>
+          <li>До 5 ключей на сервис · длина до 120 сек</li>
+          <li>Всё из Мини + бесплатный триал</li>
+        </ul>
+        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.9/VideoRilsLiteSetup.exe" class="btn lg cmp-btn cmp-lite-dl">↓ Скачать Лайт</a>
+      </div>
+    </div>
+    <p class="sec-sub rv" style="text-align:center;margin-top:22px">Цены на сайте — справочно. Выбор тарифа, оплата USDT (TRC-20) и активация ключа — внутри приложения.</p>
+
+    <div class="pricing-old-hidden" style="display:none">
 
       <!-- Месяц -->
       <div class="price-card">
@@ -856,47 +892,6 @@
   </div>
 </section>
 
-<!-- СРАВНЕНИЕ: МИНИ vs ЛАЙТ -->
-<section class="pad" id="compare" style="padding-top:20px">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">два продукта</div>
-      <h2>Мини или Лайт?</h2>
-      <p class="sec-sub">Начни с Мини — простой и доступный. Нужен масштаб (пакет, длинные рилсы, вирусная Нарезка) — бери Лайт.</p>
-    </div>
-    <div class="cmp-grid rv">
-      <div class="cmp-card cmp-mini">
-        <div class="cmp-badge">✓ Доступно сейчас</div>
-        <h3>Видеорилс <b>Мини</b></h3>
-        <div class="cmp-tag">Вставь текст — получи готовый рилс</div>
-        <div class="cmp-price">от <b>15</b> <span>USDT</span></div>
-        <div class="cmp-plans">$15 месяц · $79 год · $97 навсегда</div>
-        <ul class="cmp-list">
-          <li>1 рилс за раз, до 40 секунд</li>
-          <li>Озвучка, видеоряд, субтитры, AI-сценарий</li>
-          <li>Свой голос, финальный кадр-призыв с QR</li>
-          <li>1 ключ на сервис</li>
-        </ul>
-        <a href="#price" class="btn primary lg cmp-btn js-buy js-dl" data-plan="lifetime">Скачать Мини</a>
-      </div>
-      <div class="cmp-card cmp-lite">
-        <div class="cmp-badge soon">✦ Новинка</div>
-        <h3>Видеорилс <b>Лайт</b></h3>
-        <div class="cmp-tag">Массовый контент + вирусная Нарезка</div>
-        <div class="cmp-price">от <b>29</b> <span>USDT</span></div>
-        <div class="cmp-plans">$29 месяц · $149 год · $197 навсегда</div>
-        <ul class="cmp-list">
-          <li><b>Пакет: до 5 рилсов</b> за один запуск</li>
-          <li><b>Клип-микс (Нарезка):</b> 15-30 клипов под музыку</li>
-          <li>До 5 ключей на сервис — без лимитов</li>
-          <li>Длина до 120 сек · всё из Мини</li>
-        </ul>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.9/VideoRilsLiteSetup.exe" class="btn lg cmp-btn cmp-lite-dl">Скачать Лайт</a>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- FAQ -->
 <section class="pad" id="faq" style="padding-top:20px">
   <div class="wrap">
@@ -924,10 +919,7 @@
       <a href="#how">Как работает</a>
       <a href="#price">Цена</a>
       <a href="#faq">Вопросы</a>
-      <a href="/terms/">Terms</a>
-      <a href="/disclaimer/">Disclaimer</a>
-      <a href="/ai-disclosure/">AI Disclosure</a>
-      <a href="/privacy/">Privacy</a>
+      <a href="/legal/">Условия и конфиденциальность</a>
     </div>
     <div class="cc">© 2026 Видеорилс Мини · рилсы из текста за минуту</div>
   </div>
@@ -950,19 +942,8 @@
     document.querySelectorAll('.counter').forEach(c=>c.style.display='none');
   });
 
-  // download link — GitHub Releases. Выбранный тариф пробрасываем параметром
-  // plan=monthly/yearly/lifetime: сохраняем локально (приложение подхватит при
-  // оформлении) и добавляем в URL — оплата идёт тем же флоу USDT (TRC-20), где
-  // сервер лицензий разбирает план по своим эндпоинтам.
-  const DL="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.13/VideoRilsMiniSetup.exe";
-  function goDownload(e, plan){
-    if(e)e.preventDefault();
-    plan = plan || 'lifetime';
-    try{ localStorage.setItem('vr_plan', plan); }catch(_){}
-    location.href = DL + '?plan=' + encodeURIComponent(plan);
-  }
-  document.querySelectorAll('.js-buy').forEach(b=>
-    b.addEventListener('click', ev=>goDownload(ev, b.dataset.plan)));
+  // Скачивание — прямые ссылки на инсталлеры (GitHub Releases). Тариф НЕ
+  // пробрасываем: выбор плана и оплата — в приложении (сайт = витрина + скачать).
 </script>
 </body>
 </html>
