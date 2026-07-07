@@ -247,7 +247,7 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
   footer{border-top:1px solid var(--line);padding:40px 0;margin-top:20px;position:relative;z-index:1}
   .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
   .foot .logo{font-size:16px}
-  .foot .fl{display:flex;gap:24px;font-size:14px;color:var(--dim)}
+  .foot .fl{display:flex;flex-wrap:wrap;gap:12px 24px;font-size:14px;color:var(--dim)}
   .foot .fl a:hover{color:var(--txt)}
   .foot .cc{font-size:13px;color:var(--dimmer);width:100%;text-align:center;margin-top:8px}
 
@@ -451,110 +451,163 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
   </div>
 </header>
 
-<!-- HERO -->
-<section class="hero hero-carousel" id="hero">
-  <div class="hslides">
+<style>
+/* ===== ЖИВАЯ СИМУЛЯЦИЯ ПЕРВОГО ЭКРАНА ===== */
+.simhero{padding:52px 0 40px;position:relative;overflow:hidden}
+.sim-top{text-align:center;max-width:920px;margin:0 auto 30px}
+.simhero h1{font-size:clamp(25px,5.3vw,66px);line-height:1.05;letter-spacing:-.03em;font-weight:800;margin:14px 0 12px;text-wrap:balance;overflow-wrap:break-word;hyphens:none}
+.simhero h1 .hl{background:linear-gradient(90deg,#34e89e,#22d3ee,#8ef0c8,#34e89e);background-size:240% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.gradanim{animation:hlshine 5s linear infinite}
+@keyframes hlshine{to{background-position:240% 0}}
+.sim-sub{color:var(--dim);font-size:clamp(15px,2vw,19px);margin:0}
+.sim-arrow{display:inline-block;color:var(--mint);font-weight:800;animation:arrbob 1.5s ease-in-out infinite}
+@keyframes arrbob{50%{transform:translateY(5px)}}
 
-    <!-- ===== СЛАЙД 1 · МИНИ (как сейчас) ===== -->
-    <div class="hslide" data-accent="mini">
-      <div class="wrap hero-grid">
-        <div class="hero-txt">
-          <span class="eyebrow"><span class="dot"></span>Единственная в рунете · полный цикл · Windows</span>
-          <h1>Единственная программа, которая делает рилсы <span class="hl">за тебя</span></h1>
-          <p class="lead lead-big">Сценарий. Озвучка. Видеоряд. Субтитры. Один клик — готовый ролик для TikTok, Reels и Shorts.</p>
-          <div class="hero-btns" style="margin-bottom:8px">
-            <a href="#price" class="btn primary lg pulse">Скачать — попробовать бесплатно</a>
-            <a href="#examples" class="btn ghost lg">Смотреть пример</a>
+.sim-stage-grid{display:grid;grid-template-columns:1fr minmax(250px,300px);gap:36px;align-items:center;max-width:970px;margin:0 auto;min-width:0}
+.sim-stage-grid>*{min-width:0}
+.simhero .wrap{box-sizing:border-box;max-width:100%}
+.sim-stage-grid .phone-wrap{order:0}
+
+/* панель-интерфейс */
+.simpanel{background:linear-gradient(160deg,rgba(19,23,42,.74),rgba(9,9,20,.62));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09);border-radius:20px;box-shadow:0 26px 64px -22px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.05);overflow:hidden}
+.sp-top{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.sp-d{width:11px;height:11px;border-radius:50%}
+.sp-d.r{background:#ff5f57}.sp-d.y{background:#febc2e}.sp-d.g{background:#28c840}
+.sp-name{margin-left:8px;font-size:12.5px;color:var(--dim);font-weight:600}
+.sp-in{padding:18px 18px 20px}
+.sp-field{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);border:1px solid rgba(52,232,158,.32);border-radius:11px;padding:12px 14px;margin-bottom:16px;min-height:46px}
+.sp-flabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mint);font-weight:700;flex-shrink:0}
+.sp-topic{font-size:15.5px;color:var(--txt);font-weight:600}
+.sp-caret{width:2px;height:19px;background:var(--mint);display:inline-block;animation:spblink 1s steps(1) infinite;vertical-align:middle}
+@keyframes spblink{50%{opacity:0}}
+.sp-steps{list-style:none;display:flex;gap:8px;margin:0 0 16px;padding:0;flex-wrap:wrap}
+.sp-steps li{flex:1 1 0;min-width:108px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--dim);transition:.35s}
+.sp-steps li.act{border-color:var(--mint);color:var(--txt);background:rgba(52,232,158,.1);box-shadow:0 0 0 1px rgba(52,232,158,.28),0 8px 20px -10px rgba(52,232,158,.6)}
+.sp-steps li.done{color:var(--txt)}
+.sp-ck{width:16px;height:16px;border-radius:50%;border:1.6px solid rgba(255,255,255,.24);flex-shrink:0;position:relative;transition:.3s}
+.sp-steps li.act .sp-ck{border-color:var(--mint)}
+.sp-steps li.done .sp-ck{background:var(--mint);border-color:var(--mint)}
+.sp-steps li.done .sp-ck::after{content:"";position:absolute;left:4.6px;top:1.6px;width:4px;height:8px;border:solid #04140c;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.sp-si{font-size:13px;line-height:1}
+.sp-slabel{white-space:nowrap}
+.sp-out{min-height:120px;background:rgba(0,0,0,.24);border-radius:12px;padding:13px 15px;border:1px solid rgba(255,255,255,.05)}
+.sp-status{font-size:13px;color:var(--mint);font-weight:600;margin-bottom:9px;min-height:18px}
+.sp-lines .ln{font-size:13px;line-height:1.5;color:#d0e8de;opacity:0;transform:translateY(6px);animation:spln .42s ease forwards;margin-bottom:5px}
+@keyframes spln{to{opacity:1;transform:none}}
+.sp-wave{display:flex;align-items:flex-end;gap:5px;height:46px;margin-top:2px}
+.sp-wave[hidden]{display:none}
+.sp-wave i{flex:1;background:linear-gradient(180deg,#34e89e,#22d3ee);border-radius:3px;height:20%;animation:spwv 1s ease-in-out infinite}
+.sp-wave i:nth-child(2){animation-delay:.1s}.sp-wave i:nth-child(3){animation-delay:.22s}.sp-wave i:nth-child(4){animation-delay:.32s}.sp-wave i:nth-child(5){animation-delay:.16s}.sp-wave i:nth-child(6){animation-delay:.26s}.sp-wave i:nth-child(7){animation-delay:.06s}
+@keyframes spwv{0%,100%{height:16%}50%{height:100%}}
+
+/* экран телефона */
+.ph-scr{position:absolute;inset:0;width:100%;height:100%;border-radius:28px;overflow:hidden;background:#0a0a12;z-index:1}
+.ph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dimmer);font-size:12.5px;letter-spacing:.02em;background:linear-gradient(150deg,#0d1420,#0a0f18);animation:phpulse 1.8s ease-in-out infinite}
+@keyframes phpulse{50%{opacity:.55}}
+.ph-frame,.ph-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s}
+.ph-frame.on,.ph-vid.on{opacity:1}
+.ph-subs{position:absolute;left:0;right:0;bottom:19%;padding:0 7%;display:flex;flex-wrap:wrap;gap:6px 8px;justify-content:center;pointer-events:none;z-index:3}
+.ph-subs .w{font-weight:900;font-size:clamp(15px,4.6vw,22px);color:#04140c;background:#34e89e;padding:2px 9px;border-radius:7px;text-transform:uppercase;transform:scale(.5);opacity:0;animation:phpop .32s cubic-bezier(.2,1.5,.4,1) forwards;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+@keyframes phpop{to{transform:scale(1);opacity:1}}
+.ph-done{position:absolute;top:52px;left:50%;transform:translate(-50%,-10px);opacity:0;background:rgba(4,20,12,.86);border:1px solid var(--mint);color:var(--mint);font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:20px;transition:.45s;white-space:nowrap;backdrop-filter:blur(4px);z-index:4}
+.ph-done.on{opacity:1;transform:translate(-50%,0)}
+
+.sim-cta{text-align:center;margin:32px auto 4px}
+.btn.shine{position:relative;overflow:hidden}
+.btn.shine::after{content:"";position:absolute;top:0;left:-65%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:btnshine 3.6s ease-in-out infinite}
+@keyframes btnshine{0%,55%{left:-65%}100%{left:135%}}
+.sim-note{color:var(--dimmer);font-size:12.5px;margin-top:11px}
+.sim-seo{max-width:800px;margin:36px auto 20px;text-align:center;color:var(--dim)}
+.sim-perks{max-width:820px;margin:0 auto}
+
+@media(max-width:820px){
+  .sim-stage-grid{grid-template-columns:1fr;gap:24px;max-width:430px}
+  .sim-stage-grid .phone-wrap{order:2;margin:0 auto}
+  .simpanel{order:1}
+}
+@media(max-width:600px){.simhero{padding:32px 0 30px}.sp-steps li{min-width:calc(50% - 4px)}}
+@media(prefers-reduced-motion:reduce){
+  .gradanim,.sim-arrow,.sp-caret,.sp-wave i,.btn.shine::after,.ph-empty{animation:none}
+  .ph-subs .w{animation:none;transform:none;opacity:1}
+}
+</style>
+
+<!-- HERO · ЖИВАЯ СИМУЛЯЦИЯ РАБОТЫ ПРОГРАММЫ -->
+<section class="hero simhero" id="hero">
+  <div class="wrap">
+    <div class="sim-top">
+      <span class="eyebrow"><span class="dot"></span>Живая демонстрация · прямо сейчас</span>
+      <h1>Единственная программа, которая делает рилсы <span class="hl gradanim">за тебя</span></h1>
+      <p class="sim-sub">Смотри — она прямо сейчас собирает ролик <span class="sim-arrow" aria-hidden="true">↓</span></p>
+    </div>
+
+    <div class="sim-stage-grid">
+      <!-- панель интерфейса программы -->
+      <div class="simpanel" role="img" aria-label="Демонстрация: программа Видеорилс делает ролик — сценарий, озвучка, видеоряд, субтитры">
+        <div class="sp-top">
+          <span class="sp-d r"></span><span class="sp-d y"></span><span class="sp-d g"></span>
+          <span class="sp-name">Видеорилс — новый ролик</span>
+        </div>
+        <div class="sp-in">
+          <div class="sp-field">
+            <span class="sp-flabel">Тема</span>
+            <span class="sp-topic" id="simTopic"></span><span class="sp-caret" id="simCaret"></span>
           </div>
-          <div class="flow">
-            <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
-          </div>
-          <p class="lead lead-sub">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
-          <ul class="perks">
-            <li><b>Сценарий пишет ИИ</b> — вставь тему, получи готовый текст</li>
-            <li>Озвучка на выбор: <b>бесплатная</b> или <b>живые голоса</b></li>
-            <li>Видеоряд подбирается <b>автоматически</b> под каждую сцену</li>
-            <li>Крупные субтитры уже вписаны — яркие стили на выбор</li>
-            <li><b>Свой голос</b> — можно озвучить рилс собственным голосом</li>
-            <li>Финальный кадр-призыв с <b>QR-кодом</b> на твой канал</li>
-            <li><b>Выбор цвета</b> финального кадра</li>
-            <li>Фоновая музыка по желанию</li>
-            <li>Готовый <b>mp4</b> + подпись и хэштеги для поста</li>
-            <li>Работает <b>офлайн</b> на ПК (Windows), без подписок</li>
-            <li><b>Оплата один раз</b> — пользуешься навсегда</li>
-          </ul>
-          <div class="hero-btns">
-            <a href="#how" class="btn ghost lg">Подробнее о приложении</a>
-            <a href="#uniq" class="btn ghost lg">Чем мы отличаемся</a>
+          <ol class="sp-steps" id="simSteps">
+            <li data-s="script"><span class="sp-ck"></span><span class="sp-si">✍</span><span class="sp-slabel">Сценарий</span></li>
+            <li data-s="voice"><span class="sp-ck"></span><span class="sp-si">🎙</span><span class="sp-slabel">Озвучка</span></li>
+            <li data-s="clips"><span class="sp-ck"></span><span class="sp-si">🎬</span><span class="sp-slabel">Видеоряд</span></li>
+            <li data-s="subs"><span class="sp-ck"></span><span class="sp-si">💬</span><span class="sp-slabel">Субтитры</span></li>
+          </ol>
+          <div class="sp-out">
+            <div class="sp-status" id="simStatus"></div>
+            <div class="sp-lines" id="simLines"></div>
+            <div class="sp-wave" id="simWave" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           </div>
         </div>
-        <div class="phone-wrap">
-          <div class="phone">
-            <video src="media/demo.mp4" poster="media/poster.jpg" muted loop playsinline autoplay preload="metadata"></video>
-            <div class="phone-badge"><span class="pdot"></span>сделано программой</div>
+      </div>
+
+      <!-- телефон-мокап с результатом -->
+      <div class="phone-wrap sim-phonewrap">
+        <div class="phone">
+          <div class="ph-scr" id="simScreen">
+            <div class="ph-empty" id="simEmpty">ждём тему…</div>
+            <img class="ph-frame" id="simFrame" alt="" />
+            <video class="ph-vid" id="simVideo" muted loop playsinline preload="none">
+              <source src="media/reel6.mp4" type="video/mp4" />
+            </video>
+            <div class="ph-subs" id="simSubs"></div>
+            <div class="ph-done" id="simDone"><span>✅ Готово за 47 секунд</span></div>
           </div>
+          <div class="phone-badge"><span class="pdot"></span>прямой эфир</div>
         </div>
       </div>
     </div>
 
-    <!-- ===== СЛАЙД 2 · ЛАЙТ ===== -->
-    <div class="hslide" data-accent="lite">
-      <div class="wrap hero-grid">
-        <div class="hero-txt">
-          <span class="eyebrow"><span class="dot"></span>✦ Новинка · Windows</span>
-          <h2 class="slide-h1">Видеорилс <span class="hl">Лайт</span></h2>
-          <p class="lead">Всё из версии Мини — плюс пакетная сборка (до 5 рилсов), длинные рилсы и вирусная Нарезка (клип-микс).</p>
-          <ul class="dev-list">
-            <li>Пакет: до <b>5 рилсов</b> за один запуск — генерируй пачкой</li>
-            <li>До <b>5 ключей</b> на каждый сервис — не упираешься в лимиты</li>
-            <li>Длина рилса — <b>до 120 секунд</b></li>
-            <li><b>🎬 Нарезка (клип-микс)</b> — 15-30 клипов под музыку</li>
-            <li>Режим «Из видео» — пересборка готового ролика в новый рилс</li>
-            <li>Всё из Мини: озвучка, видеоряд, субтитры, финальный кадр, свой голос</li>
-          </ul>
-          <div class="hero-btns">
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lg cmp-lite-dl">Скачать Лайт</a>
-          </div>
-        </div>
-        <div class="phone-wrap">
-          <div class="phone">
-            <video src="media/lite.mp4" poster="media/lite.jpg" muted loop playsinline autoplay preload="metadata"></video>
-            <div class="phone-badge"><span class="pdot"></span>пример рилса</div>
-          </div>
-        </div>
-      </div>
+    <div class="sim-cta">
+      <a href="#price" class="btn primary lg pulse shine">Сделать своё первое видео бесплатно</a>
+      <p class="sim-note">Бесплатная версия · Windows · без подписки и водяных знаков</p>
     </div>
 
-    <!-- ===== СЛАЙД 3 · ПРО ===== -->
-    <div class="hslide" data-accent="pro">
-      <div class="wrap hero-grid">
-        <div class="hero-txt">
-          <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
-          <h2 class="slide-h1">Видеорилс <span class="hl">Про</span></h2>
-          <p class="lead">Максимум автоматизации и объёма — старшая версия линейки. Состав функций анонсируем позже.</p>
-          <div class="hero-btns">
-            <span class="btn dev lg">🛠 В разработке</span>
-          </div>
-        </div>
-        <div class="phone-wrap">
-          <div class="phone">
-            <video src="media/pro.mp4" poster="media/pro.jpg" muted loop playsinline autoplay preload="metadata"></video>
-            <div class="phone-badge"><span class="pdot"></span>пример рилса</div>
-          </div>
-        </div>
-      </div>
+    <p class="lead lead-sub sim-seo">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
+    <ul class="perks sim-perks">
+      <li><b>Сценарий пишет ИИ</b> — вставь тему, получи готовый текст</li>
+      <li>Озвучка на выбор: <b>бесплатная</b> или <b>живые голоса</b></li>
+      <li>Видеоряд подбирается <b>автоматически</b> под каждую сцену</li>
+      <li>Крупные субтитры уже вписаны — яркие стили на выбор</li>
+      <li><b>Свой голос</b> — можно озвучить рилс собственным голосом</li>
+      <li>Финальный кадр-призыв с <b>QR-кодом</b> на твой канал</li>
+      <li>Готовый <b>mp4</b> + подпись и хэштеги для поста</li>
+      <li>Работает <b>офлайн</b> на ПК (Windows), без подписок</li>
+      <li><b>Оплата один раз</b> — пользуешься навсегда</li>
+    </ul>
+    <div class="hero-btns" style="justify-content:center;margin-top:10px">
+      <a href="#how" class="btn ghost lg">Подробнее о приложении</a>
+      <a href="#uniq" class="btn ghost lg">Чем мы отличаемся</a>
     </div>
-
-  </div>
-
-  <button class="hnav prev" aria-label="Назад">‹</button>
-  <button class="hnav next" aria-label="Вперёд">›</button>
-  <div class="hdots">
-    <button class="hdot is-active" aria-label="Мини"></button>
-    <button class="hdot" aria-label="Лайт"></button>
-    <button class="hdot" aria-label="Про"></button>
   </div>
 </section>
+
 
 <!-- бегущая строка платформ -->
 <div class="marq" aria-hidden="true">
@@ -759,30 +812,110 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
 </style>
 
 <script>
+/* ==== ЖИВАЯ СИМУЛЯЦИЯ: state-machine на ванильном JS ==== */
 (function(){
-  var car=document.getElementById('hero'); if(!car) return;
-  var track=car.querySelector('.hslides');
-  var slides=car.querySelectorAll('.hslide');
-  var dots=car.querySelectorAll('.hdot');
-  var i=0, n=slides.length, timer=null;
-  function go(k){ i=(k+n)%n; track.style.transform='translateX('+(-i*100)+'%)';
-    dots.forEach(function(d,x){ d.classList.toggle('is-active', x===i); }); }
-  function next(){ go(i+1); } function prev(){ go(i-1); }
-  // Автопрокрутка ОТКЛЮЧЕНА: слайд не улетает сам — читатель листает в своём темпе
-  // (точки снизу, стрелки, свайп на мобильном). Так люди успевают дочитать.
-  function start(){} function stop(){}
-  var nx=car.querySelector('.hnav.next'), pv=car.querySelector('.hnav.prev');
-  if(nx) nx.addEventListener('click',function(){ next(); start(); });
-  if(pv) pv.addEventListener('click',function(){ prev(); start(); });
-  dots.forEach(function(d,x){ d.addEventListener('click',function(){ go(x); start(); }); });
-  car.addEventListener('mouseenter',stop);
-  car.addEventListener('mouseleave',start);
-  var x0=null;
-  car.addEventListener('touchstart',function(e){ x0=e.touches[0].clientX; },{passive:true});
-  car.addEventListener('touchend',function(e){ if(x0===null) return;
-    var dx=e.changedTouches[0].clientX-x0;
-    if(Math.abs(dx)>40){ dx<0?next():prev(); start(); } x0=null; });
-  start();
+  var root=document.getElementById('hero'); if(!root) return;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var $=function(id){return document.getElementById(id);};
+  var topicEl=$('simTopic'),caret=$('simCaret'),statusEl=$('simStatus'),linesEl=$('simLines'),
+      wave=$('simWave'),steps=$('simSteps'),frame=$('simFrame'),video=$('simVideo'),
+      subsEl=$('simSubs'),doneB=$('simDone'),empty=$('simEmpty');
+  if(!topicEl||!frame) return;
+  var FRAMES=["media/sim1.webp","media/sim2.webp","media/sim3.webp","media/sim4.webp"];
+  var THEMES=[
+    {topic:"Похудение без диет",
+     lines:["Дефицит всего 300 калорий — минус 2–3 кг в месяц.","Никаких голодовок: убираем лишний сахар и перекусы.","Первый результат виден уже через 2 недели."],
+     subs:["МИНУС","2–3 КГ","БЕЗ","ГОЛОДА"]},
+    {topic:"Заработок на маркетплейсах",
+     lines:["Один товар приносит до 80 000 ₽ в месяц.","Стартовать реально с 30 000 ₽ вложений.","Секрет — ниша, где ещё нет гигантов."],
+     subs:["80 000 ₽","С НУЛЯ","НА WB"]},
+    {topic:"Рецепты за 30 секунд",
+     lines:["Три ингредиента — и ужин готов.","Никакой духовки, только сковорода.","Сохрани, чтобы не потерять."],
+     subs:["3","ИНГРЕДИЕНТА","ЗА 30 СЕК"]},
+    {topic:"Разбор авто с аукциона",
+     lines:["Пробег скручен почти на каждой второй машине.","Историю проверяем по VIN за 2 минуты.","Один звонок экономит до 200 000 ₽."],
+     subs:["ПРОВЕРЬ","VIN","ДО","ПОКУПКИ"]}
+  ];
+  FRAMES.forEach(function(s){var im=new Image();im.src=s;});
+  var stepEls={};
+  if(steps){Array.prototype.forEach.call(steps.querySelectorAll('li'),function(li){stepEls[li.getAttribute('data-s')]=li;});}
+  var timers=[];
+  function T(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id;}
+  function clearAll(){timers.forEach(clearTimeout);timers=[];}
+  function step(k,st){var li=stepEls[k];if(!li)return;li.className=(st||'');}
+  function setEmpty(txt){if(empty){empty.textContent=txt;}}
+
+  function typeTopic(txt,done){
+    topicEl.textContent='';var i=0;
+    (function go(){ if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,55);} else {T(done,650);} })();
+  }
+  function showLines(arr,done){
+    linesEl.innerHTML='';var i=0;
+    (function go(){ if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,900);} else {T(done,750);} })();
+  }
+  function showSubs(arr,done){
+    subsEl.innerHTML='';var i=0;
+    (function go(){ if(i<arr.length){var w=document.createElement('span');w.className='w';w.textContent=arr[i];subsEl.appendChild(w);i++;T(go,560);} else {T(done,900);} })();
+  }
+  function flipFrames(done){
+    var i=0; frame.classList.add('on'); if(empty)empty.style.display='none';
+    (function go(){ if(i<FRAMES.length){frame.src=FRAMES[i];i++;T(go,720);} else {T(done,320);} })();
+  }
+  function resetScreen(){
+    frame.classList.remove('on');video.classList.remove('on');
+    try{video.pause();}catch(e){}
+    subsEl.innerHTML='';doneB.classList.remove('on');
+    if(empty){empty.style.display='';}
+  }
+
+  var ti=0;
+  function cycle(){
+    clearAll();
+    for(var k in stepEls)step(k,'');
+    statusEl.textContent='';linesEl.innerHTML='';resetScreen();wave.hidden=true;
+    var t=THEMES[ti%THEMES.length]; ti++;
+    setEmpty('ждём тему…');
+    typeTopic(t.topic,function(){                                   // 1 ТЕМА
+      step('script','act');statusEl.textContent='✍ ИИ пишет сценарий…';setEmpty('пишем сценарий…');
+      showLines(t.lines,function(){                                 // 2 СЦЕНАРИЙ
+        step('script','done');
+        step('voice','act');statusEl.textContent='🎙 Озвучиваю текст…';setEmpty('озвучка…');wave.hidden=false;
+        T(function(){                                               // 3 ОЗВУЧКА
+          wave.hidden=true;step('voice','done');
+          step('clips','act');statusEl.textContent='🎬 Подбираю видеоряд…';
+          flipFrames(function(){                                    // 4 КЛИПЫ
+            step('clips','done');
+            step('subs','act');statusEl.textContent='💬 Накладываю субтитры…';
+            showSubs(t.subs,function(){                             // 5 СУБТИТРЫ
+              step('subs','done');
+              statusEl.textContent='✅ Ролик собран за 47 секунд';   // 6 ГОТОВО
+              subsEl.innerHTML='';frame.classList.remove('on');
+              video.classList.add('on');doneB.classList.add('on');
+              try{video.currentTime=0;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+              T(cycle,5600);                                        // 7 ПАУЗА → цикл
+            });
+          });
+        },2600);
+      });
+    });
+  }
+
+  if(reduce){
+    for(var k in stepEls)step(k,'done');
+    if(empty)empty.style.display='none';
+    topicEl.textContent=THEMES[0].topic; if(caret)caret.style.display='none';
+    statusEl.textContent='✅ Готово за 47 секунд';
+    doneB.classList.add('on'); frame.src=FRAMES[0];
+    video.classList.add('on');
+    try{var pr=video.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}
+    return;
+  }
+  var started=false;
+  function begin(){ if(started)return;started=true;cycle(); }
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){begin();io.disconnect();}});},{threshold:.2});
+    io.observe(root);
+  } else { begin(); }
 })();
 </script>
 
