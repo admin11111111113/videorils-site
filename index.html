@@ -381,6 +381,56 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
   /* карточки сравнения/цен — чуть глубже тень при наведении */
   .cmp-card{transition:transform .2s,box-shadow .2s,border-color .2s}
   .cmp-card:hover{transform:translateY(-3px);box-shadow:0 22px 54px rgba(0,0,0,.45)}
+
+  /* ===== РЕБРЕНДИНГ 2026 (уровень Linear/Runway/ElevenLabs) ===== */
+  body{background:
+    radial-gradient(1300px 840px at 6% -12%, rgba(52,232,158,.13), transparent 55%),
+    radial-gradient(1150px 780px at 97% 0%, rgba(124,92,255,.20), transparent 54%),
+    radial-gradient(950px 640px at 55% 122%, rgba(56,120,255,.11), transparent 60%),
+    #070510}
+  /* огромный H1 на главном слайде */
+  .hslide[data-accent="mini"] h1{font-size:clamp(40px,6.6vw,80px);line-height:1.02;letter-spacing:-.035em;margin-bottom:16px}
+  .lead-big{font-size:clamp(17px,2.1vw,22px);color:#d3ece0;font-weight:500;max-width:560px;margin-bottom:20px}
+  .lead-sub{font-size:15px;color:var(--dim);max-width:560px;margin:14px 0 0}
+  /* главная CTA — свечение + пульс */
+  .btn.primary.pulse{box-shadow:0 8px 30px rgba(52,232,158,.4);animation:ctaPulse 2.8s ease-in-out infinite}
+  @keyframes ctaPulse{0%,100%{box-shadow:0 8px 30px rgba(52,232,158,.38),0 0 0 0 rgba(52,232,158,.45)}50%{box-shadow:0 14px 44px rgba(52,232,158,.55),0 0 0 13px rgba(52,232,158,0)}}
+  @media(prefers-reduced-motion:reduce){.btn.primary.pulse{animation:none}}
+  /* телефон — свечение сзади + перспектива + плавающее покачивание */
+  .phone-wrap{perspective:1300px}
+  .phone{transform:rotateY(-9deg) rotateX(3deg);animation:floaty 6s ease-in-out infinite;transition:transform .45s ease}
+  .phone::after{content:"";position:absolute;inset:-16%;z-index:-1;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(52,232,158,.3),rgba(124,92,255,.2) 46%,transparent 72%);filter:blur(34px)}
+  .phone-wrap:hover .phone{transform:rotateY(0) rotateX(0) scale(1.02);animation-play-state:paused}
+  @keyframes floaty{0%,100%{transform:rotateY(-9deg) rotateX(3deg) translateY(0)}50%{transform:rotateY(-9deg) rotateX(3deg) translateY(-14px)}}
+  @media(prefers-reduced-motion:reduce){.phone{animation:none}}
+  /* бегущая строка платформ */
+  .marq{position:relative;z-index:1;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:rgba(8,7,16,.5);overflow:hidden;padding:17px 0;
+    -webkit-mask:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+  .marq-track{display:flex;gap:52px;width:max-content;animation:marq 28s linear infinite;align-items:center}
+  .marq-track span{font-size:17px;font-weight:800;color:var(--dim);letter-spacing:-.01em;white-space:nowrap;display:flex;align-items:center;gap:9px;opacity:.72}
+  .marq-track .md{width:5px;height:5px;border-radius:50%;background:var(--mint);opacity:.6}
+  @keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.marq-track{animation:none}}
+  /* «мы одни такие» — стекло-таблица сравнения с онлайн-сервисами */
+  .uniq{max-width:840px;margin:0 auto}
+  .uniq-lead{text-align:center;color:var(--dim);font-size:17.5px;max-width:660px;margin:0 auto 34px;line-height:1.55}
+  .uniq-lead b{color:var(--txt)}
+  .utable{background:linear-gradient(158deg,rgba(20,26,44,.62),rgba(10,10,22,.5));backdrop-filter:blur(12px);
+    border:1px solid rgba(124,92,255,.22);border-radius:22px;overflow:hidden;box-shadow:0 34px 90px rgba(0,0,0,.55)}
+  .utable{overflow-x:auto}
+.utable table{width:100%;border-collapse:collapse;min-width:340px}
+  .utable th,.utable td{padding:15px 18px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
+  .utable thead th{font-size:12.5px;color:var(--dim);font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+  .utable thead th.us{color:var(--mint)}
+  .utable td.c{text-align:center;font-size:19px;font-weight:800;width:120px}
+  .utable .yes{color:var(--mint)}
+  .utable .no{color:#8a7a9c}
+  .utable tr:last-child td{border-bottom:0}
+  .utable td:first-child,.utable th:first-child{font-weight:600;color:var(--txt)}
+  .utable .us-col{background:rgba(52,232,158,.06)}
+  @media(max-width:560px){.utable th,.utable td{padding:12px 12px;font-size:13.5px}.utable td.c{width:64px;font-size:17px}}
 </style>
 </head>
 <body>
@@ -409,12 +459,17 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
     <div class="hslide" data-accent="mini">
       <div class="wrap hero-grid">
         <div class="hero-txt">
-          <span class="eyebrow"><span class="dot"></span>Работает на твоём ПК · Windows</span>
-          <h1>Вставь текст —<br>получи <span class="hl">готовый рилс</span></h1>
-          <p class="lead">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
+          <span class="eyebrow"><span class="dot"></span>Единственная в рунете · полный цикл · Windows</span>
+          <h1>Единственная программа, которая делает рилсы <span class="hl">за тебя</span></h1>
+          <p class="lead lead-big">Сценарий. Озвучка. Видеоряд. Субтитры. Один клик — готовый ролик для TikTok, Reels и Shorts.</p>
+          <div class="hero-btns" style="margin-bottom:8px">
+            <a href="#price" class="btn primary lg pulse">Скачать — попробовать бесплатно</a>
+            <a href="#examples" class="btn ghost lg">Смотреть пример</a>
+          </div>
           <div class="flow">
             <b>текст</b><span class="arr">→</span><b>озвучка</b><span class="arr">→</span><b>клипы</b><span class="arr">→</span><b>субтитры</b><span class="arr">→</span><b>mp4</b>
           </div>
+          <p class="lead lead-sub">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
           <ul class="perks">
             <li><b>Сценарий пишет ИИ</b> — вставь тему, получи готовый текст</li>
             <li>Озвучка на выбор: <b>бесплатная</b> или <b>живые голоса</b></li>
@@ -429,8 +484,8 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
             <li><b>Оплата один раз</b> — пользуешься навсегда</li>
           </ul>
           <div class="hero-btns">
-            <a href="#examples" class="btn ghost lg">Смотреть пример</a>
             <a href="#how" class="btn ghost lg">Подробнее о приложении</a>
+            <a href="#uniq" class="btn ghost lg">Чем мы отличаемся</a>
           </div>
         </div>
         <div class="phone-wrap">
@@ -498,6 +553,41 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
     <button class="hdot is-active" aria-label="Мини"></button>
     <button class="hdot" aria-label="Лайт"></button>
     <button class="hdot" aria-label="Про"></button>
+  </div>
+</section>
+
+<!-- бегущая строка платформ -->
+<div class="marq" aria-hidden="true">
+  <div class="marq-track">
+    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>VK Клипы</span><i class="md"></i><span>Дзен</span><i class="md"></i><span>Likee</span><i class="md"></i>
+    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>VK Клипы</span><i class="md"></i><span>Дзен</span><i class="md"></i><span>Likee</span><i class="md"></i>
+  </div>
+</div>
+
+<!-- МЫ ОДНИ ТАКИЕ -->
+<section class="pad" id="uniq" style="padding-bottom:48px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">почему мы</div>
+      <h2>Мы одни такие в рунете</h2>
+      <p class="sec-sub">Другие «нейросети для видео» нарезают чужой ролик на клипы или выдают сырой фрагмент. Видеорилс проходит весь путь сам — от сценария до готового рилса.</p>
+    </div>
+    <div class="uniq rv">
+      <p class="uniq-lead">Полный цикл за один клик — <b>единственная в своём роде программа в рунете</b>: сценарий, озвучка, видеоряд и субтитры без монтажа, без облака и без подписки.</p>
+      <div class="utable">
+        <table>
+          <thead><tr><th>Что делает</th><th class="c us">Видеорилс</th><th class="c">Онлайн-сервисы</th></tr></thead>
+          <tbody>
+            <tr><td>ИИ пишет сценарий</td><td class="c us-col yes">✓</td><td class="c no">✗</td></tr>
+            <tr><td>Озвучка на русском</td><td class="c us-col yes">✓</td><td class="c no">часто ✗</td></tr>
+            <tr><td>Автоподбор видеоряда под сцены</td><td class="c us-col yes">✓</td><td class="c no">✗</td></tr>
+            <tr><td>Крупные «прыгающие» субтитры</td><td class="c us-col yes">✓</td><td class="c no">✗</td></tr>
+            <tr><td>Без подписки и водяных знаков</td><td class="c us-col yes">✓</td><td class="c no">✗</td></tr>
+            <tr><td>Работает на твоём ПК, без облака</td><td class="c us-col yes">✓</td><td class="c no">✗</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </section>
 
