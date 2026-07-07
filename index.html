@@ -2,9 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="yandex-verification" content="80a8b3636569ba62" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Видеорилс Мини — рилсы из текста за минуту</title>
-<meta name="description" content="Настольная программа: вставь текст — получи готовый вертикальный рилс с озвучкой, субтитрами и видеорядом. Для TikTok, Instagram Reels и YouTube Shorts. Работает на твоём ПК.">
+<title>Видеорилс — рилсы из текста за минуту</title>
+<meta name="description" content="Вставь текст — получи готовый вертикальный рилс с озвучкой, субтитрами и видеорядом. Для TikTok, Reels и Shorts. Работает на твоём ПК, лицензия навсегда.">
 <meta property="og:title" content="Видеорилс — рилсы из текста за минуту">
 <meta property="og:description" content="Вставь текст — получи готовый рилс с озвучкой и субтитрами. Для TikTok, Instagram Reels и YouTube Shorts.">
 <meta property="og:type" content="website">
@@ -100,8 +101,8 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
     padding:6px 13px;border-radius:100px;margin-bottom:22px}
   .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);
     box-shadow:0 0 0 4px rgba(52,232,158,.2)}
-  h1{font-size:clamp(26px,5.2vw,60px);line-height:1.06;font-weight:850;letter-spacing:-.03em;margin-bottom:22px;overflow-wrap:break-word}
-  h1 .hl{color:transparent;background:linear-gradient(120deg,var(--mint),#5cf5b4);-webkit-background-clip:text;background-clip:text}
+  h1,.slide-h1{font-size:clamp(26px,5.2vw,60px);line-height:1.06;font-weight:850;letter-spacing:-.03em;margin-bottom:22px;overflow-wrap:break-word}
+  h1 .hl,.slide-h1 .hl{color:transparent;background:linear-gradient(120deg,var(--mint),#5cf5b4);-webkit-background-clip:text;background-clip:text}
   .lead{font-size:18.5px;color:var(--dim);max-width:520px;margin-bottom:14px}
   .flow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
     font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--dimmer);margin:20px 0 30px}
@@ -404,7 +405,7 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
       <div class="wrap hero-grid">
         <div class="hero-txt">
           <span class="eyebrow"><span class="dot"></span>✦ Новинка · Windows</span>
-          <h1>Видеорилс <span class="hl">Лайт</span></h1>
+          <h2 class="slide-h1">Видеорилс <span class="hl">Лайт</span></h2>
           <p class="lead">Всё из версии Мини — плюс пакетная сборка (до 5 рилсов), длинные рилсы и вирусная Нарезка (клип-микс).</p>
           <ul class="dev-list">
             <li>Пакет: до <b>5 рилсов</b> за один запуск — генерируй пачкой</li>
@@ -432,7 +433,7 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
       <div class="wrap hero-grid">
         <div class="hero-txt">
           <span class="eyebrow dev"><span class="dot"></span>🛠 В разработке · скоро</span>
-          <h1>Видеорилс <span class="hl">Про</span></h1>
+          <h2 class="slide-h1">Видеорилс <span class="hl">Про</span></h2>
           <p class="lead">Максимум автоматизации и объёма — старшая версия линейки. Состав функций анонсируем позже.</p>
           <div class="hero-btns">
             <span class="btn dev lg">🛠 В разработке</span>
@@ -583,8 +584,8 @@ ym(00000000,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvi
 
 /* акценты слайдов */
 .hslide[data-accent="lite"] .eyebrow:not(.dev),.hslide[data-accent="lite"] .flow b{color:#5cf5b4}
-.hslide[data-accent="lite"] h1 .hl{background:linear-gradient(120deg,#5cf5b4,#9dffd4);-webkit-background-clip:text;background-clip:text}
-.hslide[data-accent="pro"] h1 .hl{background:linear-gradient(120deg,#ff5b6b,#10d98b);-webkit-background-clip:text;background-clip:text}
+.hslide[data-accent="lite"] h1 .hl,.hslide[data-accent="lite"] .slide-h1 .hl{background:linear-gradient(120deg,#5cf5b4,#9dffd4);-webkit-background-clip:text;background-clip:text}
+.hslide[data-accent="pro"] h1 .hl,.hslide[data-accent="pro"] .slide-h1 .hl{background:linear-gradient(120deg,#ff5b6b,#10d98b);-webkit-background-clip:text;background-clip:text}
 
 /* бейдж "в разработке" */
 .eyebrow.dev{color:#ffce5a;background:rgba(255,206,90,.09)}
