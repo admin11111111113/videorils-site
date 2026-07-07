@@ -313,6 +313,21 @@
   .cmp-lite-dl{background:linear-gradient(135deg,#8b5cf6,#a855f7);color:#fff;border:none;box-shadow:0 6px 20px rgba(139,92,246,.3)}
   .cmp-lite-dl:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(139,92,246,.42)}
   @media(max-width:560px){.cmp-grid{grid-template-columns:1fr;gap:16px}.cmp-card{padding:26px 20px}.cmp-price b{font-size:34px}}
+  .ftbl{width:100%;max-width:900px;margin:30px auto 0;border-collapse:collapse;font-size:14.5px;
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+  .ftbl th,.ftbl td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  .ftbl thead th{font-size:13px;background:var(--bg2)}
+  .ftbl thead th.c{text-align:center;width:120px}
+  .ftbl th.mh{color:#34e89e} .ftbl th.lh{color:#a855f7}
+  .ftbl td.c{text-align:center;font-weight:800;font-size:16px}
+  .ftbl td small{display:block;color:var(--dim);font-size:12px;font-weight:400;margin-top:2px}
+  .ftbl tr:last-child td{border-bottom:0}
+  .ftbl .grp td{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--dim);background:rgba(255,255,255,.03)}
+  .ftbl .grp.m td{color:#34e89e;background:rgba(52,232,158,.06)}
+  .ftbl .grp.l td{color:#c084fc;background:rgba(168,85,247,.07)}
+  .ftbl .y{color:#34e89e} .ftbl .yl{color:#a855f7} .ftbl .no{color:#5a5566}
+  @media(max-width:560px){.ftbl th,.ftbl td{padding:11px 10px;font-size:13px}.ftbl thead th.c{width:56px}.ftbl td.c{font-size:15px}}
 </style>
 </head>
 <body>
@@ -390,7 +405,7 @@
             <li>Всё из Мини: озвучка, видеоряд, субтитры, финальный кадр, свой голос</li>
           </ul>
           <div class="hero-btns">
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.27/VideoRilsLiteSetup.exe" class="btn lg cmp-lite-dl">Скачать Лайт</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.28/VideoRilsLiteSetup.exe" class="btn lg cmp-lite-dl">Скачать Лайт</a>
           </div>
         </div>
         <div class="phone-wrap">
@@ -463,7 +478,7 @@
           <li>Идеи дня + финальный кадр с QR</li>
           <li>1 рилс за раз, до <b>40 секунд</b></li>
         </ul>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.25/VideoRilsMiniSetup.exe" class="btn primary lg cmp-btn">↓ Скачать Мини</a>
+        <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.26/VideoRilsMiniSetup.exe" class="btn primary lg cmp-btn">↓ Скачать Мини</a>
         <div class="cmp-dlnote">Windows · тариф и оплата — в приложении</div>
       </div>
       <div class="cmp-card cmp-lite">
@@ -482,10 +497,37 @@
           <li>Длина до <b>120 сек</b> — вместо 40</li>
           <li>До <b>5 ключей</b> на сервис — без лимитов</li>
         </ul>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.27/VideoRilsLiteSetup.exe" class="btn lg cmp-btn cmp-lite-dl">↓ Скачать Лайт</a>
+        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.28/VideoRilsLiteSetup.exe" class="btn lg cmp-btn cmp-lite-dl">↓ Скачать Лайт</a>
         <div class="cmp-dlnote">Windows · тариф и оплата — в приложении</div>
       </div>
     </div>
+
+    <!-- ПОЛНАЯ ТАБЛИЦА ФУНКЦИЙ -->
+    <table class="ftbl rv">
+      <thead>
+        <tr><th>Функция</th><th class="c mh">Мини</th><th class="c lh">Лайт</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="3">Есть в обоих</td></tr>
+        <tr><td>Рилс из текста <small>AI-сценарий по теме</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Режим «Из видео» <small>пересказ чужого ролика</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Озвучка <small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Ручные ударения, свой голос</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Субтитры <small>выбор стилей</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Финальный кадр (CTA) с QR</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Идеи дня <small>тренды</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr><td>Автообновление · на своих ключах</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+        <tr class="grp m"><td colspan="3">Только Мини — проще и дешевле</td></tr>
+        <tr><td>1 рилс за раз · до 40 секунд</td><td class="c y">✓</td><td class="c no">—</td></tr>
+        <tr class="grp l"><td colspan="3">Только Лайт — за что доплата</td></tr>
+        <tr><td>📦 Пакет (batch) <small>до 5 роликов за один запуск</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        <tr><td>🎬 Клип-микс / Нарезка <small>15–30 клипов под музыку, вирусный формат</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        <tr><td>Ручная сборка <small>триммер, длина сцен, свой звук/музыка, микшер</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        <tr><td>Ролики до 120 секунд</td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        <tr><td>До 5 ключей <small>обход лимитов, быстрее</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        <tr><td>Извлечение звука из ролика <small>mp3 для CapCut</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
