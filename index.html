@@ -376,6 +376,33 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .install li b{color:var(--txt)}
 .install-note{margin-top:12px;font-size:12.5px;color:var(--dim)}
 
+/* ===== сравнение продуктов Мини vs Лайт + группы тарифов ===== */
+.cmp2{max-width:940px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.cmp-card{background:var(--panel);border:1px solid var(--brd-soft);border-radius:22px;padding:28px 26px;display:flex;flex-direction:column}
+.cmp-card.lite{border:1.6px solid transparent;background:linear-gradient(160deg,rgba(123,47,255,.16),rgba(24,13,46,.86)) padding-box,linear-gradient(135deg,#7B2FFF,#b98cff 60%,#FF8A3D) border-box}
+.cmp-tag{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.05);border:1px solid var(--brd-soft);padding:5px 12px;border-radius:100px;margin-bottom:14px}
+.cmp-tag.lite{color:#c9a6ff;background:rgba(123,47,255,.16);border-color:rgba(123,47,255,.4)}
+.cmp-card h3{font-size:23px;font-weight:850;margin-bottom:16px}
+.cmp-card h3 .maxi{font-size:11px;font-weight:800;color:#c9a6ff;vertical-align:middle;margin-left:8px;background:rgba(123,47,255,.18);padding:3px 9px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em}
+.cmp-rows{list-style:none;margin:0 0 20px;padding:0;flex:1}
+.cmp-rows li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--brd-soft);font-size:14px}
+.cmp-rows li:last-child{border-bottom:0}
+.cmp-rows li span{color:var(--dim);flex:none}
+.cmp-rows li b{color:var(--txt);text-align:right;font-weight:700}
+.cmp-rows li b.no{color:var(--dimmer)}
+.cmp-rows li b.acc{color:transparent;background:var(--grad-3);-webkit-background-clip:text;background-clip:text}
+.price-group{max-width:1000px;margin:0 auto 30px}
+.pg-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;margin:0 0 20px;padding-bottom:12px;border-bottom:1px solid var(--brd-soft)}
+.pg-head h3{font-size:22px;font-weight:850}
+.pg-head h3 b{color:var(--pink)}
+.pg-head span{color:var(--dim);font-size:13.5px}
+.price-group.lite .pg-head h3 b{color:#b98cff}
+.price-group.lite .tier li::before{color:#b98cff}
+.price-group.lite .tier.best{background:linear-gradient(160deg,rgba(123,47,255,.16),rgba(24,13,46,.85)) padding-box,linear-gradient(135deg,#7B2FFF,#b98cff 55%,#FF8A3D) border-box}
+.price-group.lite .tier.best .price .now{background:linear-gradient(120deg,#7B2FFF,#b98cff 55%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
+.price-group.lite .badge-hot{background:rgba(123,47,255,.18);border-color:rgba(123,47,255,.45);color:#c9a6ff}
+@media(max-width:560px){.cmp2{grid-template-columns:1fr}}
+
 /* ============================================================
    БЛОК 8 — FAQ
    ============================================================ */
@@ -551,6 +578,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="hero-cta">
       <span class="glowcta"><a href="#price" class="btn primary lg shine">Сделать первое видео бесплатно</a></span>
       <p class="hero-note">Бесплатная версия · Windows · без подписки и водяных знаков</p>
+      <p class="hero-note" style="margin-top:8px">Нужны пакеты по 5 видео и Нарезка? — есть версия <a href="#compare" style="color:var(--pink);font-weight:700">Лайт →</a></p>
     </div>
 
     <p class="hero-seo">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
@@ -576,10 +604,11 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 </div>
 <div class="wrap">
   <div class="stats stg" id="stats">
-    <div class="stat"><div class="n" data-count="50000" data-suffix="+">0</div><div class="l">роликов уже создано</div></div>
-    <div class="stat"><div class="n" data-count="2" data-suffix=" мин">0</div><div class="l">от текста до готового видео</div></div>
-    <div class="stat"><div class="n">9:16</div><div class="l">вертикальный формат</div></div>
-    <div class="stat"><div class="n">∞</div><div class="l">рилсов без ограничений</div></div>
+    <div class="stat"><div class="n">~<span data-count="60" data-suffix="">0</span> сек</div><div class="l">видео от текста до готового</div></div>
+    <div class="stat"><div class="n">0 мин</div><div class="l">монтажа руками</div></div>
+    <div class="stat"><div class="n">Твой ПК</div><div class="l">работает офлайн на Windows</div></div>
+    <!-- реальный счётчик генераций: скрыт до накопления солидной цифры; тянется из /stats (total_renders) -->
+    <div class="stat" id="rendersStat" style="display:none"><div class="n"><span id="rendersN">0</span></div><div class="l">роликов создано</div></div>
   </div>
 </div>
 
@@ -710,98 +739,181 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК 7 · ЦЕНА ============ -->
+<!-- ============ БЛОК 7 · СРАВНЕНИЕ ПРОДУКТОВ ============ -->
+<section class="pad" id="compare">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">два продукта</div>
+      <h2>Мини или Лайт?</h2>
+      <p class="sec-sub">Мини — чтобы начать: один ролик за раз. Лайт (Макси) — для потока: пакеты, длинные ролики, Нарезка.</p>
+    </div>
+    <div class="cmp2 stg">
+      <div class="cmp-card">
+        <div class="cmp-tag">Для старта</div>
+        <h3>Видеорилс <b>Мини</b></h3>
+        <ul class="cmp-rows">
+          <li><span>Рилсов за раз</span><b>1</b></li>
+          <li><span>Длина ролика</span><b>до 40 сек</b></li>
+          <li><span>Ключей на сервис</span><b>1</b></li>
+          <li><span>Пакет (batch)</span><b class="no">—</b></li>
+          <li><span>Клип-микс / Нарезка</span><b class="no">—</b></li>
+          <li><span>Ручная сборка</span><b class="no">—</b></li>
+          <li><span>Цена</span><b>$15/мес · $79/год · $97 навсегда</b></li>
+        </ul>
+        <a href="#price-mini" class="btn ghost lg" style="width:100%">Тарифы Мини ↓</a>
+      </div>
+      <div class="cmp-card lite">
+        <div class="cmp-tag lite">Для потока</div>
+        <h3>Видеорилс <b>Лайт</b><span class="maxi">Макси</span></h3>
+        <ul class="cmp-rows">
+          <li><span>Рилсов за раз</span><b class="acc">пакет до 5</b></li>
+          <li><span>Длина ролика</span><b class="acc">до 120 сек</b></li>
+          <li><span>Ключей на сервис</span><b class="acc">до 5</b></li>
+          <li><span>Пакет (batch)</span><b class="acc">✓ до 5 за запуск</b></li>
+          <li><span>Клип-микс / Нарезка</span><b class="acc">✓ есть</b></li>
+          <li><span>Ручная сборка</span><b class="acc">✓ есть</b></li>
+          <li><span>Цена</span><b>$29/мес · $149/год · $197 навсегда</b></li>
+        </ul>
+        <a href="#price-lite" class="btn lite lg" style="width:100%">Тарифы Лайт ↓</a>
+      </div>
+    </div>
+
+    <div class="tbl-scroll rv">
+      <table class="ftbl">
+        <thead><tr><th>Функция</th><th class="c mh">Мини</th><th class="c lh">Лайт</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="3">Есть в обоих</td></tr>
+          <tr><td>Рилс из текста <small>AI-сценарий по теме</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Режим «Из видео» <small>пересказ чужого ролика</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Озвучка <small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Ручные ударения, свой голос</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Субтитры <small>выбор стилей</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Финальный кадр (CTA) с QR</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Идеи дня <small>тренды</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr><td>Автообновление · на своих ключах</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
+          <tr class="grp m"><td colspan="3">Только Мини — проще и дешевле</td></tr>
+          <tr><td>1 рилс за раз · до 40 секунд</td><td class="c y">✓</td><td class="c no">—</td></tr>
+          <tr class="grp l"><td colspan="3">Только Лайт — за что доплата</td></tr>
+          <tr><td>📦 Пакет (batch) <small>до 5 роликов за один запуск</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+          <tr><td>🎬 Клип-микс / Нарезка <small>15–30 клипов под музыку, вирусный формат</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+          <tr><td>Ручная сборка <small>триммер, длина сцен, свой звук/музыка, микшер</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+          <tr><td>Ролики до 120 секунд</td><td class="c no">—</td><td class="c yl">✓</td></tr>
+          <tr><td>До 5 ключей <small>обход лимитов, быстрее</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+          <tr><td>Извлечение звука из ролика <small>mp3 для CapCut</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ БЛОК 8 · ЦЕНА (две группы тарифов) ============ -->
 <section class="pad" id="price">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">цена</div>
-      <h2>Один раз — и навсегда</h2>
-      <p class="sec-sub">Никаких подписок и токенов за каждый ролик. Видеорилс Мини — выбери срок, оплата в приложении.</p>
-    </div>
-    <div class="tiers stg">
-      <div class="tier">
-        <div class="pn">МЕСЯЦ</div>
-        <div class="price"><span class="now">$15</span><span class="cur">USDT</span></div>
-        <div class="sub">Попробовать без больших вложений</div>
-        <ul>
-          <li>AI-сценарий по твоему тексту</li>
-          <li>Озвучка: бесплатная или премиум</li>
-          <li>Видеоряд + крупные субтитры</li>
-          <li>1 рилс за раз, до 40 секунд</li>
-        </ul>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg">↓ Скачать Мини</a>
-        <div class="dlnote">Windows · тариф — в приложении</div>
-      </div>
-
-      <div class="tier best">
-        <span class="badge-hot">🔥 Стартовая цена</span>
-        <div class="pn">НАВСЕГДА</div>
-        <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
-        <div class="sub">Оплатил один раз — пользуешься без ограничений по времени</div>
-        <div class="prog">
-          <div class="prog-bar"><i data-fill="82"></i></div>
-          <div class="prog-lbl" data-slots>занято 82 из 100 по стартовой цене</div>
-        </div>
-        <ul>
-          <li>Всё из тарифа «Месяц»</li>
-          <li>Лицензия навсегда, без подписки</li>
-          <li>Все обновления Мини включены</li>
-          <li>Без водяных знаков</li>
-        </ul>
-        <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn primary lg shine" style="width:100%">↓ Скачать Мини</a></span>
-        <div class="dlnote">Windows · оплата $97 — в приложении</div>
-      </div>
-
-      <div class="tier">
-        <div class="pn">ГОД</div>
-        <div class="price"><span class="now">$79</span><span class="cur">USDT</span></div>
-        <div class="sub">Год полного доступа со скидкой</div>
-        <ul>
-          <li>Всё из тарифа «Месяц»</li>
-          <li>Обновления в течение года</li>
-          <li>Приоритетная поддержка</li>
-          <li>Выгоднее помесячной оплаты</li>
-        </ul>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg">↓ Скачать Мини</a>
-        <div class="dlnote">Windows · тариф — в приложении</div>
-      </div>
+      <h2>Тарифы</h2>
+      <p class="sec-sub">Оплата в приложении (USDT). Пожизненная лицензия — один раз и навсегда, без подписки и токенов за ролик.</p>
     </div>
 
-    <!-- Лайт -->
-    <div class="lite-band rv">
-      <div class="lite-card">
-        <div>
-          <h3>Нужен масштаб? — Видеорилс <b>Лайт</b></h3>
-          <div class="lt-tag">Для тех, кто делает контент массово: пакет до 5 роликов за запуск, вирусная Нарезка (15–30 клипов под музыку), ролики до 120 секунд и до 5 ключей на сервис.</div>
-          <div class="lt-price">от <b>$29</b> · $149 год · $197 навсегда</div>
+    <!-- === группа Мини === -->
+    <div class="price-group rv" id="price-mini">
+      <div class="pg-head"><h3>Видеорилс <b>Мини</b></h3><span>для старта · 1 ролик за раз, до 40 сек</span></div>
+      <div class="tiers stg">
+        <div class="tier">
+          <div class="pn">МЕСЯЦ</div>
+          <div class="price"><span class="now">$15</span><span class="cur">USDT</span></div>
+          <div class="sub">Попробовать без больших вложений</div>
+          <ul>
+            <li>AI-сценарий по твоему тексту</li>
+            <li>Озвучка: бесплатная или премиум</li>
+            <li>Видеоряд + крупные субтитры</li>
+            <li>1 рилс за раз, до 40 секунд</li>
+          </ul>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
+          <div class="dlnote">Windows · тариф — в приложении</div>
         </div>
-        <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg">↓ Скачать Лайт</a>
-      </div>
 
-      <div class="tbl-scroll">
-        <table class="ftbl">
-          <thead><tr><th>Функция</th><th class="c mh">Мини</th><th class="c lh">Лайт</th></tr></thead>
-          <tbody>
-            <tr class="grp"><td colspan="3">Есть в обоих</td></tr>
-            <tr><td>Рилс из текста <small>AI-сценарий по теме</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Режим «Из видео» <small>пересказ чужого ролика</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Озвучка <small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Ручные ударения, свой голос</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Субтитры <small>выбор стилей</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Финальный кадр (CTA) с QR</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Идеи дня <small>тренды</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr><td>Автообновление · на своих ключах</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-            <tr class="grp m"><td colspan="3">Только Мини — проще и дешевле</td></tr>
-            <tr><td>1 рилс за раз · до 40 секунд</td><td class="c y">✓</td><td class="c no">—</td></tr>
-            <tr class="grp l"><td colspan="3">Только Лайт — за что доплата</td></tr>
-            <tr><td>📦 Пакет (batch) <small>до 5 роликов за один запуск</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-            <tr><td>🎬 Клип-микс / Нарезка <small>15–30 клипов под музыку, вирусный формат</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-            <tr><td>Ручная сборка <small>триммер, длина сцен, свой звук/музыка, микшер</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-            <tr><td>Ролики до 120 секунд</td><td class="c no">—</td><td class="c yl">✓</td></tr>
-            <tr><td>До 5 ключей <small>обход лимитов, быстрее</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-            <tr><td>Извлечение звука из ролика <small>mp3 для CapCut</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          </tbody>
-        </table>
+        <div class="tier best">
+          <span class="badge-hot">🔥 Стартовая цена</span>
+          <div class="pn">НАВСЕГДА</div>
+          <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
+          <div class="sub">Оплатил один раз — пользуешься без ограничений по времени</div>
+          <div class="prog">
+            <div class="prog-bar"><i data-fill="3"></i></div>
+            <div class="prog-lbl" data-slots>занято 3 из 100 по стартовой цене</div>
+          </div>
+          <ul>
+            <li>Всё из тарифа «Месяц»</li>
+            <li>Лицензия навсегда, без подписки</li>
+            <li>Все обновления Мини включены</li>
+            <li>Без водяных знаков</li>
+          </ul>
+          <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn primary lg shine" style="width:100%">↓ Скачать Видеорилс Мини</a></span>
+          <div class="dlnote">Windows · оплата $97 — в приложении</div>
+        </div>
+
+        <div class="tier">
+          <div class="pn">ГОД</div>
+          <div class="price"><span class="now">$79</span><span class="cur">USDT</span></div>
+          <div class="sub">Год полного доступа со скидкой</div>
+          <ul>
+            <li>Всё из тарифа «Месяц»</li>
+            <li>Обновления в течение года</li>
+            <li>Приоритетная поддержка</li>
+            <li>Выгоднее помесячной оплаты</li>
+          </ul>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
+          <div class="dlnote">Windows · тариф — в приложении</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === группа Лайт === -->
+    <div class="price-group lite rv" id="price-lite">
+      <div class="pg-head"><h3>Видеорилс <b>Лайт</b></h3><span>для потока · пакеты до 5, до 120 сек, Нарезка</span></div>
+      <div class="tiers stg">
+        <div class="tier">
+          <div class="pn">МЕСЯЦ</div>
+          <div class="price"><span class="now">$29</span><span class="cur">USDT</span></div>
+          <div class="sub">Поток контента без больших вложений</div>
+          <ul>
+            <li>Всё из Видеорилс Мини</li>
+            <li>Пакет до 5 роликов за запуск</li>
+            <li>Клип-микс / Нарезка</li>
+            <li>Ролики до 120 секунд</li>
+          </ul>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+          <div class="dlnote">Windows · тариф — в приложении</div>
+        </div>
+
+        <div class="tier best">
+          <span class="badge-hot">★ Максимум</span>
+          <div class="pn">НАВСЕГДА</div>
+          <div class="price"><span class="old">$390</span><span class="now">$197</span><span class="cur">USDT</span></div>
+          <div class="sub">Весь Лайт навсегда — пакеты, Нарезка, ручная сборка</div>
+          <ul>
+            <li>Всё из тарифа «Месяц» Лайт</li>
+            <li>Лицензия навсегда, без подписки</li>
+            <li>До 5 ключей на сервис</li>
+            <li>Все обновления Лайт включены</li>
+          </ul>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg shine" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+          <div class="dlnote">Windows · оплата $197 — в приложении</div>
+        </div>
+
+        <div class="tier">
+          <div class="pn">ГОД</div>
+          <div class="price"><span class="now">$149</span><span class="cur">USDT</span></div>
+          <div class="sub">Год полного Лайта со скидкой</div>
+          <ul>
+            <li>Всё из тарифа «Месяц» Лайт</li>
+            <li>Обновления в течение года</li>
+            <li>Приоритетная поддержка</li>
+            <li>Выгоднее помесячной оплаты</li>
+          </ul>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+          <div class="dlnote">Windows · тариф — в приложении</div>
+        </div>
       </div>
     </div>
 
@@ -1070,6 +1182,11 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   }
   function reqScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } }
   if(howTrack){ window.addEventListener('scroll',reqScroll,{passive:true}); window.addEventListener('resize',reqScroll); onScroll(); }
+
+  /* ===== скрытый счётчик реальных генераций (тянем из /stats, включим позже) ===== */
+  fetch("https://videorils-server.onrender.com/stats").then(function(r){return r.json();}).then(function(d){
+    var n=$('rendersN'); if(n && d && d.total_renders!=null){ n.textContent=(d.total_renders||0).toLocaleString('ru-RU'); }
+  }).catch(function(){});
 
   /* ===== пауза при скрытой вкладке ===== */
   document.addEventListener('visibilitychange',function(){
