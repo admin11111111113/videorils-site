@@ -431,7 +431,7 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .cmp-card.lite .feat-price b{color:#b98cff}
 .cmp-foot{text-align:center;margin:24px auto 0;max-width:760px}
 .cmp-foot p{color:var(--dim);font-size:14px;margin:4px 0}
-.cmp-foot p:last-child{color:var(--txt);font-weight:600}
+.cmp-foot p:last-child:not(:first-child){color:var(--txt);font-weight:600}
 /* блок «чем отличаемся»: 3 колонки */
 .vs3{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .vs-col{background:var(--panel);border:1px solid var(--brd-soft);border-radius:18px;padding:24px 22px}
@@ -930,7 +930,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     </div>
     <div class="cmp-foot rv">
       <p>Обе версии: Windows · оплата один раз или помесячно · автообновления</p>
-      <p>Не уверен? Начни с Мини — попробуешь бесплатно на 1 видео</p>
     </div>
 
     <!-- панель тарифов: раскрывается ПОД карточками, переключается на месте (без прыжка) -->
