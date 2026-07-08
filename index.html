@@ -447,16 +447,23 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .pg-head h3{font-size:22px;font-weight:850}
 .pg-head h3 b{color:var(--pink)}
 .pg-head span{color:var(--dim);font-size:13.5px}
-.price-group.lite .pg-head h3 b{color:#b98cff}
+.tgroup[data-tg="mini"] .pg-head{border-bottom-color:rgba(255,61,138,.4)}
+.tgroup[data-tg="lite"] .pg-head{border-bottom-color:rgba(123,47,255,.45)}
+.tgroup[data-tg="lite"] .pg-head h3 b{color:#b98cff}
 .price-group.lite .tier li::before{color:var(--ok)}
 .price-group.lite .tier.best{background:linear-gradient(160deg,rgba(30,17,54,.92),rgba(22,13,44,.9)) padding-box,linear-gradient(135deg,#7B2FFF,#b98cff 55%,#FF8A3D) border-box}
 .price-group.lite .tier.best .price .now{background:linear-gradient(120deg,#7B2FFF,#b98cff 55%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
 .price-group.lite .badge-hot{background:rgba(123,47,255,.18);border-color:rgba(123,47,255,.45);color:#c9a6ff}
 @media(max-width:560px){.cmp2{grid-template-columns:1fr}}
 /* панель тарифов — переключение на месте (без прыжка вьюпорта) */
-.tpick{cursor:pointer}
-.cmp-card .tpick.on{box-shadow:0 0 0 2px var(--pink)}
-.cmp-card.lite .tpick.on{box-shadow:0 0 0 2px #b98cff}
+.tpick{cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--brd);color:var(--dim);box-shadow:none;transition:background .18s,box-shadow .18s,color .18s,border-color .18s}
+.tpick::after{content:"↓";font-weight:800;margin-left:2px}
+.tpick:not(.on):hover{border-color:rgba(255,61,138,.4);color:var(--txt)}
+.cmp-card.lite .tpick:not(.on):hover{border-color:rgba(123,47,255,.45)}
+.tpick.on{color:#fff;border-color:transparent}
+.tpick.on::after{content:"✓ открыто";font-weight:800}
+.tpick.on[data-tariff="mini"]{background:linear-gradient(135deg,#FF3D8A,#7B2FFF);box-shadow:0 12px 32px rgba(255,61,138,.5),0 0 0 1px rgba(255,61,138,.35)}
+.tpick.on[data-tariff="lite"]{background:linear-gradient(135deg,#7B2FFF,#b98cff);box-shadow:0 12px 32px rgba(123,47,255,.5),0 0 0 1px rgba(123,47,255,.35)}
 .tariff-panel{margin-top:26px;position:relative}
 .tgroup{display:none}
 .tgroup.active{display:block;animation:tgIn .34s ease}
@@ -609,9 +616,10 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 .buyonce-punch{text-align:center;font-size:clamp(15px,2vw,18px);font-weight:800;color:var(--txt);margin:0}
 @media(max-width:560px){.calc-row .calc-l{min-width:100%}}
 /* компактный финальный CTA */
+#final{padding-top:44px;padding-bottom:52px}
 .final-cta{text-align:center;max-width:720px;margin:0 auto}
-.final-cta-txt{font-size:clamp(17px,2.6vw,22px);font-weight:800;color:var(--txt);margin-bottom:20px;line-height:1.35}
-.final-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.final-cta-txt{font-size:clamp(17px,2.6vw,22px);font-weight:800;color:var(--txt);margin-bottom:16px;line-height:1.35}
+.final-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -908,7 +916,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         </ul>
         <div class="feat-sep">Формат: 1 ролик за запуск · до 40 сек. Хватает для ежедневного постинга в 1 канал</div>
         <div class="feat-price">$15/мес · $79/год · <b>$97 навсегда</b></div>
-        <button type="button" class="btn ghost lg tpick" data-tariff="mini" aria-pressed="true" style="width:100%">Тарифы Мини ↓</button>
+        <button type="button" class="btn lg tpick" data-tariff="mini" aria-pressed="true" style="width:100%">Тарифы Мини</button>
       </div>
       <div class="cmp-card lite">
         <div class="cmp-tag lite">Для потока</div>
@@ -925,7 +933,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         </ul>
         <div class="feat-sep">Формат: до 5 роликов за запуск · до 120 сек. Для тех, кто делает контент каждый день</div>
         <div class="feat-price">$29/мес · $149/год · <b>$197 навсегда</b></div>
-        <button type="button" class="btn lite lg tpick" data-tariff="lite" aria-pressed="false" style="width:100%">Тарифы Лайт ↓</button>
+        <button type="button" class="btn lg tpick" data-tariff="lite" aria-pressed="false" style="width:100%">Тарифы Лайт</button>
       </div>
     </div>
     <div class="cmp-foot rv">
@@ -1068,8 +1076,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="final-cta rv">
       <p class="final-cta-txt">Готов попробовать? Первый ролик — бесплатно, без подписки и водяных знаков.</p>
       <div class="final-cta-btns">
-        <span class="glowcta"><a href="#price" class="btn primary lg shine">Скачать Видеорилс Мини</a></span>
-        <a href="#price-lite" class="btn lite lg">Скачать Лайт</a>
+        <span class="glowcta"><a href="#price" class="btn primary lg shine">Скачать Видеорилс</a></span>
       </div>
       <p class="hero-note">Windows · оплата один раз или помесячно · автообновления</p>
     </div>
