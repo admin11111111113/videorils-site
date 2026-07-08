@@ -406,6 +406,31 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .price-group.lite .tier.best .price .now{background:linear-gradient(120deg,#7B2FFF,#b98cff 55%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
 .price-group.lite .badge-hot{background:rgba(123,47,255,.18);border-color:rgba(123,47,255,.45);color:#c9a6ff}
 @media(max-width:560px){.cmp2{grid-template-columns:1fr}}
+/* компактная сетка «есть в обоих» — без колонок Мини/Лайт */
+.both-wrap{max-width:1000px;margin:30px auto 0}
+.both-h{font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.both-h::after{content:"";flex:1;height:1px;background:var(--brd-soft)}
+.both-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.both-item{display:flex;gap:11px;align-items:flex-start;background:var(--panel);border:1px solid var(--brd-soft);border-radius:12px;padding:12px 15px}
+.both-item .ok{color:var(--ok);font-weight:900;font-size:18px;line-height:1.25;flex:none;text-shadow:0 0 9px rgba(61,255,138,.4)}
+.both-item .t{font-size:14.5px;color:var(--txt);font-weight:700;line-height:1.35}
+.both-item .t small{display:block;color:var(--dim);font-weight:400;font-size:12.5px;margin-top:1px}
+.both-note{text-align:center;color:var(--dim);font-size:13.5px;margin-top:16px}
+.both-note a{color:var(--pink);font-weight:700}
+@media(max-width:560px){.both-grid{grid-template-columns:1fr}}
+/* hero: бейдж про бесплатные ИИ */
+.free-ai{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;font-weight:600;color:var(--txt);background:rgba(61,255,138,.09);border:1px solid rgba(61,255,138,.32);padding:7px 15px;border-radius:100px}
+.free-ai b{color:var(--ok)}
+/* ===== секция «Идеи дня» ===== */
+.ideas-flow{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;max-width:1040px;margin:0 auto}
+.idea-chips{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.idea-chip{background:var(--panel);border:1px solid var(--brd);border-radius:12px;padding:13px 16px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.idea-arrow{font-size:36px;color:var(--pink);font-weight:800;text-shadow:0 0 16px rgba(255,61,138,.5)}
+.idea-result{background:linear-gradient(160deg,rgba(255,61,138,.16),rgba(123,47,255,.1));border:1.5px solid var(--brd);border-radius:18px;padding:24px 30px;font-weight:850;font-size:18px;text-align:center;line-height:1.3}
+.idea-result .em{font-size:32px;display:block;margin-bottom:8px}
+.idea-result small{display:block;font-weight:500;font-size:13px;color:var(--dim);margin-top:4px}
+@media(max-width:640px){.ideas-flow{flex-direction:column;gap:18px}.idea-arrow{transform:rotate(90deg)}.idea-chips{width:100%;max-width:420px}}
+@media(max-width:400px){.idea-chips{grid-template-columns:1fr}.idea-chip{white-space:normal}}
 
 /* ============================================================
    БЛОК 8 — FAQ
@@ -582,6 +607,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="hero-cta">
       <span class="glowcta"><a href="#price" class="btn primary lg shine">Сделать первое видео бесплатно</a></span>
       <p class="hero-note">Бесплатная версия · Windows · без подписки и водяных знаков</p>
+      <p class="free-ai"><b>🆓 Работает на бесплатных ИИ</b> — или подключи премиум-ключи, выбор твой</p>
       <p class="hero-note" style="margin-top:8px">Нужны пакеты по 5 видео и Нарезка? — есть версия <a href="#compare" style="color:var(--pink);font-weight:700">Лайт →</a></p>
     </div>
 
@@ -595,6 +621,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <li>Финальный кадр-призыв с <b>QR-кодом</b> на твой канал</li>
       <li>Готовый <b>mp4</b> + подпись и хэштеги для поста</li>
       <li>Работает <b>офлайн</b> на ПК (Windows), без подписок</li>
+      <li><b>Бесплатные ИИ из коробки</b> — премиум по желанию</li>
     </ul>
   </div>
 </section>
@@ -691,6 +718,27 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
+<!-- ============ БЛОК · ИДЕИ ДНЯ ============ -->
+<section class="pad" id="ideas" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">идеи дня</div>
+      <h2>Не знаешь, о чём снимать?<br>Программа знает</h2>
+      <p class="sec-sub">Встроенные «Идеи дня» — подборка тем, которые сейчас набирают просмотры у других авторов. Выбираешь тему одним кликом → получаешь готовый ролик, не придумывая идею с нуля.</p>
+    </div>
+    <div class="ideas-flow stg">
+      <div class="idea-chips">
+        <div class="idea-chip">🔥 Похудение без диет</div>
+        <div class="idea-chip">💰 Заработок на маркетплейсах</div>
+        <div class="idea-chip">🍳 Быстрые рецепты</div>
+        <div class="idea-chip">🚗 Авто с аукциона</div>
+      </div>
+      <div class="idea-arrow">→</div>
+      <div class="idea-result"><span class="em">🎬</span>готовый рилс<small>за пару минут</small></div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ БЛОК 5 · РЕЗУЛЬТАТЫ ============ -->
 <section class="pad" id="results">
   <div class="wrap">
@@ -782,30 +830,19 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       </div>
     </div>
 
-    <div class="tbl-scroll rv">
-      <table class="ftbl">
-        <thead><tr><th>Функция</th><th class="c mh">Мини</th><th class="c lh">Лайт</th></tr></thead>
-        <tbody>
-          <tr class="grp"><td colspan="3">Есть в обоих</td></tr>
-          <tr><td>Рилс из текста <small>AI-сценарий по теме</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Режим «Из видео» <small>пересказ чужого ролика</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Озвучка <small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Ручные ударения, свой голос</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Субтитры <small>выбор стилей</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Финальный кадр (CTA) с QR</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Идеи дня <small>тренды</small></td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr><td>Автообновление · на своих ключах</td><td class="c y">✓</td><td class="c yl">✓</td></tr>
-          <tr class="grp m"><td colspan="3">Только Мини — проще и дешевле</td></tr>
-          <tr><td>1 рилс за раз · до 40 секунд</td><td class="c y">✓</td><td class="c no">—</td></tr>
-          <tr class="grp l"><td colspan="3">Только Лайт — за что доплата</td></tr>
-          <tr><td>📦 Пакет (batch) <small>до 5 роликов за один запуск</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          <tr><td>🎬 Клип-микс / Нарезка <small>15–30 клипов под музыку, вирусный формат</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          <tr><td>Ручная сборка <small>триммер, длина сцен, свой звук/музыка, микшер</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          <tr><td>Ролики до 120 секунд</td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          <tr><td>До 5 ключей <small>обход лимитов, быстрее</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-          <tr><td>Извлечение звука из ролика <small>mp3 для CapCut</small></td><td class="c no">—</td><td class="c yl">✓</td></tr>
-        </tbody>
-      </table>
+    <div class="both-wrap rv">
+      <div class="both-h">Есть в обоих продуктах</div>
+      <div class="both-grid">
+        <div class="both-item"><span class="ok">✓</span><span class="t">Рилс из текста<small>AI-сценарий по теме</small></span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Режим «Из видео»<small>пересказ чужого ролика</small></span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Озвучка<small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Ручные ударения, свой голос</span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Субтитры<small>выбор стилей</small></span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Финальный кадр (CTA) с QR</span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Идеи дня<small>тренды</small></span></div>
+        <div class="both-item"><span class="ok">✓</span><span class="t">Автообновление · на своих ключах</span></div>
+      </div>
+      <p class="both-note">Чем отличаются — смотри карточки <a href="#compare">Мини и Лайт</a> выше ↑</p>
     </div>
   </div>
 </section>
@@ -942,9 +979,11 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     </div>
     <div class="faq stg">
       <details class="qa"><summary>Я не умею монтировать — справлюсь?<span class="plus">+</span></summary><p>Да, монтаж не нужен вообще. Ты вводишь тему — программа сама пишет сценарий, озвучивает, подбирает видеоряд и вписывает субтитры. На выходе готовый вертикальный mp4, таймлайн открывать не придётся.</p></details>
+      <details class="qa"><summary>Что делать, если нет идей для видео?<span class="plus">+</span></summary><p>Для этого есть «Идеи дня» — встроенная подборка тем, которые сейчас набирают просмотры у других авторов. Выбираешь тему одним кликом, и программа сразу собирает по ней готовый ролик — придумывать ничего не нужно. Это не гарантия виральности, но верный способ не сидеть над пустой строкой «о чём бы снять».</p></details>
       <details class="qa"><summary>Как попробовать бесплатно?<span class="plus">+</span></summary><p>Скачай программу и запусти — доступен бесплатный триал: соберёшь рилс на бесплатных голосах и своём бесплатном AI-ключе (получить его — пара минут, без карты). Понравится — оформишь лицензию.</p></details>
       <details class="qa"><summary>Windows ругается «SmartScreen» — почему?<span class="plus">+</span></summary><p>Программа не подписана платным сертификатом, поэтому SmartScreen показывает «Система защитила ваш компьютер». Это нормально: нажми «Подробнее» → «Выполнить в любом случае». Файлы вы скачиваете напрямую с GitHub Releases.</p></details>
       <details class="qa"><summary>Какие ключи нужны и это бесплатно?<span class="plus">+</span></summary><p>Для полной работы нужны свои ключи сервисов озвучки и видеостока — у них есть бесплатные тарифы, которых хватает. Базовая озвучка (Edge-TTS, Piper) работает без ключей. Премиум-голоса (ElevenLabs) — по желанию, на своём ключе.</p></details>
+      <details class="qa"><summary>Нужно ли платить за нейросети?<span class="plus">+</span></summary><p>Нет — можно работать полностью на бесплатных сервисах. Сценарий пишет Gemini (бесплатный ключ), озвучка — Edge-TTS и Piper (без ключей и без оплаты), видеоряд — по триальному медиа-ключу. Премиум по желанию и на своих ключах: живые голоса ElevenLabs и сценарии Claude. Лицензия Видеорилс оплачивается отдельно от нейросетей — это плата за саму программу, а не за ИИ.</p></details>
       <details class="qa"><summary>Как оплатить и получить ключ?<span class="plus">+</span></summary><p>Оплата в USDT (TRC-20). После перевода сервер автоматически проверяет платёж и выдаёт лицензионный ключ прямо в программу — вручную ничего пересылать не нужно.</p></details>
       <details class="qa"><summary>Лицензия навсегда или подписка?<span class="plus">+</span></summary><p>Есть и то, и другое: месяц $15, год $79 или навсегда $97. Пожизненная лицензия оплачивается один раз и привязывается к одному компьютеру — без ежемесячных списаний.</p></details>
       <details class="qa"><summary>На каком языке делает рилсы?<span class="plus">+</span></summary><p>Основной язык — русский: озвучка, субтитры и AI-сценарии на русском. Интерфейс переключается RU / EN.</p></details>
