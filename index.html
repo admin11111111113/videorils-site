@@ -277,21 +277,20 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 /* ============================================================
    БЛОК 5 — РЕЗУЛЬТАТЫ
    ============================================================ */
-.res-row{display:flex;justify-content:center;align-items:center;gap:26px;flex-wrap:wrap;max-width:960px;margin:0 auto}
-.res-phone{position:relative;width:220px;aspect-ratio:9/19.5;border-radius:32px;padding:9px;background:linear-gradient(160deg,#241436,#0D0716);box-shadow:0 26px 70px rgba(0,0,0,.6),0 0 0 1px var(--brd);cursor:pointer;animation:floaty2 7s ease-in-out infinite;will-change:transform}
-.res-phone.mid{width:262px;z-index:2;animation-duration:6s}
-.res-phone:nth-child(1){animation-delay:.4s}.res-phone:nth-child(3){animation-delay:.8s}
-@keyframes floaty2{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-@media(prefers-reduced-motion:reduce){.res-phone{animation:none}}
-/* пульс-свечение — только opacity (radial статичный) */
-.res-phone::after{content:"";position:absolute;inset:-18%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(255,61,138,.36),rgba(123,47,255,.24) 48%,transparent 72%);animation:glowPulse 4s ease-in-out infinite}
-@keyframes glowPulse{0%,100%{opacity:.7}50%{opacity:1}}
-@media(prefers-reduced-motion:reduce){.res-phone::after{animation:none}}
-.res-phone video{width:100%;height:100%;object-fit:cover;border-radius:24px;background:#000}
-.res-play{position:absolute;inset:0;margin:auto;width:52px;height:52px;border:none;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .2s;z-index:3}
-.res-play svg{width:24px;height:24px;fill:#fff;margin-left:3px}
-.res-phone.playing .res-play{opacity:0;pointer-events:none}
-@media(max-width:640px){.res-phone{width:150px}.res-phone.mid{width:180px}}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:14px;max-width:1000px;margin:0 auto}
+.gcard{position:relative;margin:0;aspect-ratio:9/16;border-radius:16px;overflow:hidden;cursor:pointer;background:#0a0812;border:1px solid var(--brd-soft);box-shadow:0 10px 30px rgba(0,0,0,.45);transition:transform .18s,border-color .18s,box-shadow .18s}
+.gcard:hover{transform:translateY(-4px);border-color:var(--brd);box-shadow:0 14px 40px rgba(255,61,138,.22)}
+.gcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0}
+.gcard .gposter{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s;z-index:1}
+.gcard.playing .gposter{opacity:0}
+.gplay{position:absolute;inset:0;margin:auto;width:52px;height:52px;border:none;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;transition:opacity .2s}
+.gplay svg{width:22px;height:22px;fill:#fff;margin-left:3px}
+.gcard.playing .gplay{opacity:0}
+.gsound{position:absolute;bottom:8px;right:8px;width:44px;height:44px;border:none;border-radius:12px;background:rgba(0,0,0,.55);color:#fff;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;transition:background .2s;-webkit-tap-highlight-color:transparent}
+.gsound:hover{background:rgba(255,61,138,.5)}
+.gcard.snd{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 14px 40px rgba(255,61,138,.35)}
+.gcard.snd .gsound{background:var(--grad)}
+@media(max-width:560px){.gallery{grid-template-columns:1fr 1fr;gap:10px}}
 
 /* ============================================================
    БЛОК 6 — МЫ ОДНИ ТАКИЕ
@@ -745,21 +744,22 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="sec-head rv">
       <div class="sec-eyebrow">примеры</div>
       <h2>Собрано программой</h2>
-      <p class="sec-sub">Разные темы, стили и субтитры — всё сделано автоматически, за пару минут. Нажми, чтобы посмотреть со звуком.</p>
+      <p class="sec-sub">13 роликов, собранных программой автоматически — разные темы, стили и субтитры. Играют без звука; нажми 🔊 на ролике, чтобы послушать.</p>
     </div>
-    <div class="res-row rv">
-      <div class="res-phone" data-res>
-        <video preload="none" muted loop playsinline poster="media/reel1.jpg"><source src="media/reel1.mp4" type="video/mp4"></video>
-        <button class="res-play" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      </div>
-      <div class="res-phone mid" data-res>
-        <video preload="none" muted loop playsinline poster="media/reel4.jpg"><source src="media/reel4.mp4" type="video/mp4"></video>
-        <button class="res-play" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      </div>
-      <div class="res-phone" data-res>
-        <video preload="none" muted loop playsinline poster="media/reel5.jpg"><source src="media/reel5.mp4" type="video/mp4"></video>
-        <button class="res-play" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      </div>
+    <div class="gallery rv">
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_01.webp" loading="lazy" alt="Пример рилса 1"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_01.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_02.webp" loading="lazy" alt="Пример рилса 2"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_02.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_03.webp" loading="lazy" alt="Пример рилса 3"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_03.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_04.webp" loading="lazy" alt="Пример рилса 4"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_04.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_05.webp" loading="lazy" alt="Пример рилса 5"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_05.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_06.webp" loading="lazy" alt="Пример рилса 6"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_06.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_07.webp" loading="lazy" alt="Пример рилса 7"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_07.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_08.webp" loading="lazy" alt="Пример рилса 8"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_08.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_09.webp" loading="lazy" alt="Пример рилса 9"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_09.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_10.webp" loading="lazy" alt="Пример рилса 10"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_10.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_11.webp" loading="lazy" alt="Пример рилса 11"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_11.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_12.webp" loading="lazy" alt="Пример рилса 12"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_12.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_13.webp" loading="lazy" alt="Пример рилса 13"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_13.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
     </div>
   </div>
 </section>
@@ -1154,20 +1154,53 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     };
   })();
 
-  /* ===== результаты: play/pause по клику ===== */
-  var resPhones = Array.prototype.slice.call(document.querySelectorAll('[data-res]'));
-  function stopRes(except){
-    resPhones.forEach(function(c){ if(c===except)return; var v=c.querySelector('video');
-      if(v){ v.pause(); v.currentTime=0; v.muted=true; } c.classList.remove('playing'); });
+  /* ===== ГАЛЕРЕЯ: lazy + автоплей(muted) во вьюпорте (лимит 3) + эксклюзивный звук ===== */
+  var canHover = window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var gcards = Array.prototype.slice.call(document.querySelectorAll('.gcard[data-g]'));
+  var gplaying = [];               // карточки, играющие сейчас (muted-автоплей), лимит MAXPLAY
+  var MAXPLAY = 3;
+  function gsrc(v){ if(v && !v.src){ var s=v.getAttribute('data-src'); if(s) v.src=s; } }
+  function gPlay(card){
+    var v=card.querySelector('video'); if(!v) return; gsrc(v);
+    if(gplaying.indexOf(card)<0){
+      gplaying.push(card);
+      while(gplaying.length>MAXPLAY){ var old=gplaying.shift(); if(old!==card && !old.classList.contains('snd')) gPause(old); }
+    }
+    var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing');
   }
-  resPhones.forEach(function(card){
-    var v=card.querySelector('video');
-    card.addEventListener('click',function(){
-      if(!v)return;
-      if(v.paused){ stopRes(card); v.muted=false; var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing'); }
-      else { v.pause(); card.classList.remove('playing'); }
+  function gPause(card){
+    var v=card.querySelector('video'); if(v && !card.classList.contains('snd')) v.pause();
+    card.classList.remove('playing'); var i=gplaying.indexOf(card); if(i>=0) gplaying.splice(i,1);
+  }
+  function galPauseAll(){ gcards.forEach(function(c){ var v=c.querySelector('video');
+    if(v){ v.pause(); v.muted=true; } c.classList.remove('playing','snd');
+    var b=c.querySelector('.gsound'); if(b) b.textContent='🔇'; }); gplaying=[]; }
+  function galMuteOthers(except){ gcards.forEach(function(c){ if(c===except) return;
+    var v=c.querySelector('video'); if(v) v.muted=true; c.classList.remove('snd');
+    var b=c.querySelector('.gsound'); if(b) b.textContent='🔇'; if(!gInView(c)) gPause(c); }); }
+  function gInView(c){ var r=c.getBoundingClientRect(); return r.bottom>0 && r.top<window.innerHeight; }
+  gcards.forEach(function(card){
+    var v=card.querySelector('video'), sb=card.querySelector('.gsound');
+    // кнопка звука: старт muted, тап включает; при включении звука — остальные muted+пауза
+    sb.addEventListener('click',function(e){ e.stopPropagation(); if(!v) return; gsrc(v);
+      if(v.muted){ galMuteOthers(card); v.muted=false; card.classList.add('snd'); sb.textContent='🔊';
+        var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing'); }
+      else { v.muted=true; card.classList.remove('snd'); sb.textContent='🔇'; }
     });
+    // тап по карточке — play/pause (без звука)
+    card.addEventListener('click',function(){ if(!v) return;
+      if(v.paused) gPlay(card); else if(!card.classList.contains('snd')) gPause(card); });
+    if(canHover){
+      card.addEventListener('mouseenter',function(){ gPlay(card); });
+      card.addEventListener('mouseleave',function(){ if(!card.classList.contains('snd')) gPause(card); });
+    }
   });
+  if('IntersectionObserver' in window && !reduce && gcards.length){
+    var gvio=new IntersectionObserver(function(es){ es.forEach(function(e){ var card=e.target;
+      if(e.isIntersecting && e.intersectionRatio>=0.6){ if(!card.classList.contains('snd')) gPlay(card); }
+      else if(!card.classList.contains('snd')) gPause(card); }); },{threshold:[0,0.6]});
+    gcards.forEach(function(c){ gvio.observe(c); });
+  }
 
   /* ===== ОДИН общий IntersectionObserver: reveal + триггеры + видимость hero/результатов ===== */
   var progFilled=false;
@@ -1187,7 +1220,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       entries.forEach(function(e){
         var t=e.target;
         if(t.id==='hero'){ if(e.isIntersecting){ Sim.resume(); TT.start(); } else { Sim.pause(); TT.pause(); } return; }
-        if(t.id==='results'){ if(!e.isIntersecting) stopRes(null); return; }
+        if(t.id==='results'){ if(!e.isIntersecting) galPauseAll(); return; }
         if(!e.isIntersecting) return;
         if(t.classList.contains('rv')||t.classList.contains('stg')) t.classList.add('in');
         if(t.id==='stats') t.querySelectorAll('[data-count]').forEach(countUp);
@@ -1233,7 +1266,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 
   /* ===== пауза при скрытой вкладке ===== */
   document.addEventListener('visibilitychange',function(){
-    if(document.hidden){ Sim.pause(); TT.pause(); stopRes(null); }
+    if(document.hidden){ Sim.pause(); TT.pause(); galPauseAll(); }
     else { var h=$('hero'); if(h){ var r=h.getBoundingClientRect(); if(r.bottom>0&&r.top<window.innerHeight){ Sim.resume(); TT.start(); } } }
   });
 })();
