@@ -592,9 +592,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
           <div class="ph-scr" id="simScreen">
             <div class="ph-empty" id="simEmpty">ждём тему…</div>
             <img class="ph-frame" id="simFrame" alt="" />
-            <video class="ph-vid" id="simVideo" muted loop playsinline preload="none">
-              <source src="media/reel6.mp4" type="video/mp4" />
-            </video>
+            <video class="ph-vid" id="simVideo" muted loop playsinline preload="metadata"></video>
             <div class="ph-subs" id="simSubs"></div>
             <div class="ph-done" id="simDone"><span>✅ Готово за 47 секунд</span></div>
           </div>
@@ -1067,22 +1065,18 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   }
 
   /* ===== typewriter строка тем (управляется видимостью hero) ===== */
+  // Печатающаяся строка темы под H1 — ВЕДЁТСЯ симуляцией (TT.type вызывается циклом),
+  // чтобы тема в заголовке совпадала с темой, которую собирает программа в панели.
   var TT = (function(){
-    var THEME_NAMES=["Похудение без диет","Заработок на маркетплейсах","Рецепты за 30 секунд","Разбор авто с аукциона","Как начать блог"];
-    var tt=$('typeTheme'), t=null, ni=0, ci=0, del=false, on=false;
-    if(!tt) return {start:function(){},pause:function(){}};
-    if(reduce){ tt.textContent=THEME_NAMES[0]; return {start:function(){},pause:function(){}}; }
-    function loop(){
-      var word=THEME_NAMES[ni%THEME_NAMES.length];
-      tt.textContent=word.slice(0,ci);
-      if(!del){ ci++; if(ci>word.length){ del=true; t=setTimeout(loop,1400); return; } }
-      else { ci--; if(ci===0){ del=false; ni++; } }
-      t=setTimeout(loop, del?38:75);
+    var tt=$('typeTheme'), timer=null;
+    if(!tt) return {type:function(){},pause:function(){},start:function(){}};
+    function type(text){
+      if(timer){clearTimeout(timer);timer=null;}
+      if(reduce){ tt.textContent=text; return; }
+      var i=0; tt.textContent='';
+      (function go(){ if(i<=text.length){ tt.textContent=text.slice(0,i); i++; timer=setTimeout(go,60);} })();
     }
-    return {
-      start:function(){ if(on)return; on=true; loop(); },
-      pause:function(){ on=false; if(t){clearTimeout(t); t=null;} }
-    };
+    return { type:type, pause:function(){ if(timer){clearTimeout(timer);timer=null;} }, start:function(){} };
   })();
 
   /* ===== живая симуляция (controller: begin/pause/resume) ===== */
@@ -1091,14 +1085,28 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         wave=$('simWave'),stepsBox=$('simSteps'),frame=$('simFrame'),video=$('simVideo'),
         subsEl=$('simSubs'),doneB=$('simDone'),empty=$('simEmpty');
     if(!topicEl||!frame) return {begin:function(){},pause:function(){},resume:function(){}};
-    var FRAMES=["media/sim1.webp","media/sim2.webp","media/sim3.webp","media/sim4.webp"];
+    // 4 темы: у КАЖДОЙ свои строки сценария (реальные фразы из ролика), свои 4 стоп-кадра
+    // на этап «видеоряд», свои прыгающие субтитры и СВОЁ hero-видео, играющее в финале цикла.
     var THEMES=[
-      {topic:"Похудение без диет",lines:["Дефицит всего 300 калорий — минус 2–3 кг в месяц.","Никаких голодовок: убираем лишний сахар и перекусы.","Первый результат виден уже через 2 недели."],subs:["МИНУС","2–3 КГ","БЕЗ","ГОЛОДА"]},
-      {topic:"Заработок на маркетплейсах",lines:["Один товар приносит до 80 000 ₽ в месяц.","Стартовать реально с 30 000 ₽ вложений.","Секрет — ниша, где ещё нет гигантов."],subs:["80 000 ₽","С НУЛЯ","НА WB"]},
-      {topic:"Рецепты за 30 секунд",lines:["Три ингредиента — и ужин готов.","Никакой духовки, только сковорода.","Сохрани, чтобы не потерять."],subs:["3","ИНГРЕДИЕНТА","ЗА 30 СЕК"]},
-      {topic:"Разбор авто с аукциона",lines:["Пробег скручен почти на каждой второй машине.","Историю проверяем по VIN за 2 минуты.","Один звонок экономит до 200 000 ₽."],subs:["ПРОВЕРЬ","VIN","ДО","ПОКУПКИ"]}
+      {topic:"Похудение без диет", video:"media/hero_pohudenie.mp4",
+       frames:["media/hero_pohudenie_1.webp","media/hero_pohudenie_2.webp","media/hero_pohudenie_3.webp","media/hero_pohudenie_4.webp"],
+       lines:["Дефицит всего 300 калорий — и жир уходит без тренировок.","База на каждый день: яйца, творог, овощи.","Первый результат виден уже за месяц."],
+       subs:["ДЕФИЦИТ","300 ККАЛ","БЕЗ","ТРЕНИРОВОК"]},
+      {topic:"Заработок на маркетплейсах", video:"media/hero_marketplace.mp4",
+       frames:["media/hero_marketplace_1.webp","media/hero_marketplace_2.webp","media/hero_marketplace_3.webp","media/hero_marketplace_4.webp"],
+       lines:["Зашёл на маркетплейсы с последними деньгами.","Первые продажи — от 500 рублей за штуку.","Один товар в нужной нише перекрыл все затраты."],
+       subs:["500 ₽","С НУЛЯ","НА WB","+30"]},
+      {topic:"Ужин за 15 минут", video:"media/hero_recept.mp4",
+       frames:["media/hero_recept_1.webp","media/hero_recept_2.webp","media/hero_recept_3.webp","media/hero_recept_4.webp"],
+       lines:["Ужин из трёх ингредиентов за 15 минут.","Куриное филе, овощи и ложка соевого соуса.","Одна сковорода — и порция на двоих готова."],
+       subs:["3","ИНГРЕДИЕНТА","15","МИНУТ"]},
+      {topic:"Проверка авто перед покупкой", video:"media/hero_avto.mp4",
+       frames:["media/hero_avto_1.webp","media/hero_avto_2.webp","media/hero_avto_3.webp","media/hero_avto_4.webp"],
+       lines:["Открой лючок и вытяни щуп — проверь до покупки.","Разводы и подтёки выдают утопленника или скрутку.","Пять минут осмотра экономят сотни тысяч рублей."],
+       subs:["ПРОВЕРЬ","ДО","ПОКУПКИ","VIN"]}
     ];
-    var framesPreloaded=false;
+    var curFrames=THEMES[0].frames, curVideo="";
+    var preloaded={};
     var stepEls={};
     if(stepsBox){Array.prototype.forEach.call(stepsBox.querySelectorAll('li'),function(li){stepEls[li.getAttribute('data-s')]=li;});}
     var timers=[], started=false, paused=false, ti=0;
@@ -1106,16 +1114,22 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     function clearAll(){timers.forEach(clearTimeout);timers=[];}
     function step(k,st){var li=stepEls[k];if(!li)return;li.className=(st||'');}
     function setEmpty(txt){if(empty){empty.textContent=txt;}}
+    function preloadFrames(arr){if(preloaded[arr[0]])return;preloaded[arr[0]]=1;arr.forEach(function(s){var im=new Image();im.src=s;});}
+    // ленивая загрузка hero-видео: src ставим в НАЧАЛЕ цикла темы (буферизуется за ~15с
+    // шагов и играет в финале). Первая тема грузится при старте, остальные — по мере цикла.
+    function setVideo(src){ if(curVideo!==src){ curVideo=src; try{video.src=src;}catch(e){} } }
     function typeTopic(txt,done){topicEl.textContent='';var i=0;(function go(){if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,55);}else{T(done,650);}})();}
     function showLines(arr,done){linesEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,900);}else{T(done,750);}})();}
     function showSubs(arr,done){subsEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var w=document.createElement('span');w.className='w';w.textContent=arr[i];subsEl.appendChild(w);i++;T(go,560);}else{T(done,900);}})();}
-    function flipFrames(done){var i=0;frame.classList.add('on');if(empty)empty.style.display='none';(function go(){if(i<FRAMES.length){frame.src=FRAMES[i];i++;T(go,720);}else{T(done,320);}})();}
+    function flipFrames(done){var i=0;frame.classList.add('on');if(empty)empty.style.display='none';(function go(){if(i<curFrames.length){frame.src=curFrames[i];i++;T(go,720);}else{T(done,320);}})();}
     function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(empty){empty.style.display='';}}
     function cycle(){
       clearAll();
       for(var k in stepEls)step(k,'');
       statusEl.textContent='';linesEl.innerHTML='';resetScreen();wave.hidden=true;
       var t=THEMES[ti%THEMES.length];ti++;
+      curFrames=t.frames; preloadFrames(curFrames); setVideo(t.video);  // кадры+видео темы (лениво)
+      TT.type(t.topic);                                                 // строка темы под H1 — синхронно
       setEmpty('ждём тему…');
       typeTopic(t.topic,function(){
         step('script','act');statusEl.textContent='✍ ИИ пишет сценарий…';setEmpty('пишем сценарий…');
@@ -1136,19 +1150,19 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         });
       });
     }
-    function preload(){ if(framesPreloaded)return; framesPreloaded=true; FRAMES.forEach(function(s){var im=new Image();im.src=s;}); }
     if(reduce){
       return {begin:function(){
-        preload();
+        var t=THEMES[0]; curFrames=t.frames; preloadFrames(curFrames);
         for(var k in stepEls)step(k,'done');
         if(empty)empty.style.display='none';
-        topicEl.textContent=THEMES[0].topic;if(caret)caret.style.display='none';
-        statusEl.textContent='✅ Готово за 47 секунд';doneB.classList.add('on');frame.src=FRAMES[0];video.classList.add('on');
+        topicEl.textContent=t.topic; TT.type(t.topic); if(caret)caret.style.display='none';
+        statusEl.textContent='✅ Готово за 47 секунд';doneB.classList.add('on');frame.src=t.frames[0];
+        setVideo(t.video); video.classList.add('on');
         try{var pr=video.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}
       },pause:function(){},resume:function(){}};
     }
     return {
-      begin:function(){ if(started)return; started=true;paused=false; preload(); cycle(); },
+      begin:function(){ if(started)return; started=true;paused=false; cycle(); },
       pause:function(){ if(!started)return; paused=true; clearAll(); try{video.pause();}catch(e){} },
       resume:function(){ if(!started){ this.begin(); return; } if(paused){ paused=false; cycle(); } }
     };
