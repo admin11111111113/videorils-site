@@ -648,7 +648,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <span class="w" style="--i:2">которая</span> <span class="w" style="--i:3">делает</span>
         <span class="w" style="--i:4">рилсы</span> <span class="w hl" style="--i:5">за тебя</span>
       </h1>
-      <p class="type-line"><span class="lbl">тема&nbsp;→</span> <b id="typeTheme"></b></p>
     </div>
 
     <div class="sim-grid">
@@ -1219,7 +1218,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       for(var k in stepEls)step(k,'');
       statusEl.textContent='';linesEl.innerHTML='';resetScreen();wave.hidden=true;
       var t=THEMES[ti%THEMES.length];ti++;
-      curFrames=t.frames; preloadFrames(curFrames); setVideo(t.video);  // кадры+видео темы (лениво)
+      setVideo(t.video);                                                // видео темы (лениво, играет с «Видеоряд»)
       TT.type(t.topic);                                                 // строка темы под H1 — синхронно
       setEmpty('ждём тему…');
       typeTopic(t.topic,function(){
@@ -1228,15 +1227,20 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
           step('script','done');step('voice','act');statusEl.textContent='🎙 Озвучиваю текст…';setEmpty('озвучка…');wave.hidden=false;
           T(function(){
             wave.hidden=true;step('voice','done');step('clips','act');statusEl.textContent='🎬 Подбираю видеоряд…';
-            flipFrames(function(){
+            // с этапа «Видеоряд» в телефоне играет РЕАЛЬНОЕ видео темы (x2) и идёт
+            // НЕПРЕРЫВНО через Видеоряд → Субтитры → Готово. Никаких склеек-кадров и
+            // рисованных плашек: в ролике свои настоящие клипы и субтитры.
+            if(empty)empty.style.display='none';frame.classList.remove('on');subsEl.innerHTML='';
+            video.classList.add('on');if(phone)phone.classList.add('vplay');
+            try{video.currentTime=0;video.playbackRate=2;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+            // Видеоряд+Субтитры+Готово ≈ длина ролика на x2 (~12.5с) — видео не обрывается
+            T(function(){
               step('clips','done');step('subs','act');statusEl.textContent='💬 Накладываю субтитры…';
-              showSubs(t.lines,function(){
-                step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';
-                subsEl.innerHTML='';frame.classList.remove('on');video.classList.add('on');doneB.classList.add('on');if(phone)phone.classList.add('vplay');
-                try{video.currentTime=0;video.playbackRate=2;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
-                T(cycle,12800);   // ролик 23-25с на x2 ≈ 12с — проходит целиком за этап «Готово»
-              });
-            });
+              T(function(){
+                step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';doneB.classList.add('on');
+                T(cycle,6000);       // «Готово» + докрутка ролика до конца
+              },3500);               // «Субтитры» (видео продолжает играть)
+            },3000);                 // «Видеоряд»
           },2600);
         });
       });
