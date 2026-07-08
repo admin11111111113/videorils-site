@@ -207,7 +207,8 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 @media(prefers-reduced-motion:reduce){.phone{animation:none;transform:none}.phone-wrap:hover .phone{transform:none}}
 .phone-badge{position:absolute;bottom:22px;right:-16px;background:var(--bg-2);border:1px solid var(--brd);border-radius:12px;padding:9px 13px;font-size:12px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:7px;z-index:6}
 .phone-badge .pdot{width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink)}
-.ph-scr{position:absolute;inset:11px;border-radius:28px;overflow:hidden;background:#0a0812;z-index:1}
+.ph-scr{position:absolute;inset:11px;border-radius:28px;overflow:hidden;background:#0a0812;z-index:1;transform:translateZ(0)}
+.phone.vplay{animation-play-state:paused}   /* флоат на паузе, пока играет видео — без repaint видеослоя */
 .ph-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dimmer);font-size:12.5px;background:linear-gradient(150deg,#160d26,#0d0816);animation:phpulse 1.8s ease-in-out infinite}
 @keyframes phpulse{50%{opacity:.55}}
 .ph-frame,.ph-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s}
@@ -277,10 +278,22 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 /* ============================================================
    БЛОК 5 — РЕЗУЛЬТАТЫ
    ============================================================ */
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:14px;max-width:1000px;margin:0 auto}
-.gcard{position:relative;margin:0;aspect-ratio:9/16;border-radius:16px;overflow:hidden;cursor:pointer;background:#0a0812;border:1px solid var(--brd-soft);box-shadow:0 10px 30px rgba(0,0,0,.45);transition:transform .18s,border-color .18s,box-shadow .18s}
-.gcard:hover{transform:translateY(-4px);border-color:var(--brd);box-shadow:0 14px 40px rgba(255,61,138,.22)}
-.gcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0}
+/* ===== ГОРИЗОНТАЛЬНАЯ КАРУСЕЛЬ ===== */
+.car-wrap{position:relative;max-width:1120px;margin:0 auto}
+.carousel{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;padding:14px 4px 20px;scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;cursor:grab}
+.carousel::-webkit-scrollbar{display:none}
+.carousel.grabbing{cursor:grabbing;scroll-behavior:auto}
+.gcard{position:relative;margin:0;flex:0 0 auto;width:186px;aspect-ratio:9/16;border-radius:16px;overflow:hidden;
+  cursor:pointer;background:#0a0812;border:1px solid var(--brd-soft);box-shadow:0 10px 30px rgba(0,0,0,.45);
+  scroll-snap-align:center;transition:border-color .18s,box-shadow .18s;will-change:transform}
+/* лёгкий «вразнобой»: чуть разная вертикальная посадка соседних плиток */
+.gcard:nth-child(3n+1){transform:translateY(-10px)}
+.gcard:nth-child(3n+2){transform:translateY(6px)}
+.gcard:nth-child(3n+3){transform:translateY(-4px)}
+.gcard:hover{border-color:var(--brd);box-shadow:0 14px 40px rgba(255,61,138,.22)}
+.gcard video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0;transform:translateZ(0)}
 .gcard .gposter{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s;z-index:1}
 .gcard.playing .gposter{opacity:0}
 .gplay{position:absolute;inset:0;margin:auto;width:52px;height:52px;border:none;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;transition:opacity .2s}
@@ -290,7 +303,14 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .gsound:hover{background:rgba(255,61,138,.5)}
 .gcard.snd{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 14px 40px rgba(255,61,138,.35)}
 .gcard.snd .gsound{background:var(--grad)}
-@media(max-width:560px){.gallery{grid-template-columns:1fr 1fr;gap:10px}}
+.car-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--brd);background:rgba(13,7,22,.62);backdrop-filter:blur(4px);color:var(--txt);
+  font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s,opacity .2s}
+.car-arrow:hover{background:rgba(255,61,138,.35);border-color:var(--pink)}
+.car-arrow.prev{left:-6px}.car-arrow.next{right:-6px}
+.car-arrow[disabled]{opacity:.25;pointer-events:none}
+@media(max-width:640px){.gcard{width:62vw}.car-arrow{display:none}}
+@media(prefers-reduced-motion:reduce){.gcard{transform:none!important}}
 
 /* ============================================================
    БЛОК 6 — МЫ ОДНИ ТАКИЕ
@@ -405,6 +425,15 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .price-group.lite .tier.best .price .now{background:linear-gradient(120deg,#7B2FFF,#b98cff 55%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
 .price-group.lite .badge-hot{background:rgba(123,47,255,.18);border-color:rgba(123,47,255,.45);color:#c9a6ff}
 @media(max-width:560px){.cmp2{grid-template-columns:1fr}}
+/* панель тарифов — переключение на месте (без прыжка вьюпорта) */
+.tpick{cursor:pointer}
+.cmp-card .tpick.on{box-shadow:0 0 0 2px var(--pink)}
+.cmp-card.lite .tpick.on{box-shadow:0 0 0 2px #b98cff}
+.tariff-panel{margin-top:26px;position:relative}
+.tgroup{display:none}
+.tgroup.active{display:block;animation:tgIn .34s ease}
+@keyframes tgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.tgroup.active{animation:none}}
 /* компактная сетка «есть в обоих» — без колонок Мини/Лайт */
 .both-wrap{max-width:1000px;margin:30px auto 0}
 .both-h{font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 14px;display:flex;align-items:center;gap:10px}
@@ -744,20 +773,24 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <h2>Собрано программой</h2>
       <p class="sec-sub">13 роликов, собранных программой автоматически — разные темы, стили и субтитры. Играют без звука; нажми 🔊 на ролике, чтобы послушать.</p>
     </div>
-    <div class="gallery rv">
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_01.webp" loading="lazy" alt="Пример рилса 1"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_01.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_02.webp" loading="lazy" alt="Пример рилса 2"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_02.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_03.webp" loading="lazy" alt="Пример рилса 3"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_03.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_04.webp" loading="lazy" alt="Пример рилса 4"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_04.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_05.webp" loading="lazy" alt="Пример рилса 5"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_05.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_06.webp" loading="lazy" alt="Пример рилса 6"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_06.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+    <div class="car-wrap rv">
+      <button class="car-arrow prev" id="carPrev" type="button" aria-label="Назад">‹</button>
+      <div class="carousel" id="carousel">
       <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_07.webp" loading="lazy" alt="Пример рилса 7"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_07.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_08.webp" loading="lazy" alt="Пример рилса 8"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_08.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_09.webp" loading="lazy" alt="Пример рилса 9"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_09.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_10.webp" loading="lazy" alt="Пример рилса 10"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_10.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_02.webp" loading="lazy" alt="Пример рилса 2"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_02.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
       <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_11.webp" loading="lazy" alt="Пример рилса 11"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_11.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_12.webp" loading="lazy" alt="Пример рилса 12"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_12.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_04.webp" loading="lazy" alt="Пример рилса 4"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_04.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
       <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_13.webp" loading="lazy" alt="Пример рилса 13"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_13.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_09.webp" loading="lazy" alt="Пример рилса 9"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_09.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_01.webp" loading="lazy" alt="Пример рилса 1"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_01.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_06.webp" loading="lazy" alt="Пример рилса 6"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_06.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_10.webp" loading="lazy" alt="Пример рилса 10"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_10.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_03.webp" loading="lazy" alt="Пример рилса 3"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_03.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_12.webp" loading="lazy" alt="Пример рилса 12"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_12.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_05.webp" loading="lazy" alt="Пример рилса 5"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_05.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_08.webp" loading="lazy" alt="Пример рилса 8"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_08.mp4"></video><button class="gplay" aria-label="Смотреть"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Включить звук">🔇</button></figure>
+      </div>
+      <button class="car-arrow next" id="carNext" type="button" aria-label="Вперёд">›</button>
     </div>
   </div>
 </section>
@@ -789,13 +822,13 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК 7 · СРАВНЕНИЕ ПРОДУКТОВ ============ -->
-<section class="pad" id="compare">
+<!-- ============ БЛОК 7 · ПРОДУКТЫ + ТАРИФЫ (переключатель на месте) ============ -->
+<section class="pad" id="price">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">два продукта</div>
       <h2>Мини или Лайт?</h2>
-      <p class="sec-sub">Мини — чтобы начать: один ролик за раз. Лайт (Макси) — для потока: пакеты, длинные ролики, Нарезка.</p>
+      <p class="sec-sub">Мини — чтобы начать: один ролик за раз. Лайт (Макси) — для потока: пакеты, длинные ролики, Нарезка. Выбери — тарифы откроются ниже.</p>
     </div>
     <div class="cmp2 stg">
       <div class="cmp-card">
@@ -810,7 +843,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
           <li><span>Ручная сборка</span><b class="no">—</b></li>
           <li><span>Цена</span><b>$15/мес · $79/год · $97 навсегда</b></li>
         </ul>
-        <a href="#price-mini" class="btn ghost lg" style="width:100%">Тарифы Мини ↓</a>
+        <button type="button" class="btn ghost lg tpick" data-tariff="mini" aria-pressed="true" style="width:100%">Тарифы Мини ↓</button>
       </div>
       <div class="cmp-card lite">
         <div class="cmp-tag lite">Для потока</div>
@@ -824,8 +857,117 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
           <li><span>Ручная сборка</span><b class="acc">✓ есть</b></li>
           <li><span>Цена</span><b>$29/мес · $149/год · $197 навсегда</b></li>
         </ul>
-        <a href="#price-lite" class="btn lite lg" style="width:100%">Тарифы Лайт ↓</a>
+        <button type="button" class="btn lite lg tpick" data-tariff="lite" aria-pressed="false" style="width:100%">Тарифы Лайт ↓</button>
       </div>
+    </div>
+
+    <!-- панель тарифов: раскрывается ПОД карточками, переключается на месте (без прыжка) -->
+    <div class="tariff-panel" id="tariffPanel">
+      <div class="tgroup active" data-tg="mini">
+        <div class="pg-head"><h3>Тарифы Видеорилс <b>Мини</b></h3><span>для старта · 1 ролик за раз, до 40 сек</span></div>
+        <div class="tiers">
+          <div class="tier">
+            <div class="pn">МЕСЯЦ</div>
+            <div class="price"><span class="now">$15</span><span class="cur">USDT</span></div>
+            <div class="sub">Попробовать без больших вложений</div>
+            <ul>
+              <li>AI-сценарий по твоему тексту</li>
+              <li>Озвучка: бесплатная или премиум</li>
+              <li>Видеоряд + крупные субтитры</li>
+              <li>1 рилс за раз, до 40 секунд</li>
+            </ul>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
+            <div class="dlnote">Windows · тариф — в приложении</div>
+          </div>
+          <div class="tier best">
+            <span class="badge-hot">🔥 Стартовая цена</span>
+            <div class="pn">НАВСЕГДА</div>
+            <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
+            <div class="sub">Оплатил один раз — пользуешься без ограничений по времени</div>
+            <div class="prog">
+              <div class="prog-bar"><i data-fill="3"></i></div>
+              <div class="prog-lbl" data-slots>занято 3 из 100 по стартовой цене</div>
+            </div>
+            <ul>
+              <li>Всё из тарифа «Месяц»</li>
+              <li>Лицензия навсегда, без подписки</li>
+              <li>Все обновления Мини включены</li>
+              <li>Без водяных знаков</li>
+            </ul>
+            <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn primary lg shine" style="width:100%">↓ Скачать Видеорилс Мини</a></span>
+            <div class="dlnote">Windows · оплата $97 — в приложении</div>
+          </div>
+          <div class="tier">
+            <div class="pn">ГОД</div>
+            <div class="price"><span class="now">$79</span><span class="cur">USDT</span></div>
+            <div class="sub">Год полного доступа со скидкой</div>
+            <ul>
+              <li>Всё из тарифа «Месяц»</li>
+              <li>Обновления в течение года</li>
+              <li>Приоритетная поддержка</li>
+              <li>Выгоднее помесячной оплаты</li>
+            </ul>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
+            <div class="dlnote">Windows · тариф — в приложении</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tgroup" data-tg="lite">
+        <div class="pg-head"><h3>Тарифы Видеорилс <b>Лайт</b></h3><span>для потока · пакеты до 5, до 120 сек, Нарезка</span></div>
+        <div class="tiers">
+          <div class="tier">
+            <div class="pn">МЕСЯЦ</div>
+            <div class="price"><span class="now">$29</span><span class="cur">USDT</span></div>
+            <div class="sub">Поток контента без больших вложений</div>
+            <ul>
+              <li>Всё из Видеорилс Мини</li>
+              <li>Пакет до 5 роликов за запуск</li>
+              <li>Клип-микс / Нарезка</li>
+              <li>Ролики до 120 секунд</li>
+            </ul>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+            <div class="dlnote">Windows · тариф — в приложении</div>
+          </div>
+          <div class="tier best">
+            <span class="badge-hot">★ Максимум</span>
+            <div class="pn">НАВСЕГДА</div>
+            <div class="price"><span class="old">$390</span><span class="now">$197</span><span class="cur">USDT</span></div>
+            <div class="sub">Весь Лайт навсегда — пакеты, Нарезка, ручная сборка</div>
+            <ul>
+              <li>Всё из тарифа «Месяц» Лайт</li>
+              <li>Лицензия навсегда, без подписки</li>
+              <li>До 5 ключей на сервис</li>
+              <li>Все обновления Лайт включены</li>
+            </ul>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg shine" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+            <div class="dlnote">Windows · оплата $197 — в приложении</div>
+          </div>
+          <div class="tier">
+            <div class="pn">ГОД</div>
+            <div class="price"><span class="now">$149</span><span class="cur">USDT</span></div>
+            <div class="sub">Год полного Лайта со скидкой</div>
+            <ul>
+              <li>Всё из тарифа «Месяц» Лайт</li>
+              <li>Обновления в течение года</li>
+              <li>Приоритетная поддержка</li>
+              <li>Выгоднее помесячной оплаты</li>
+            </ul>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
+            <div class="dlnote">Windows · тариф — в приложении</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="install rv">
+      <div class="install-title">Как установить (3 шага)</div>
+      <ol>
+        <li><b>Запусти</b> скачанный установщик (Мини или Лайт).</li>
+        <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
+        <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
+      </ol>
+      <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа в приложении.</div>
     </div>
 
     <div class="both-wrap rv">
@@ -840,130 +982,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <div class="both-item"><span class="ok">✓</span><span class="t">Идеи дня<small>тренды</small></span></div>
         <div class="both-item"><span class="ok">✓</span><span class="t">Автообновление · на своих ключах</span></div>
       </div>
-      <p class="both-note">Чем отличаются — смотри карточки <a href="#compare">Мини и Лайт</a> выше ↑</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ БЛОК 8 · ЦЕНА (две группы тарифов) ============ -->
-<section class="pad" id="price">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">цена</div>
-      <h2>Тарифы</h2>
-      <p class="sec-sub">Оплата в приложении (USDT). Пожизненная лицензия — один раз и навсегда, без подписки и токенов за ролик.</p>
-    </div>
-
-    <!-- === группа Мини === -->
-    <div class="price-group rv" id="price-mini">
-      <div class="pg-head"><h3>Видеорилс <b>Мини</b></h3><span>для старта · 1 ролик за раз, до 40 сек</span></div>
-      <div class="tiers stg">
-        <div class="tier">
-          <div class="pn">МЕСЯЦ</div>
-          <div class="price"><span class="now">$15</span><span class="cur">USDT</span></div>
-          <div class="sub">Попробовать без больших вложений</div>
-          <ul>
-            <li>AI-сценарий по твоему тексту</li>
-            <li>Озвучка: бесплатная или премиум</li>
-            <li>Видеоряд + крупные субтитры</li>
-            <li>1 рилс за раз, до 40 секунд</li>
-          </ul>
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
-          <div class="dlnote">Windows · тариф — в приложении</div>
-        </div>
-
-        <div class="tier best">
-          <span class="badge-hot">🔥 Стартовая цена</span>
-          <div class="pn">НАВСЕГДА</div>
-          <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
-          <div class="sub">Оплатил один раз — пользуешься без ограничений по времени</div>
-          <div class="prog">
-            <div class="prog-bar"><i data-fill="3"></i></div>
-            <div class="prog-lbl" data-slots>занято 3 из 100 по стартовой цене</div>
-          </div>
-          <ul>
-            <li>Всё из тарифа «Месяц»</li>
-            <li>Лицензия навсегда, без подписки</li>
-            <li>Все обновления Мини включены</li>
-            <li>Без водяных знаков</li>
-          </ul>
-          <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn primary lg shine" style="width:100%">↓ Скачать Видеорилс Мини</a></span>
-          <div class="dlnote">Windows · оплата $97 — в приложении</div>
-        </div>
-
-        <div class="tier">
-          <div class="pn">ГОД</div>
-          <div class="price"><span class="now">$79</span><span class="cur">USDT</span></div>
-          <div class="sub">Год полного доступа со скидкой</div>
-          <ul>
-            <li>Всё из тарифа «Месяц»</li>
-            <li>Обновления в течение года</li>
-            <li>Приоритетная поддержка</li>
-            <li>Выгоднее помесячной оплаты</li>
-          </ul>
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/v1.2.27/VideoRilsMiniSetup.exe" class="btn ghost lg" style="width:100%">↓ Скачать Видеорилс Мини</a>
-          <div class="dlnote">Windows · тариф — в приложении</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- === группа Лайт === -->
-    <div class="price-group lite rv" id="price-lite">
-      <div class="pg-head"><h3>Видеорилс <b>Лайт</b></h3><span>для потока · пакеты до 5, до 120 сек, Нарезка</span></div>
-      <div class="tiers stg">
-        <div class="tier">
-          <div class="pn">МЕСЯЦ</div>
-          <div class="price"><span class="now">$29</span><span class="cur">USDT</span></div>
-          <div class="sub">Поток контента без больших вложений</div>
-          <ul>
-            <li>Всё из Видеорилс Мини</li>
-            <li>Пакет до 5 роликов за запуск</li>
-            <li>Клип-микс / Нарезка</li>
-            <li>Ролики до 120 секунд</li>
-          </ul>
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
-          <div class="dlnote">Windows · тариф — в приложении</div>
-        </div>
-
-        <div class="tier best">
-          <span class="badge-hot">★ Максимум</span>
-          <div class="pn">НАВСЕГДА</div>
-          <div class="price"><span class="old">$390</span><span class="now">$197</span><span class="cur">USDT</span></div>
-          <div class="sub">Весь Лайт навсегда — пакеты, Нарезка, ручная сборка</div>
-          <ul>
-            <li>Всё из тарифа «Месяц» Лайт</li>
-            <li>Лицензия навсегда, без подписки</li>
-            <li>До 5 ключей на сервис</li>
-            <li>Все обновления Лайт включены</li>
-          </ul>
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg shine" style="width:100%">↓ Скачать Видеорилс Лайт</a>
-          <div class="dlnote">Windows · оплата $197 — в приложении</div>
-        </div>
-
-        <div class="tier">
-          <div class="pn">ГОД</div>
-          <div class="price"><span class="now">$149</span><span class="cur">USDT</span></div>
-          <div class="sub">Год полного Лайта со скидкой</div>
-          <ul>
-            <li>Всё из тарифа «Месяц» Лайт</li>
-            <li>Обновления в течение года</li>
-            <li>Приоритетная поддержка</li>
-            <li>Выгоднее помесячной оплаты</li>
-          </ul>
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.29/VideoRilsLiteSetup.exe" class="btn lite lg" style="width:100%">↓ Скачать Видеорилс Лайт</a>
-          <div class="dlnote">Windows · тариф — в приложении</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="install rv">
-      <div class="install-title">Как установить (3 шага)</div>
-      <ol>
-        <li><b>Запусти</b> скачанный установщик (Мини или Лайт).</li>
-        <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
-        <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
-      </ol>
-      <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа в приложении.</div>
     </div>
   </div>
 </section>
@@ -1117,12 +1135,15 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     function preloadFrames(arr){if(preloaded[arr[0]])return;preloaded[arr[0]]=1;arr.forEach(function(s){var im=new Image();im.src=s;});}
     // ленивая загрузка hero-видео: src ставим в НАЧАЛЕ цикла темы (буферизуется за ~15с
     // шагов и играет в финале). Первая тема грузится при старте, остальные — по мере цикла.
-    function setVideo(src){ if(curVideo!==src){ curVideo=src; try{video.src=src;}catch(e){} } }
+    var isMobileHero = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    var phone = document.querySelector('.phone-wrap .phone');   // рамка-мокап
+    function setVideo(src){ if(isMobileHero) src=src.replace('.mp4','_mobile.mp4');   // на мобиле — лёгкие 540p
+      if(curVideo!==src){ curVideo=src; try{video.src=src;}catch(e){} } }
     function typeTopic(txt,done){topicEl.textContent='';var i=0;(function go(){if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,55);}else{T(done,650);}})();}
     function showLines(arr,done){linesEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,900);}else{T(done,750);}})();}
     function showSubs(arr,done){subsEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var w=document.createElement('span');w.className='w';w.textContent=arr[i];subsEl.appendChild(w);i++;T(go,560);}else{T(done,900);}})();}
     function flipFrames(done){var i=0;frame.classList.add('on');if(empty)empty.style.display='none';(function go(){if(i<curFrames.length){frame.src=curFrames[i];i++;T(go,720);}else{T(done,320);}})();}
-    function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(empty){empty.style.display='';}}
+    function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(phone)phone.classList.remove('vplay');if(empty){empty.style.display='';}}
     function cycle(){
       clearAll();
       for(var k in stepEls)step(k,'');
@@ -1141,7 +1162,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               step('clips','done');step('subs','act');statusEl.textContent='💬 Накладываю субтитры…';
               showSubs(t.subs,function(){
                 step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';
-                subsEl.innerHTML='';frame.classList.remove('on');video.classList.add('on');doneB.classList.add('on');
+                subsEl.innerHTML='';frame.classList.remove('on');video.classList.add('on');doneB.classList.add('on');if(phone)phone.classList.add('vplay');
                 try{video.currentTime=0;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
                 T(cycle,5600);
               });
@@ -1168,18 +1189,16 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     };
   })();
 
-  /* ===== ГАЛЕРЕЯ: lazy + автоплей(muted) во вьюпорте (лимит 3) + эксклюзивный звук ===== */
+  /* ===== КАРУСЕЛЬ: колесо/drag/свайп → гориз.скролл + стрелки + snap + автоплей(muted) в контейнере ===== */
   var canHover = window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-  var gcards = Array.prototype.slice.call(document.querySelectorAll('.gcard[data-g]'));
-  var gplaying = [];               // карточки, играющие сейчас (muted-автоплей), лимит MAXPLAY
-  var MAXPLAY = 3;
+  var carousel = $('carousel');
+  var gcards = carousel ? Array.prototype.slice.call(carousel.querySelectorAll('.gcard[data-g]')) : [];
+  var gplaying = [], MAXPLAY = 2, dragMoved = false;    // ≤2 одновременных декодов (перф на мобиле)
   function gsrc(v){ if(v && !v.src){ var s=v.getAttribute('data-src'); if(s) v.src=s; } }
   function gPlay(card){
     var v=card.querySelector('video'); if(!v) return; gsrc(v);
-    if(gplaying.indexOf(card)<0){
-      gplaying.push(card);
-      while(gplaying.length>MAXPLAY){ var old=gplaying.shift(); if(old!==card && !old.classList.contains('snd')) gPause(old); }
-    }
+    if(gplaying.indexOf(card)<0){ gplaying.push(card);
+      while(gplaying.length>MAXPLAY){ var old=gplaying.shift(); if(old!==card && !old.classList.contains('snd')) gPause(old); } }
     var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing');
   }
   function gPause(card){
@@ -1191,30 +1210,64 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     var b=c.querySelector('.gsound'); if(b) b.textContent='🔇'; }); gplaying=[]; }
   function galMuteOthers(except){ gcards.forEach(function(c){ if(c===except) return;
     var v=c.querySelector('video'); if(v) v.muted=true; c.classList.remove('snd');
-    var b=c.querySelector('.gsound'); if(b) b.textContent='🔇'; if(!gInView(c)) gPause(c); }); }
-  function gInView(c){ var r=c.getBoundingClientRect(); return r.bottom>0 && r.top<window.innerHeight; }
+    var b=c.querySelector('.gsound'); if(b) b.textContent='🔇'; }); }
   gcards.forEach(function(card){
     var v=card.querySelector('video'), sb=card.querySelector('.gsound');
-    // кнопка звука: старт muted, тап включает; при включении звука — остальные muted+пауза
     sb.addEventListener('click',function(e){ e.stopPropagation(); if(!v) return; gsrc(v);
       if(v.muted){ galMuteOthers(card); v.muted=false; card.classList.add('snd'); sb.textContent='🔊';
         var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing'); }
       else { v.muted=true; card.classList.remove('snd'); sb.textContent='🔇'; }
     });
-    // тап по карточке — play/pause (без звука)
-    card.addEventListener('click',function(){ if(!v) return;
+    card.addEventListener('click',function(){ if(dragMoved||!v) return;
       if(v.paused) gPlay(card); else if(!card.classList.contains('snd')) gPause(card); });
     if(canHover){
       card.addEventListener('mouseenter',function(){ gPlay(card); });
       card.addEventListener('mouseleave',function(){ if(!card.classList.contains('snd')) gPause(card); });
     }
   });
-  if('IntersectionObserver' in window && !reduce && gcards.length){
-    var gvio=new IntersectionObserver(function(es){ es.forEach(function(e){ var card=e.target;
+  // автоплей только для плиток, видимых В КОНТЕЙНЕРЕ карусели (root=carousel); видео — лениво
+  if(carousel && 'IntersectionObserver' in window && !reduce && gcards.length){
+    var cvio=new IntersectionObserver(function(es){ es.forEach(function(e){ var card=e.target;
       if(e.isIntersecting && e.intersectionRatio>=0.6){ if(!card.classList.contains('snd')) gPlay(card); }
-      else if(!card.classList.contains('snd')) gPause(card); }); },{threshold:[0,0.6]});
-    gcards.forEach(function(c){ gvio.observe(c); });
+      else if(!card.classList.contains('snd')) gPause(card); }); },{root:carousel,threshold:[0,0.6]});
+    gcards.forEach(function(c){ cvio.observe(c); });
   }
+  // колесо → горизонтальный скролл; drag мышью; кнопки-стрелки; свайп/снап — нативные (CSS)
+  if(carousel){
+    var ct=false;
+    carousel.addEventListener('wheel',function(e){ if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ carousel.scrollLeft+=e.deltaY; e.preventDefault(); } },{passive:false});
+    var down=false,sx=0,sl=0;
+    carousel.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse'){ down=true;dragMoved=false;sx=e.clientX;sl=carousel.scrollLeft;carousel.classList.add('grabbing'); } });
+    window.addEventListener('pointermove',function(e){ if(!down)return; var dx=e.clientX-sx; if(Math.abs(dx)>6)dragMoved=true; carousel.scrollLeft=sl-dx; });
+    window.addEventListener('pointerup',function(){ if(down){ down=false;carousel.classList.remove('grabbing'); setTimeout(function(){dragMoved=false;},60); } });
+    var prevB=$('carPrev'), nextB=$('carNext');
+    function step(){ var c=gcards[0]; if(!c)return 300; var w=c.getBoundingClientRect().width+16;
+      return w*Math.max(1, Math.floor(carousel.clientWidth/w)-1); }
+    function updArrows(){ if(!prevB||!nextB)return; prevB.disabled=carousel.scrollLeft<8;
+      nextB.disabled=carousel.scrollLeft>=carousel.scrollWidth-carousel.clientWidth-8; }
+    if(prevB)prevB.addEventListener('click',function(){ carousel.scrollBy({left:-step(),behavior:'smooth'}); });
+    if(nextB)nextB.addEventListener('click',function(){ carousel.scrollBy({left:step(),behavior:'smooth'}); });
+    carousel.addEventListener('scroll',function(){ if(!ct){ ct=true; requestAnimationFrame(function(){ updArrows(); ct=false; }); } },{passive:true});
+    updArrows();
+  }
+
+  /* ===== ТАРИФЫ: переключение панели на месте (без прыжка), якорь #price-lite → Лайт ===== */
+  (function(){
+    var picks=Array.prototype.slice.call(document.querySelectorAll('.tpick'));
+    var groups=Array.prototype.slice.call(document.querySelectorAll('.tgroup'));
+    if(!groups.length) return;
+    function show(which){
+      groups.forEach(function(g){ g.classList.toggle('active', g.getAttribute('data-tg')===which); });
+      picks.forEach(function(b){ var on=b.getAttribute('data-tariff')===which;
+        b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
+      if(which==='mini' && window.__fillProg) window.__fillProg();
+    }
+    picks.forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault();
+      show(b.getAttribute('data-tariff')); }); });
+    show(location.hash==='#price-lite'?'lite':'mini');
+    window.addEventListener('hashchange',function(){
+      if(location.hash==='#price-lite') show('lite'); else if(location.hash==='#price'||location.hash==='#price-mini') show('mini'); });
+  })();
 
   /* ===== ОДИН общий IntersectionObserver: reveal + триггеры + видимость hero/результатов ===== */
   var progFilled=false;
@@ -1229,6 +1282,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         var lbl=document.querySelector('[data-slots]'); if(lbl) lbl.textContent='занято '+taken+' из 100 по стартовой цене'; }
     }).catch(function(){});
   }
+  window.__fillProg = fillProg;   // вызывается переключателем тарифов при показе Мини
   if('IntersectionObserver' in window){
     var io=new IntersectionObserver(function(entries){
       entries.forEach(function(e){
