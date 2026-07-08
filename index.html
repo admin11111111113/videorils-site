@@ -579,6 +579,39 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   .sp-steps li{min-width:100%}
   .stat .n{font-size:26px}
 }
+/* мостик «Твой первый рилс» (демо → разъяснения) */
+.bridge{text-align:center;max-width:760px;margin:0 auto}
+.bridge h2{font-size:clamp(26px,4.4vw,40px);line-height:1.1;margin-bottom:14px}
+.bridge p{color:var(--dim);font-size:clamp(15px,2vw,18px);line-height:1.6}
+/* рынок: 5 карточек-категорий (2×2 + наша широкая снизу) */
+.mkt{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mkt-card{background:var(--panel);border:1px solid var(--brd-soft);border-radius:18px;padding:24px 22px;position:relative}
+.mkt-card .mkt-h{font-size:16px;font-weight:800;color:var(--dim);margin-bottom:10px;line-height:1.3}
+.mkt-card .mkt-h span{display:block;font-size:12.5px;font-weight:600;color:var(--dimmer);margin-top:2px}
+.mkt-card p{font-size:14px;color:var(--dim);line-height:1.55;margin-bottom:14px}
+.mkt-foot{font-size:13.5px;font-weight:700;color:var(--txt);border-top:1px dashed rgba(255,255,255,.12);padding-top:12px}
+.mkt-us{grid-column:1/-1;border:1.6px solid transparent;background:linear-gradient(150deg,rgba(255,61,138,.14),rgba(24,13,44,.92)) padding-box,linear-gradient(135deg,#FF3D8A,#7B2FFF 55%,#FF8A3D) border-box}
+.mkt-us .mkt-h{color:var(--pink);font-size:20px}
+.mkt-us p{color:var(--txt);font-size:15px}
+.mkt-foot.us{color:#fff;border-top-color:rgba(255,61,138,.35)}
+.mkt-badge{position:absolute;top:16px;right:18px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:linear-gradient(135deg,#FF3D8A,#7B2FFF);padding:5px 12px;border-radius:100px}
+@media(max-width:720px){.mkt{grid-template-columns:1fr;max-width:460px}}
+/* «Купил один раз — пользуешься всегда» */
+.buyonce{max-width:820px;margin:34px auto 0;background:var(--panel-2);border:1px solid var(--brd);border-radius:22px;padding:32px 30px}
+.buyonce h3{font-size:clamp(20px,2.8vw,26px);font-weight:800;margin-bottom:14px;text-align:center}
+.buyonce>p{color:var(--dim);font-size:14.5px;line-height:1.62;margin-bottom:22px}
+.calc{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.calc-row{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--brd-soft)}
+.calc-row .calc-l{font-weight:800;font-size:14.5px;min-width:190px;flex:0 0 auto}
+.calc-row .calc-v{color:var(--dim);font-size:14px}
+.calc-row.bad{border-color:rgba(255,90,90,.3)}.calc-row.bad .calc-l{color:#ff8a8a}
+.calc-row.good{border-color:rgba(61,255,138,.32);background:rgba(61,255,138,.06)}.calc-row.good .calc-l{color:var(--ok)}
+.buyonce-punch{text-align:center;font-size:clamp(15px,2vw,18px);font-weight:800;color:var(--txt);margin:0}
+@media(max-width:560px){.calc-row .calc-l{min-width:100%}}
+/* компактный финальный CTA */
+.final-cta{text-align:center;max-width:720px;margin:0 auto}
+.final-cta-txt{font-size:clamp(17px,2.6vw,22px);font-weight:800;color:var(--txt);margin-bottom:20px;line-height:1.35}
+.final-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -662,21 +695,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <span class="glowcta"><a href="#price" class="btn primary lg shine">Сделать первое видео бесплатно</a></span>
       <p class="hero-note">Бесплатная версия · Windows · без подписки и водяных знаков</p>
       <p class="free-ai"><b>🆓 Работает на бесплатных ИИ</b> — или подключи премиум-ключи, выбор твой</p>
-      <p class="hero-note" style="margin-top:8px">Нужны пакеты по 5 видео и Нарезка? — есть версия <a href="#compare" style="color:var(--pink);font-weight:700">Лайт →</a></p>
     </div>
 
     <p class="hero-seo">Программа сама напишет сценарий, озвучит, подберёт видеоряд под каждую сцену, впишет крупные субтитры и соберёт вертикальный ролик 9:16 для TikTok, Instagram Reels и YouTube Shorts (и любых вертикальных площадок — VK Клипы, Дзен). Без монтажа, без стоков, без микрофона — от идеи до готового видео за пару минут, прямо на твоём ПК.</p>
-    <ul class="perks">
-      <li><b>Сценарий пишет ИИ</b> — вставь тему, получи готовый текст</li>
-      <li>Озвучка на выбор: <b>бесплатная</b> или <b>живые голоса</b></li>
-      <li>Видеоряд подбирается <b>автоматически</b> под каждую сцену</li>
-      <li>Крупные субтитры уже вписаны — яркие стили на выбор</li>
-      <li><b>Свой голос</b> — можно озвучить рилс собственным голосом</li>
-      <li>Финальный кадр-призыв с <b>QR-кодом</b> на твой канал</li>
-      <li>Готовый <b>mp4</b> + подпись и хэштеги для поста</li>
-      <li>Работает <b>офлайн</b> на ПК (Windows), без подписок</li>
-      <li><b>Бесплатные ИИ из коробки</b> — премиум по желанию</li>
-    </ul>
   </div>
 </section>
 
@@ -696,6 +717,16 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="stat" id="rendersStat" style="display:none"><div class="n"><span id="rendersN">0</span></div><div class="l">роликов создано</div></div>
   </div>
 </div>
+
+<!-- ============ МОСТИК · демо → разъяснения (без кнопки, CTA уже в hero) ============ -->
+<section class="pad" id="bridge" style="padding-bottom:6px">
+  <div class="wrap">
+    <div class="bridge rv">
+      <h2 class="grad-txt">Твой первый рилс — бесплатно</h2>
+      <p>Дай тему — и ИИ Видеорилс сам соберёт вертикальный ролик с озвучкой и субтитрами за пару минут на твоём Windows. Ниже — как это работает, что получаешь и сколько стоит.</p>
+    </div>
+  </div>
+</section>
 
 <!-- ============ БЛОК 3 · БОЛЬ ============ -->
 <section class="pad" id="pain">
@@ -772,27 +803,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК · ИДЕИ ДНЯ ============ -->
-<section class="pad" id="ideas" style="padding-top:20px">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">идеи дня</div>
-      <h2>Не знаешь, о чём снимать?<br>Программа знает</h2>
-      <p class="sec-sub">Встроенные «Идеи дня» — подборка тем, которые сейчас набирают просмотры у других авторов. Выбираешь тему одним кликом → получаешь готовый ролик, не придумывая идею с нуля.</p>
-    </div>
-    <div class="ideas-flow stg">
-      <div class="idea-chips">
-        <div class="idea-chip">🔥 Похудение без диет</div>
-        <div class="idea-chip">💰 Заработок на маркетплейсах</div>
-        <div class="idea-chip">🍳 Быстрые рецепты</div>
-        <div class="idea-chip">🚗 Авто с аукциона</div>
-      </div>
-      <div class="idea-arrow">→</div>
-      <div class="idea-result"><span class="em">🎬</span>готовый рилс<small>за пару минут</small></div>
-    </div>
-  </div>
-</section>
-
 <!-- ============ БЛОК 5 · РЕЗУЛЬТАТЫ ============ -->
 <section class="pad" id="results">
   <div class="wrap">
@@ -823,7 +833,57 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- (блок «чем отличаемся» перенесён вниз, под рамки Мини/Лайт) -->
+<!-- ============ БЛОК 6 · ЧЕМ ЛУЧШЕ АЛЬТЕРНАТИВ ============ -->
+<section class="pad" id="uniq">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">сравнение</div>
+      <h2>Сравни сам — по фактам, не по словам</h2>
+      <p class="sec-sub">Весь рынок делит работу на части и берёт за это каждый месяц. Видеорилс отдаёт готовый ролик — и один раз.</p>
+    </div>
+    <div class="mkt stg">
+      <div class="mkt-card">
+        <div class="mkt-h">Видеоредакторы<span>CapCut, InShot и другие</span></div>
+        <p>Дают пустую монтажку: сценарий, озвучку, клипы, субтитры — всё сам. 1–2 часа работы на ролик, нужно уметь монтировать.</p>
+        <div class="mkt-foot">Итог: платишь временем — по 2 часа за каждый ролик, вечно.</div>
+      </div>
+      <div class="mkt-card">
+        <div class="mkt-h">Онлайн-нейросети text-to-video</div>
+        <p>Генерят сырой клип 5–20 секунд по промпту: без сценария, без русской озвучки, без субтитров — собирать всё равно самому. Очередь 5–20 минут, вотермарки на бесплатных тарифах.</p>
+        <div class="mkt-foot">Итог: подписка $10–25/мес — за год $120–300, а на руках всё ещё сырьё.</div>
+      </div>
+      <div class="mkt-card">
+        <div class="mkt-h">Агрегаторы и телеграм-боты</div>
+        <p>Те же западные модели за рубли: коины, лимиты, автопродления. Продукт тот же — короткий сырой клип, только через посредника.</p>
+        <div class="mkt-foot">Итог: та же подписка, плюс посредник.</div>
+      </div>
+      <div class="mkt-card">
+        <div class="mkt-h">Нарезчики длинных видео</div>
+        <p>Режут ТВОЁ готовое видео на короткие. Нужен исходник: камера, голос, смелость. Нет контента — нечего резать. $15–30/мес.</p>
+        <div class="mkt-foot">Итог: инструмент для тех, у кого уже есть видео. (В Видеорилс Лайт нарезка тоже есть — как одна из функций.)</div>
+      </div>
+      <div class="mkt-card mkt-us">
+        <span class="mkt-badge">Полный цикл</span>
+        <div class="mkt-h">Видеорилс</div>
+        <p>Готовый рилс целиком: ИИ-сценарий, русская озвучка с ударениями, клипы, субтитры — за ~60 секунд на твоём ПК. Без очередей, без вотермарков, без навыков монтажа.</p>
+        <div class="mkt-foot us">Итог: остальные дают кусок работы — мы отдаём готовый ролик.</div>
+      </div>
+    </div>
+    <p class="vs-foot rv">Единственная в своём роде программа полного цикла в рунете.</p>
+
+    <!-- Купил один раз — пользуешься всегда -->
+    <div class="buyonce rv">
+      <h3>Купил один раз — пользуешься всегда</h3>
+      <p>Весь рынок сидит на подписках не от жадности — их серверы генерят твои ролики, и им надо платить за это каждый месяц. Поэтому тебя доят: $10–25/мес, и в день, когда перестаёшь платить, ролики заканчиваются. Видеорилс работает на твоём компьютере — наши расходы на тебя ноль. Поэтому мы единственные, кто может честно продать программу навсегда.</p>
+      <div class="calc">
+        <div class="calc-row bad"><span class="calc-l">Подписка на сервис</span><span class="calc-v">$15/мес × 12 = $180 в первый год, дальше снова и снова</span></div>
+        <div class="calc-row good"><span class="calc-l">Видеорилс Мини</span><span class="calc-v">$97 один раз · окупается за 4–6 месяцев — дальше каждый ролик бесплатный</span></div>
+        <div class="calc-row"><span class="calc-l">Через 2 года</span><span class="calc-v">подписка $360+ · Видеорилс — всё те же $97</span></div>
+      </div>
+      <p class="buyonce-punch">Инструмент должен принадлежать тебе — как молоток, а не как аренда.</p>
+    </div>
+  </div>
+</section>
 
 <!-- ============ БЛОК 7 · ПРОДУКТЫ + ТАРИФЫ (переключатель на месте) ============ -->
 <section class="pad" id="price">
@@ -985,44 +1045,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК · ЧЕМ ОТЛИЧАЕМСЯ ============ -->
-<section class="pad" id="uniq">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">почему мы</div>
-      <h2>Почему не CapCut, не онлайн-нейросети и не монтажёр?</h2>
-    </div>
-    <div class="vs3 stg">
-      <div class="vs-col">
-        <div class="vs-h">Видеоредакторы (CapCut и другие)</div>
-        <p>Это инструмент монтажа: сценарий, озвучку, клипы и субтитры делаешь ТЫ. Час-полтора работы на ролик — и нужно уметь.</p>
-      </div>
-      <div class="vs-col">
-        <div class="vs-h">Онлайн-нейросети</div>
-        <p>Нарезают чужое видео или дают сырой клип. Подписка каждый месяц, вотермарки, очереди на сервере, русская озвучка — как повезёт.</p>
-      </div>
-      <div class="vs-col vs-us">
-        <div class="vs-h">Видеорилс</div>
-        <p>Полный цикл за 1 клик: сценарий, озвучка, клипы, субтитры — сам. На твоём ПК, без очередей. Лицензия навсегда, без подписки и вотермарков.</p>
-      </div>
-    </div>
-    <p class="vs-foot rv">Единственная в своём роде программа полного цикла в рунете.</p>
-    <div class="utable rv" id="utable">
-      <table>
-        <thead><tr><th>Что делает</th><th class="c us">Видеорилс</th><th class="c">Онлайн-сервисы</th></tr></thead>
-        <tbody>
-          <tr><td>ИИ пишет сценарий</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-          <tr><td>Озвучка на русском</td><td class="c us-col"><span class="chk"></span></td><td class="c no">часто ✗</td></tr>
-          <tr><td>Автоподбор видеоряда под сцены</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-          <tr><td>Крупные «прыгающие» субтитры</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-          <tr><td>Без подписки и водяных знаков</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-          <tr><td>Работает на твоём ПК, без облака</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
 <!-- ============ БЛОК 8 · FAQ ============ -->
 <section class="pad" id="faq">
   <div class="wrap">
@@ -1032,10 +1054,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     </div>
     <div class="faq stg">
       <details class="qa"><summary>Я не умею монтировать — справлюсь?<span class="plus">+</span></summary><p>Да, монтаж не нужен вообще. Ты вводишь тему — программа сама пишет сценарий, озвучивает, подбирает видеоряд и вписывает субтитры. На выходе готовый вертикальный mp4, таймлайн открывать не придётся.</p></details>
-      <details class="qa"><summary>Что делать, если нет идей для видео?<span class="plus">+</span></summary><p>Для этого есть «Идеи дня» — встроенная подборка тем, которые сейчас набирают просмотры у других авторов. Выбираешь тему одним кликом, и программа сразу собирает по ней готовый ролик — придумывать ничего не нужно. Это не гарантия виральности, но верный способ не сидеть над пустой строкой «о чём бы снять».</p></details>
       <details class="qa"><summary>Как попробовать бесплатно?<span class="plus">+</span></summary><p>Скачай программу и запусти — доступен бесплатный триал: соберёшь рилс на бесплатных голосах и своём бесплатном AI-ключе (получить его — пара минут, без карты). Понравится — оформишь лицензию.</p></details>
       <details class="qa"><summary>Windows ругается «SmartScreen» — почему?<span class="plus">+</span></summary><p>Программа не подписана платным сертификатом, поэтому SmartScreen показывает «Система защитила ваш компьютер». Это нормально: нажми «Подробнее» → «Выполнить в любом случае». Файлы вы скачиваете напрямую с GitHub Releases.</p></details>
-      <details class="qa"><summary>Какие ключи нужны и это бесплатно?<span class="plus">+</span></summary><p>Для полной работы нужны свои ключи сервисов озвучки и видеостока — у них есть бесплатные тарифы, которых хватает. Базовая озвучка (Edge-TTS, Piper) работает без ключей. Премиум-голоса (ElevenLabs) — по желанию, на своём ключе.</p></details>
       <details class="qa"><summary>Нужно ли платить за нейросети?<span class="plus">+</span></summary><p>Нет — можно работать полностью на бесплатных сервисах. Сценарий пишет Gemini (бесплатный ключ), озвучка — Edge-TTS и Piper (без ключей и без оплаты), видеоряд — по триальному медиа-ключу. Премиум по желанию и на своих ключах: живые голоса ElevenLabs и сценарии Claude. Лицензия Видеорилс оплачивается отдельно от нейросетей — это плата за саму программу, а не за ИИ.</p></details>
       <details class="qa"><summary>Как оплатить и получить ключ?<span class="plus">+</span></summary><p>Оплата в USDT (TRC-20). После перевода сервер автоматически проверяет платёж и выдаёт лицензионный ключ прямо в программу — вручную ничего пересылать не нужно.</p></details>
       <details class="qa"><summary>Лицензия навсегда или подписка?<span class="plus">+</span></summary><p>Есть и то, и другое: месяц $15, год $79 или навсегда $97. Пожизненная лицензия оплачивается один раз и привязывается к одному компьютеру — без ежемесячных списаний.</p></details>
@@ -1044,16 +1064,16 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК 9 · ФИНАЛ ============ -->
+<!-- ============ БЛОК 9 · ФИНАЛ · компактный дожим ============ -->
 <section class="pad" id="final">
   <div class="wrap">
-    <div class="final rv">
-      <h2 class="grad-txt">Твой первый рилс —<br>бесплатно</h2>
-      <p>Дай тему — и пусть ИИ Видеорилс сам соберёт вертикальный ролик с озвучкой и субтитрами за пару минут на твоём Windows.</p>
-      <div class="hero-cta">
-        <span class="glowcta"><a href="#price" class="btn primary lg shine">Сделать первое видео бесплатно</a></span>
-        <p class="hero-note">Windows · без подписки и водяных знаков</p>
+    <div class="final-cta rv">
+      <p class="final-cta-txt">Готов попробовать? Первый ролик — бесплатно, без подписки и водяных знаков.</p>
+      <div class="final-cta-btns">
+        <span class="glowcta"><a href="#price" class="btn primary lg shine">Скачать Видеорилс Мини</a></span>
+        <a href="#price-lite" class="btn lite lg">Скачать Лайт</a>
       </div>
+      <p class="hero-note">Windows · оплата один раз или помесячно · автообновления</p>
     </div>
   </div>
 </section>
@@ -1213,8 +1233,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               showSubs(t.lines,function(){
                 step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';
                 subsEl.innerHTML='';frame.classList.remove('on');video.classList.add('on');doneB.classList.add('on');if(phone)phone.classList.add('vplay');
-                try{video.currentTime=0;video.playbackRate=1;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
-                T(cycle,5600);
+                try{video.currentTime=0;video.playbackRate=2;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+                T(cycle,12800);   // ролик 23-25с на x2 ≈ 12с — проходит целиком за этап «Готово»
               });
             });
           },2600);
