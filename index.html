@@ -414,6 +414,34 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .cmp-rows li b{color:var(--txt);text-align:right;font-weight:700}
 .cmp-rows li b.no{color:var(--dimmer)}
 .cmp-rows li b.acc{color:var(--orange);font-weight:800}
+/* подробные рамки Мини/Лайт: фичи с пояснениями */
+.feat-rows{list-style:none;margin:0 0 4px;padding:0;display:grid;gap:11px;flex:1}
+.feat-rows li{display:flex;gap:11px;align-items:flex-start}
+.feat-rows .ok{color:var(--ok);font-weight:900;font-size:17px;line-height:1.2;flex:none;text-shadow:0 0 9px rgba(61,255,138,.4)}
+.feat-rows .pl{color:var(--orange);font-weight:900;font-size:18px;line-height:1.15;flex:none}
+.feat-rows .t{font-size:14.5px;color:var(--txt);font-weight:700;line-height:1.3}
+.feat-rows .t small{display:block;color:var(--dim);font-weight:400;font-size:12.5px;margin-top:2px}
+.lite-sub{color:#c9a6ff;font-size:13.5px;font-weight:600;margin:-6px 0 14px}
+.all-in{background:rgba(61,255,138,.1);border:1px solid rgba(61,255,138,.32);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--txt);margin-bottom:14px;line-height:1.5}
+.all-in b{color:var(--ok)}
+.feat-more-h{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--orange);margin:0 0 12px}
+.feat-sep{border-top:1px dashed var(--brd-soft);margin-top:16px;padding-top:14px;font-size:12.5px;color:var(--dim);line-height:1.45}
+.feat-price{font-size:16px;font-weight:800;color:var(--txt);margin:12px 0 14px}
+.feat-price b{color:var(--pink)}
+.cmp-card.lite .feat-price b{color:#b98cff}
+.cmp-foot{text-align:center;margin:24px auto 0;max-width:760px}
+.cmp-foot p{color:var(--dim);font-size:14px;margin:4px 0}
+.cmp-foot p:last-child{color:var(--txt);font-weight:600}
+/* блок «чем отличаемся»: 3 колонки */
+.vs3{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.vs-col{background:var(--panel);border:1px solid var(--brd-soft);border-radius:18px;padding:24px 22px}
+.vs-col .vs-h{font-size:15px;font-weight:800;color:var(--dim);margin-bottom:12px;line-height:1.3}
+.vs-col p{font-size:14px;color:var(--dim);line-height:1.55}
+.vs-us{border:1.6px solid transparent;background:linear-gradient(160deg,rgba(255,61,138,.12),rgba(24,13,44,.9)) padding-box,linear-gradient(135deg,#FF3D8A,#7B2FFF 55%,#FF8A3D) border-box}
+.vs-us .vs-h{color:var(--pink)}
+.vs-us p{color:var(--txt)}
+.vs-foot{text-align:center;font-size:clamp(16px,2.2vw,20px);font-weight:800;color:var(--txt);margin:26px auto 0;max-width:700px}
+@media(max-width:760px){.vs3{grid-template-columns:1fr;max-width:460px}}
 .price-group{max-width:1000px;margin:0 auto 30px}
 .pg-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;margin:0 0 20px;padding-bottom:12px;border-bottom:1px solid var(--brd-soft)}
 .pg-head h3{font-size:22px;font-weight:850}
@@ -771,7 +799,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="sec-head rv">
       <div class="sec-eyebrow">примеры</div>
       <h2>Собрано программой</h2>
-      <p class="sec-sub">13 роликов, собранных программой автоматически — разные темы, стили и субтитры. Играют без звука; нажми 🔊 на ролике, чтобы послушать.</p>
+      <p class="sec-sub">Ролики, собранные программой автоматически — разные темы, стили и субтитры. Играют без звука; нажми 🔊 на ролике, чтобы послушать.</p>
     </div>
     <div class="car-wrap rv">
       <button class="car-arrow prev" id="carPrev" type="button" aria-label="Назад">‹</button>
@@ -795,32 +823,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК 6 · МЫ ОДНИ ТАКИЕ ============ -->
-<section class="pad" id="uniq">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">почему мы</div>
-      <h2>Другие нарезают. Мы создаём.</h2>
-      <p class="sec-sub">«Нейросети для видео» нарезают чужой ролик на клипы или выдают сырой фрагмент. Видеорилс проходит весь путь сам — от сценария до готового рилса.</p>
-    </div>
-    <div class="uniq rv">
-      <p class="uniq-lead">Полный цикл за один клик — <b>единственная в своём роде программа в рунете</b>: сценарий, озвучка, видеоряд и субтитры без монтажа, без облака и без подписки.</p>
-      <div class="utable" id="utable">
-        <table>
-          <thead><tr><th>Что делает</th><th class="c us">Видеорилс</th><th class="c">Онлайн-сервисы</th></tr></thead>
-          <tbody>
-            <tr><td>ИИ пишет сценарий</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-            <tr><td>Озвучка на русском</td><td class="c us-col"><span class="chk"></span></td><td class="c no">часто ✗</td></tr>
-            <tr><td>Автоподбор видеоряда под сцены</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-            <tr><td>Крупные «прыгающие» субтитры</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-            <tr><td>Без подписки и водяных знаков</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-            <tr><td>Работает на твоём ПК, без облака</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- (блок «чем отличаемся» перенесён вниз, под рамки Мини/Лайт) -->
 
 <!-- ============ БЛОК 7 · ПРОДУКТЫ + ТАРИФЫ (переключатель на месте) ============ -->
 <section class="pad" id="price">
@@ -834,31 +837,41 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <div class="cmp-card">
         <div class="cmp-tag">Для старта</div>
         <h3>Видеорилс <b>Мини</b></h3>
-        <ul class="cmp-rows">
-          <li><span>Рилсов за раз</span><b>1</b></li>
-          <li><span>Длина ролика</span><b>до 40 сек</b></li>
-          <li><span>Ключей на сервис</span><b>1</b></li>
-          <li><span>Пакет (batch)</span><b class="no">—</b></li>
-          <li><span>Клип-микс / Нарезка</span><b class="no">—</b></li>
-          <li><span>Ручная сборка</span><b class="no">—</b></li>
-          <li><span>Цена</span><b>$15/мес · $79/год · $97 навсегда</b></li>
+        <ul class="feat-rows">
+          <li><span class="ok">✓</span><span class="t">Пишешь тему — получаешь ролик<small>ИИ сам: сценарий, озвучка, клипы, субтитры</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Пересказ чужих видео<small>кинул ролик — распознает и перепишет</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Озвучка без микрофона<small>бесплатные голоса, премиум или свой голос</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Ударения под контролем<small>кликом исправляешь кривое слово</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Крупные «прыгающие» субтитры<small>видно даже без звука, стили на выбор</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Финальный кадр с QR<small>зритель сканирует — попадает на твой канал</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Идеи дня<small>нет идей — выбери готовую трендовую тему</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Подпись и хэштеги к посту<small>скопировал — опубликовал</small></span></li>
         </ul>
+        <div class="feat-sep">Формат: 1 ролик за запуск · до 40 сек. Хватает для ежедневного постинга в 1 канал</div>
+        <div class="feat-price">$15/мес · $79/год · <b>$97 навсегда</b></div>
         <button type="button" class="btn ghost lg tpick" data-tariff="mini" aria-pressed="true" style="width:100%">Тарифы Мини ↓</button>
       </div>
       <div class="cmp-card lite">
         <div class="cmp-tag lite">Для потока</div>
         <h3>Видеорилс <b>Лайт</b><span class="maxi">Макси</span></h3>
-        <ul class="cmp-rows">
-          <li><span>Рилсов за раз</span><b class="acc">пакет до 5</b></li>
-          <li><span>Длина ролика</span><b class="acc">до 120 сек</b></li>
-          <li><span>Ключей на сервис</span><b class="acc">до 5</b></li>
-          <li><span>Пакет (batch)</span><b class="acc">✓ до 5 за запуск</b></li>
-          <li><span>Клип-микс / Нарезка</span><b class="acc">✓ есть</b></li>
-          <li><span>Ручная сборка</span><b class="acc">✓ есть</b></li>
-          <li><span>Цена</span><b>$29/мес · $149/год · $197 навсегда</b></li>
+        <div class="lite-sub">Весь Мини до последней функции + мощность</div>
+        <div class="all-in"><b>✓ ВСЁ из Мини уже внутри:</b> сценарии ИИ · озвучка · субтитры · ударения · идеи дня · пересказ видео · кадр с QR</div>
+        <div class="feat-more-h">И сверху — то, чего нет в Мини:</div>
+        <ul class="feat-rows plus">
+          <li><span class="pl">＋</span><span class="t">Пакеты по 5 роликов за запуск<small>нажал вечером — контент на неделю готов</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Ролики до 2 минут<small>обзоры, подборки, истории — не только шортсы</small></span></li>
+          <li><span class="pl">＋</span><span class="t">До 5 ключей на каждый сервис<small>генеришь много — не упираешься в лимиты</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Клип-микс и Нарезка<small>длинное видео режется на серию коротких</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Ручная сборка<small>сам расставляешь сцены как хочешь</small></span></li>
         </ul>
+        <div class="feat-sep">Формат: до 5 роликов за запуск · до 120 сек. Для тех, кто делает контент каждый день</div>
+        <div class="feat-price">$29/мес · $149/год · <b>$197 навсегда</b></div>
         <button type="button" class="btn lite lg tpick" data-tariff="lite" aria-pressed="false" style="width:100%">Тарифы Лайт ↓</button>
       </div>
+    </div>
+    <div class="cmp-foot rv">
+      <p>Обе версии: Windows · оплата один раз или помесячно · автообновления</p>
+      <p>Не уверен? Начни с Мини — попробуешь бесплатно на 1 видео</p>
     </div>
 
     <!-- панель тарифов: раскрывается ПОД карточками, переключается на месте (без прыжка) -->
@@ -969,19 +982,43 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       </ol>
       <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа в приложении.</div>
     </div>
+  </div>
+</section>
 
-    <div class="both-wrap rv">
-      <div class="both-h">Есть в обоих продуктах</div>
-      <div class="both-grid">
-        <div class="both-item"><span class="ok">✓</span><span class="t">Рилс из текста<small>AI-сценарий по теме</small></span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Режим «Из видео»<small>пересказ чужого ролика</small></span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Озвучка<small>Edge-TTS, Piper (бесплатно) + ElevenLabs</small></span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Ручные ударения, свой голос</span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Субтитры<small>выбор стилей</small></span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Финальный кадр (CTA) с QR</span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Идеи дня<small>тренды</small></span></div>
-        <div class="both-item"><span class="ok">✓</span><span class="t">Автообновление · на своих ключах</span></div>
+<!-- ============ БЛОК · ЧЕМ ОТЛИЧАЕМСЯ ============ -->
+<section class="pad" id="uniq">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">почему мы</div>
+      <h2>Почему не CapCut, не онлайн-нейросети и не монтажёр?</h2>
+    </div>
+    <div class="vs3 stg">
+      <div class="vs-col">
+        <div class="vs-h">Видеоредакторы (CapCut и другие)</div>
+        <p>Это инструмент монтажа: сценарий, озвучку, клипы и субтитры делаешь ТЫ. Час-полтора работы на ролик — и нужно уметь.</p>
       </div>
+      <div class="vs-col">
+        <div class="vs-h">Онлайн-нейросети</div>
+        <p>Нарезают чужое видео или дают сырой клип. Подписка каждый месяц, вотермарки, очереди на сервере, русская озвучка — как повезёт.</p>
+      </div>
+      <div class="vs-col vs-us">
+        <div class="vs-h">Видеорилс</div>
+        <p>Полный цикл за 1 клик: сценарий, озвучка, клипы, субтитры — сам. На твоём ПК, без очередей. Лицензия навсегда, без подписки и вотермарков.</p>
+      </div>
+    </div>
+    <p class="vs-foot rv">Единственная в своём роде программа полного цикла в рунете.</p>
+    <div class="utable rv" id="utable">
+      <table>
+        <thead><tr><th>Что делает</th><th class="c us">Видеорилс</th><th class="c">Онлайн-сервисы</th></tr></thead>
+        <tbody>
+          <tr><td>ИИ пишет сценарий</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
+          <tr><td>Озвучка на русском</td><td class="c us-col"><span class="chk"></span></td><td class="c no">часто ✗</td></tr>
+          <tr><td>Автоподбор видеоряда под сцены</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
+          <tr><td>Крупные «прыгающие» субтитры</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
+          <tr><td>Без подписки и водяных знаков</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
+          <tr><td>Работает на твоём ПК, без облака</td><td class="c us-col"><span class="chk"></span></td><td class="c no">✗</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -1141,9 +1178,22 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       if(curVideo!==src){ curVideo=src; try{video.src=src;}catch(e){} } }
     function typeTopic(txt,done){topicEl.textContent='';var i=0;(function go(){if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,55);}else{T(done,650);}})();}
     function showLines(arr,done){linesEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,900);}else{T(done,750);}})();}
-    function showSubs(arr,done){subsEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var w=document.createElement('span');w.className='w';w.textContent=arr[i];subsEl.appendChild(w);i++;T(go,560);}else{T(done,900);}})();}
+    // Субтитры = слова строк СЦЕНАРИЯ по порядку, группами 2-4; прежняя группа
+    // исчезает ДО новой (без наложений); ничего не обрезается краями мокапа.
+    function showSubs(lines,done){
+      var words=[]; (lines||[]).forEach(function(ln){ (ln||"").split(/\s+/).forEach(function(w){ w=w.trim(); if(w) words.push(w.toUpperCase()); }); });
+      var groups=[]; for(var k=0;k<words.length;k+=3){ groups.push(words.slice(k,k+3)); }
+      var gi=0;
+      (function go(){
+        if(gi<groups.length){
+          subsEl.innerHTML='';   // прежняя группа убирается перед показом новой
+          groups[gi].forEach(function(w){ var s=document.createElement('span'); s.className='w'; s.textContent=w; subsEl.appendChild(s); });
+          gi++; T(go,850);
+        } else { subsEl.innerHTML=''; T(done,300); }
+      })();
+    }
     function flipFrames(done){var i=0;frame.classList.add('on');if(empty)empty.style.display='none';(function go(){if(i<curFrames.length){frame.src=curFrames[i];i++;T(go,720);}else{T(done,320);}})();}
-    function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(phone)phone.classList.remove('vplay');if(empty){empty.style.display='';}}
+    function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();video.currentTime=0;}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(phone)phone.classList.remove('vplay');if(empty){empty.style.display='';}}
     function cycle(){
       clearAll();
       for(var k in stepEls)step(k,'');
@@ -1160,10 +1210,10 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             wave.hidden=true;step('voice','done');step('clips','act');statusEl.textContent='🎬 Подбираю видеоряд…';
             flipFrames(function(){
               step('clips','done');step('subs','act');statusEl.textContent='💬 Накладываю субтитры…';
-              showSubs(t.subs,function(){
+              showSubs(t.lines,function(){
                 step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';
                 subsEl.innerHTML='';frame.classList.remove('on');video.classList.add('on');doneB.classList.add('on');if(phone)phone.classList.add('vplay');
-                try{video.currentTime=0;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+                try{video.currentTime=0;video.playbackRate=1;var p=video.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
                 T(cycle,5600);
               });
             });
