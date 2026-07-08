@@ -83,6 +83,9 @@ def recolor(text: str) -> str:
 
 
 def targets():
+    """ТОЛЬКО SEO-страницы под guides/ и goroda/. ПРЕДОХРАНИТЕЛЬ: корневой index.html
+    (новая главная — неоновая, с симуляцией/каруселью/рамками) НИКОГДА не трогается,
+    как и любой файл вне guides/goroda — даже если glob или будущая правка вернёт лишнее."""
     pats = [
         os.path.join(ROOT, "guides", "**", "index.html"),
         os.path.join(ROOT, "goroda", "**", "index.html"),
@@ -90,7 +93,17 @@ def targets():
     files = []
     for p in pats:
         files += glob.glob(p, recursive=True)
-    return sorted(set(files))
+    home = os.path.normcase(os.path.abspath(os.path.join(ROOT, "index.html")))
+    allowed = (os.path.normcase(os.path.join(ROOT, "guides")) + os.sep,
+               os.path.normcase(os.path.join(ROOT, "goroda")) + os.sep)
+    safe = []
+    for f in files:
+        af = os.path.normcase(os.path.abspath(f))
+        if af == home:                       # главная — исключена НАВСЕГДА
+            continue
+        if af.startswith(allowed):           # разрешено только под guides/ и goroda/
+            safe.append(f)
+    return sorted(set(safe))
 
 
 def main():
