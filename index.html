@@ -161,6 +161,20 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .type-line .lbl{color:var(--orange)}
 @keyframes caret{50%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.hero h1 .w{opacity:1;transform:none;animation:none}.type-line b::after{animation:none}}
+.hero-sub{font-size:clamp(22px,3.6vw,36px);font-weight:800;color:var(--txt);margin:2px 0 8px;letter-spacing:-.02em}
+.hero-sub2{font-size:clamp(14px,2vw,17px);color:var(--dim);margin:0 auto;max-width:660px}
+/* 4 шага «как это работает» — подсветка синхронно со стадиями симуляции */
+.hiw-steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1000px;margin:26px auto 0;padding:0}
+.hiw-step{display:flex;gap:11px;align-items:flex-start;background:rgba(255,255,255,.03);border:1px solid var(--brd-soft);border-radius:14px;padding:14px 15px;opacity:.5;transition:background .25s,border-color .25s,opacity .25s}
+.hiw-step.on{opacity:1;background:linear-gradient(150deg,rgba(255,61,138,.12),rgba(123,47,255,.06));border-color:rgba(255,61,138,.45);box-shadow:0 10px 30px -14px rgba(255,61,138,.5)}
+.hiw-n{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;background:rgba(255,255,255,.1)}
+.hiw-step.on .hiw-n{background:linear-gradient(135deg,#FF3D8A,#7B2FFF)}
+.hiw-b{min-width:0}
+.hiw-t{display:block;font-size:14px;font-weight:800;color:var(--txt);margin-bottom:3px}
+.hiw-d{display:none;font-size:12.5px;color:var(--dim);line-height:1.5}
+.hiw-step.on .hiw-d{display:block}
+@media(max-width:900px){.hiw-steps{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.hiw-steps{grid-template-columns:1fr;margin-top:18px}}
 
 /* сцена симуляции */
 .sim-grid{display:grid;grid-template-columns:1fr minmax(258px,306px);gap:40px;align-items:center;max-width:1000px;margin:0 auto;min-width:0}
@@ -563,7 +577,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   /* CTA видна раньше: на мобиле порядок H1 -> CTA -> симуляция */
   .hero .wrap{display:flex;flex-direction:column}
   .hero-top{order:0}.hero-cta{order:1;margin:8px auto 4px}.sim-grid{order:2}
-  .hero-seo{order:3}.perks{order:4}
+  .hiw-steps{order:3}.hero-seo{order:4}.perks{order:5}
   .hero-cta .btn,.hero-cta .glowcta,.final .btn,.final .glowcta{width:100%}
   .phone{width:min(280px,80vw)}
   .stats{gap:22px 34px}
@@ -631,6 +645,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 .calc-row.bad{border-color:rgba(255,90,90,.3)}.calc-row.bad .calc-l{color:#ff8a8a}
 .calc-row.good{border-color:rgba(61,255,138,.32);background:rgba(61,255,138,.06)}.calc-row.good .calc-l{color:var(--ok)}
 .buyonce-punch{text-align:center;font-size:clamp(15px,2vw,18px);font-weight:800;color:var(--txt);margin:0}
+.price-epigraph{text-align:center;max-width:720px;margin:6px auto 30px;font-size:clamp(19px,2.7vw,27px);font-weight:800;font-style:italic;color:var(--txt);line-height:1.4;letter-spacing:-.01em}
+.price-epigraph .grad{background:linear-gradient(120deg,#FF3D8A,#7B2FFF 58%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
 @media(max-width:560px){.calc-row .calc-l{min-width:100%}}
 /* компактный финальный CTA */
 #final{padding-top:44px;padding-bottom:52px}
@@ -673,6 +689,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <span class="w" style="--i:2">которая</span> <span class="w" style="--i:3">делает</span>
         <span class="w" style="--i:4">рилсы</span> <span class="w hl" style="--i:5">за тебя</span>
       </h1>
+      <p class="hero-sub">От идеи до публикации</p>
+      <p class="hero-sub2">Без монтажа, без микрофона, без стоков — всё внутри программы.</p>
     </div>
 
     <div class="sim-grid">
@@ -714,6 +732,14 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         </div>
       </div>
     </div>
+
+    <!-- 4 шага «как это работает» — подсвечиваются синхронно со стадиями симуляции выше -->
+    <ol class="hiw-steps" id="hiwSteps" aria-label="Как это работает">
+      <li class="hiw-step" data-n="1"><span class="hiw-n">1</span><div class="hiw-b"><b class="hiw-t">Напиши тему</b><span class="hiw-d">Своя история или тема одной строкой. ИИ сам разложит её на сцены и напишет цепляющий сценарий с хуком в начале.</span></div></li>
+      <li class="hiw-step" data-n="2"><span class="hiw-n">2</span><div class="hiw-b"><b class="hiw-t">ИИ озвучивает</b><span class="hiw-d">Текст читается живым русским голосом — бесплатным или премиум. Можно задать ручные ударения или озвучить своим голосом.</span></div></li>
+      <li class="hiw-step" data-n="3"><span class="hiw-n">3</span><div class="hiw-b"><b class="hiw-t">Подбирает видеоряд и субтитры</b><span class="hiw-d">Под каждую сцену программа находит клип, накладывает крупные «прыгающие» субтитры слово в слово и финальный кадр-призыв с QR.</span></div></li>
+      <li class="hiw-step" data-n="4"><span class="hiw-n">4</span><div class="hiw-b"><b class="hiw-t">Готовый рилс — публикуй</b><span class="hiw-d">На выходе — вертикальный mp4 9:16 плюс подпись и хэштеги для поста. Осталось выложить в TikTok, Reels или Shorts.</span></div></li>
+    </ol>
 
     <div class="hero-cta">
       <span class="glowcta"><a href="#price" class="btn primary lg shine">Сделать первое видео бесплатно</a></span>
@@ -781,51 +807,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </section>
 
-<!-- ============ БЛОК 4 · КАК РАБОТАЕТ ============ -->
-<section class="pad" id="how">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="sec-eyebrow">четыре шага</div>
-      <h2>От идеи до публикации</h2>
-      <p class="sec-sub">Без монтажа, без микрофона, без стоков — всё внутри программы.</p>
-    </div>
-    <div class="how" id="howTrack">
-      <div class="how-line"><i id="howFill"></i></div>
-      <div class="wstep" data-step>
-        <div class="wnum">1</div>
-        <div>
-          <h3>Напиши тему</h3>
-          <p>Своя история или тема одной строкой. ИИ сам разложит её на сцены и напишет цепляющий сценарий с хуком в начале.</p>
-        </div>
-        <div class="wshot" data-parallax><img src="media/sim1.webp" alt="Экран: ввод темы ролика в программе Видеорилс" loading="lazy"></div>
-      </div>
-      <div class="wstep" data-step>
-        <div class="wnum">2</div>
-        <div>
-          <h3>ИИ озвучивает</h3>
-          <p>Текст читается живым русским голосом — бесплатным или премиум. Можно задать ручные ударения или озвучить своим голосом.</p>
-        </div>
-        <div class="wshot" data-parallax><img src="media/sim2.webp" alt="Экран: озвучка сценария в программе" loading="lazy"></div>
-      </div>
-      <div class="wstep" data-step>
-        <div class="wnum">3</div>
-        <div>
-          <h3>Подбирает видеоряд и субтитры</h3>
-          <p>Под каждую сцену программа находит клип, накладывает крупные «прыгающие» субтитры слово в слово и финальный кадр-призыв с QR.</p>
-        </div>
-        <div class="wshot" data-parallax><img src="media/sim3.webp" alt="Экран: подбор видеоряда и субтитров" loading="lazy"></div>
-      </div>
-      <div class="wstep" data-step>
-        <div class="wnum">4</div>
-        <div>
-          <h3>Готовый рилс — публикуй</h3>
-          <p>На выходе — вертикальный mp4 9:16 плюс подпись и хэштеги для поста. Осталось выложить в TikTok, Reels или Shorts.</p>
-        </div>
-        <div class="wshot" data-parallax><img src="media/sim4.webp" alt="Экран: готовый вертикальный ролик" loading="lazy"></div>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- БЛОК «Как это работает» перенесён в hero-симуляцию (4 шага под мокапом) -->
 
 <!-- ============ БЛОК 5 · РЕЗУЛЬТАТЫ ============ -->
 <section class="pad" id="results">
@@ -923,18 +905,6 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       </table>
     </div>
     <p class="vs-foot rv">Единственная в своём роде программа полного цикла в рунете.</p>
-
-    <!-- Купил один раз — пользуешься всегда -->
-    <div class="buyonce rv">
-      <h3>Купил один раз — пользуешься всегда</h3>
-      <p>Весь рынок сидит на подписках не от жадности — их серверы генерят твои ролики, и им надо платить за это каждый месяц. Поэтому тебя доят: $10–25/мес, и в день, когда перестаёшь платить, ролики заканчиваются. Видеорилс работает на твоём компьютере — наши расходы на тебя ноль. Поэтому мы единственные, кто может честно продать программу навсегда.</p>
-      <div class="calc">
-        <div class="calc-row bad"><span class="calc-l">Подписка на сервис</span><span class="calc-v">$15/мес × 12 = $180 в первый год, дальше снова и снова</span></div>
-        <div class="calc-row good"><span class="calc-l">Видеорилс Мини</span><span class="calc-v">$97 один раз · окупается за 4–6 месяцев — дальше каждый ролик бесплатный</span></div>
-        <div class="calc-row"><span class="calc-l">Через 2 года</span><span class="calc-v">подписка $360+ · Видеорилс — всё те же $97</span></div>
-      </div>
-      <p class="buyonce-punch">Инструмент должен принадлежать тебе — как молоток, а не как аренда.</p>
-    </div>
   </div>
 </section>
 
@@ -946,6 +916,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <h2>Мини или Лайт?</h2>
       <p class="sec-sub">Мини — чтобы начать: один ролик за раз. Лайт (Макси) — для потока: пакеты, длинные ролики, Нарезка. Выбери — тарифы откроются ниже.</p>
     </div>
+    <p class="price-epigraph rv">Инструмент должен принадлежать <span class="grad">тебе</span> — как молоток, а не как аренда.</p>
     <div class="cmp2 stg">
       <div class="cmp-card">
         <div class="cmp-tag">Для старта</div>
@@ -1214,6 +1185,10 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     // 4 темы: у КАЖДОЙ свои строки сценария (реальные фразы из ролика), свои 4 стоп-кадра
     // на этап «видеоряд», свои прыгающие субтитры и СВОЁ hero-видео, играющее в финале цикла.
     var THEMES=[
+      {topic:"Хочешь создавать рилсы быстро и бесплатно?", video:"media/hero_new_video_720x1280.mp4",
+       frames:["media/hero_new_video_poster.webp","media/hero_new_video_poster.webp","media/hero_new_video_poster.webp","media/hero_new_video_poster.webp"],
+       lines:["Хочешь создавать рилсы быстро и бесплатно?","Я сама пишу сценарий, озвучиваю и подбираю видео — тебе нужна только тема."],
+       subs:["БЫСТРО","БЕСПЛАТНО"]},
       {topic:"Похудение без диет", video:"media/hero_pohudenie.mp4",
        frames:["media/hero_pohudenie_1.webp","media/hero_pohudenie_2.webp","media/hero_pohudenie_3.webp","media/hero_pohudenie_4.webp"],
        lines:["Минус 3 кг в месяц — без единой диеты","Дефицит всего 300 калорий в сутки — и жир уходит сам","Белок на каждый приём: яйца, творог, курица — сытость на 4-5 часов","Убери жидкие калории: стакан сока — это 5 ложек сахара","10 тысяч шагов в день сжигают 300 килокалорий без тренировок"],
@@ -1225,20 +1200,26 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       {topic:"Ужин за 15 минут", video:"media/hero_recept.mp4",
        frames:["media/hero_recept_1.webp","media/hero_recept_2.webp","media/hero_recept_3.webp","media/hero_recept_4.webp"],
        lines:["Ужин за 15 минут из трёх ингредиентов — запоминай","Куриное филе кубиком — на раскалённую сковороду, 5 минут","Туда же овощи из заморозки — ещё 5 минут","Ложка соевого соуса, чеснок — и дай минуту схватиться","Итог: ужин на двоих дешевле трёхсот рублей"],
-       subs:["3","ИНГРЕДИЕНТА","15","МИНУТ"]},
-      {topic:"Проверка авто перед покупкой", video:"media/hero_avto.mp4",
-       frames:["media/hero_avto_1.webp","media/hero_avto_2.webp","media/hero_avto_3.webp","media/hero_avto_4.webp"],
-       lines:["Эта проверка спасает от покупки утопленника за 5 минут","Открой лючок бензобака — родная краска там всегда","Болты дверей: следы ключа — дверь снимали, был удар","Вытяни ремни безопасности до конца — разводы выдают утопленника","И только потом проверка по базам. Глаза важнее отчёта"],
-       subs:["ПРОВЕРЬ","ДО","ПОКУПКИ","VIN"]}
+       subs:["3","ИНГРЕДИЕНТА","15","МИНУТ"]}
     ];
     var curFrames=THEMES[0].frames, curVideo="";
     var preloaded={};
     var stepEls={};
     if(stepsBox){Array.prototype.forEach.call(stepsBox.querySelectorAll('li'),function(li){stepEls[li.getAttribute('data-s')]=li;});}
     var timers=[], started=false, paused=false, ti=0;
+    // длительности стадий. NORM — обычный цикл. FAST — ТОЛЬКО самый первый показ
+    // при заходе на сайт: стадии почти мгновенны (~2с до видео), чтобы посетитель
+    // сразу увидел играющий ролик; галочки всё равно прощёлкивают каждую стадию.
+    // done в FAST держим ~12с, чтобы ролик (24с на x2) доиграл до fade-out.
+    var NORM={type:55,typeDone:650,line:900,lineDone:750,voice:2600,clips:3000,subs:3500,done:6000};
+    var FAST={type:16,typeDone:90,line:150,lineDone:110,voice:220,clips:360,subs:360,done:11200};
+    var D=NORM, firstCycle=true;
     function T(fn,ms){var id=setTimeout(fn,ms);timers.push(id);return id;}
     function clearAll(){timers.forEach(clearTimeout);timers=[];}
     function step(k,st){var li=stepEls[k];if(!li)return;li.className=(st||'');}
+    // 4 крупных шага «как это работает» — подсветка синхронно со стадиями симуляции
+    var hiwEls=document.querySelectorAll('.hiw-step');
+    function hlStep(n){Array.prototype.forEach.call(hiwEls,function(el){el.classList.toggle('on',(+el.getAttribute('data-n'))===n);});}
     function setEmpty(txt){if(empty){empty.textContent=txt;}}
     function preloadFrames(arr){if(preloaded[arr[0]])return;preloaded[arr[0]]=1;arr.forEach(function(s){var im=new Image();im.src=s;});}
     // ленивая загрузка hero-видео: src ставим в НАЧАЛЕ цикла темы (буферизуется за ~15с
@@ -1247,8 +1228,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     var phone = document.querySelector('.phone-wrap .phone');   // рамка-мокап
     function setVideo(src){ if(isMobileHero) src=src.replace('.mp4','_mobile.mp4');   // на мобиле — лёгкие 540p
       if(curVideo!==src){ curVideo=src; try{video.src=src;}catch(e){} } }
-    function typeTopic(txt,done){topicEl.textContent='';var i=0;(function go(){if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,55);}else{T(done,650);}})();}
-    function showLines(arr,done){linesEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,900);}else{T(done,750);}})();}
+    function typeTopic(txt,done){topicEl.textContent='';var i=0;(function go(){if(i<=txt.length){topicEl.textContent=txt.slice(0,i);i++;T(go,D.type);}else{T(done,D.typeDone);}})();}
+    function showLines(arr,done){linesEl.innerHTML='';var i=0;(function go(){if(i<arr.length){var d=document.createElement('div');d.className='ln';d.textContent=arr[i];linesEl.appendChild(d);i++;T(go,D.line);}else{T(done,D.lineDone);}})();}
     // Субтитры = слова строк СЦЕНАРИЯ по порядку, группами 2-4; прежняя группа
     // исчезает ДО новой (без наложений); ничего не обрезается краями мокапа.
     function showSubs(lines,done){
@@ -1267,18 +1248,23 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     function resetScreen(){frame.classList.remove('on');video.classList.remove('on');try{video.pause();video.currentTime=0;}catch(e){}subsEl.innerHTML='';doneB.classList.remove('on');if(phone)phone.classList.remove('vplay');if(empty){empty.style.display='';}}
     function cycle(){
       clearAll();
+      D = firstCycle ? FAST : NORM;   // первый показ — ускоренные стадии; далее обычные
+      firstCycle = false;
       for(var k in stepEls)step(k,'');
       statusEl.textContent='';linesEl.innerHTML='';resetScreen();wave.hidden=true;
       var t=THEMES[ti%THEMES.length];ti++;
       setVideo(t.video);                                                // видео темы (лениво, играет с «Видеоряд»)
       TT.type(t.topic);                                                 // строка темы под H1 — синхронно
       setEmpty('ждём тему…');
+      hlStep(1);                                                        // шаг «Напиши тему» — Тема+Сценарий
       typeTopic(t.topic,function(){
         step('script','act');statusEl.textContent='✍ ИИ пишет сценарий…';setEmpty('пишем сценарий…');
         showLines(t.lines,function(){
           step('script','done');step('voice','act');statusEl.textContent='🎙 Озвучиваю текст…';setEmpty('озвучка…');wave.hidden=false;
+          hlStep(2);                                                    // шаг «ИИ озвучивает» — Озвучка
           T(function(){
             wave.hidden=true;step('voice','done');step('clips','act');statusEl.textContent='🎬 Подбираю видеоряд…';
+            hlStep(3);                                                  // шаг «Видеоряд и субтитры» — Клипы+Субтитры
             // с этапа «Видеоряд» в телефоне играет РЕАЛЬНОЕ видео темы (x2) и идёт
             // НЕПРЕРЫВНО через Видеоряд → Субтитры → Готово. Никаких склеек-кадров и
             // рисованных плашек: в ролике свои настоящие клипы и субтитры.
@@ -1290,17 +1276,18 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               step('clips','done');step('subs','act');statusEl.textContent='💬 Накладываю субтитры…';
               T(function(){
                 step('subs','done');statusEl.textContent='✅ Ролик собран за 47 секунд';doneB.classList.add('on');
-                T(cycle,6000);       // «Готово» + докрутка ролика до конца
-              },3500);               // «Субтитры» (видео продолжает играть)
-            },3000);                 // «Видеоряд»
-          },2600);
+                hlStep(4);                                              // шаг «Готовый рилс» — Готово (видео играет)
+                T(cycle,D.done);       // «Готово» + докрутка ролика до конца
+              },D.subs);               // «Субтитры» (видео продолжает играть)
+            },D.clips);                // «Видеоряд»
+          },D.voice);
         });
       });
     }
     if(reduce){
       return {begin:function(){
         var t=THEMES[0]; curFrames=t.frames; preloadFrames(curFrames);
-        for(var k in stepEls)step(k,'done');
+        for(var k in stepEls)step(k,'done');hlStep(4);
         if(empty)empty.style.display='none';
         topicEl.textContent=t.topic; TT.type(t.topic); if(caret)caret.style.display='none';
         statusEl.textContent='✅ Готово за 47 секунд';doneB.classList.add('on');frame.src=t.frames[0];
