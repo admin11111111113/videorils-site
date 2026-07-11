@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /index_old_backup.html
 
 Sitemap: https://videorils.com/sitemap.xml
