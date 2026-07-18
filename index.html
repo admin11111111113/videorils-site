@@ -1094,9 +1094,30 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <li>Если Windows покажет «Система защитила ваш компьютер» — нажми <b>«Подробнее» → «Выполнить в любом случае»</b> (программа не подписана платным сертификатом, это нормально).</li>
       </ol>
       <div class="install-note">Дальше — бесплатный триал на 1 видео или активация ключа в приложении.</div>
+      <!-- Оплата тарифов — в USDT (крипта). Нет крипты? Кнопка «Купить крипту на Bybit».
+           Ссылка и показ управляются из АДМИНКИ (сервер /key-links: bybit_buy_usdt + bybit_show);
+           дефолт — партнёрская ссылка. То же, что читает приложение. -->
+      <div id="bybitSite" style="display:none;text-align:center;margin-top:18px">
+        <div class="install-note" style="margin-bottom:9px">Тарифы оплачиваются в USDT. Нет крипты?</div>
+        <a id="bybitSiteLink" href="https://partner.bybit.com/b/163717" target="_blank" rel="nofollow noopener sponsored" class="btn primary" style="display:inline-block">💳 Купить крипту на Bybit →</a>
+      </div>
     </div>
   </div>
 </section>
+<script>
+(function(){
+  var DEF="https://partner.bybit.com/b/163717";   // фолбэк, если сервер недоступен (админка переопределяет)
+  function show(url){ var a=document.getElementById('bybitSiteLink'); if(a&&url)a.href=url;
+    var b=document.getElementById('bybitSite'); if(b)b.style.display=''; }
+  fetch("https://videorils-server.onrender.com/key-links",{cache:"no-store"})
+    .then(function(r){return r.json();})
+    .then(function(d){ d=d||{};
+      if((''+(d.bybit_show||'1')).trim()==='0') return;        // тумблер «Показывать» из админки
+      show((''+(d.bybit_buy_usdt||'')).trim() || DEF);          // ссылка из админки / дефолт
+    })
+    .catch(function(){ show(DEF); });                          // сервер недоступен -> дефолтная кнопка
+})();
+</script>
 
 <!-- ============ БЛОК 8 · FAQ ============ -->
 <section class="pad" id="faq">
