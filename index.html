@@ -451,6 +451,7 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .cmp-tag.lite{color:#c9a6ff;background:rgba(123,47,255,.16);border-color:rgba(123,47,255,.4)}
 .cmp-card h3{font-size:23px;font-weight:850;margin-bottom:16px}
 .cmp-card h3 .maxi{font-size:11px;font-weight:800;color:#c9a6ff;vertical-align:middle;margin-left:8px;background:rgba(123,47,255,.18);padding:3px 9px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em}
+.ltag{font-size:10.5px;font-weight:800;color:#c9a6ff;vertical-align:middle;margin-left:7px;background:rgba(123,47,255,.18);padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em}
 .cmp-rows{list-style:none;margin:0 0 20px;padding:0;flex:1}
 .cmp-rows li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--brd-soft);font-size:14px}
 .cmp-rows li:last-child{border-bottom:0}
@@ -797,6 +798,34 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   </div>
 </div>
 
+<!-- ============ БЛОК 2.5 · ТОЛЬКО ВИДЕОРИЛС (акцент на сильных фичах) ============ -->
+<section class="pad" id="uniqfeat">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="sec-eyebrow">только у Видеорилс</div>
+      <h2>Что умеет только Видеорилс</h2>
+      <p class="sec-sub">Не просто «текст в видео». Три вещи, за которыми обычно идут к монтажёру или в платные сервисы — здесь встроены и работают на твоём ПК.</p>
+    </div>
+    <div class="pain-grid stg">
+      <div class="pain-card">
+        <div class="pain-ico">🎬</div>
+        <h3>Чужое видео — твой рилс<span class="ltag">Лайт</span></h3>
+        <p>Загрузи вирусный ролик на другом языке — программа оставит видеоряд, <b style="color:var(--txt)">сотрёт чужие субтитры</b> и наложит твою русскую озвучку и субтитры. Без съёмок и монтажа.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-ico">⚡</div>
+        <h3>Клип-микс / Нарезка<span class="ltag">Лайт</span></h3>
+        <p>Задаёшь тему — программа собирает динамичную нарезку из 15–30 разных кадров под музыку, как трендовые «нарезки» в Reels и TikTok. Кадры видно и можно заменить прямо перед финальной сборкой.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-ico">🆓</div>
+        <h3>Работает на бесплатных ИИ</h3>
+        <p>Не нужна платная подписка на нейросети: сценарий, озвучка и подбор клипов идут на бесплатных ключах. Нужно премиум-качество — подключаешь свои ключи. Выбор твой.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ МОСТИК · демо → разъяснения (без кнопки, CTA уже в hero) ============ -->
 <section class="pad" id="bridge" style="padding-bottom:6px">
   <div class="wrap">
@@ -976,6 +1005,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
           <li><span class="pl">＋</span><span class="t">Ролики до 2 минут<small>обзоры, подборки, истории — не только шортсы</small></span></li>
           <li><span class="pl">＋</span><span class="t">До 5 ключей на каждый сервис<small>генеришь много — не упираешься в лимиты</small></span></li>
           <li><span class="pl">＋</span><span class="t">Клип-микс / Нарезка<small>динамичная нарезка из 15-30 разных кадров под музыку; превью кадров перед сборкой — видишь и правишь клипы до финала</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Зарубежное видео на русском<small>берём чужой ролик на другом языке, стираем их субтитры, кладём свою русскую озвучку и субтитры</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Редактор зоны субтитров<small>рисуешь зону прямо на макете 9:16 — туда встаёт плашка и твои субтитры точно на месте</small></span></li>
         </ul>
         <div class="feat-sep">Формат: до 5 роликов за запуск · до 120 сек. Для тех, кто делает контент каждый день</div>
         <div class="feat-price">$29/мес · $149/год · <b>$197 навсегда</b></div>
@@ -1171,14 +1202,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <a href="/guides/ii-ozvuchka-na-russkom/">ИИ-озвучка на русском</a>
         <a href="/guides/kak-raskrutit-instagram-s-nulya/">Раскрутить Инстаграм с нуля</a>
       </div>
-      <div class="fcol">
-        <b>Города</b>
-        <a href="/goroda/">Все города</a>
-        <a href="/goroda/irkutsk/">Иркутск</a>
-        <a href="/goroda/khabarovsk/">Хабаровск</a>
-        <a href="/goroda/vladivostok/">Владивосток</a>
-        <a href="/goroda/tomsk/">Томск</a>
-      </div>
+      <!-- Города: убраны из видимого футера; путь к /goroda/ для поисковиков — через sitemap.xml -->
       <div class="fcol">
         <b>Правовое</b>
         <a href="/legal/">Условия и конфиденциальность</a>
