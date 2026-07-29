@@ -1047,7 +1047,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             <div class="pn">НАВСЕГДА</div>
             <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
             <div class="sub">Оплатил один раз — пользуешься без ограничений по времени</div>
-            <div class="prog">
+            <div class="prog" data-prog="mini">
               <div class="prog-bar"><i data-fill="3"></i></div>
               <div class="prog-lbl" data-slots>занято 3 из 100 по стартовой цене</div>
             </div>
@@ -1097,6 +1097,10 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             <div class="pn">НАВСЕГДА</div>
             <div class="price"><span class="old">$390</span><span class="now">$197</span><span class="cur">USDT</span></div>
             <div class="sub">Весь Лайт навсегда — пакеты, Нарезка</div>
+            <div class="prog" data-prog="lite">
+              <div class="prog-bar"><i data-fill="0"></i></div>
+              <div class="prog-lbl" data-slots>занято 0 из 100 по стартовой цене</div>
+            </div>
             <ul>
               <li>Всё из тарифа «Месяц» Лайт</li>
               <li>Лицензия навсегда, без подписки</li>
@@ -1457,7 +1461,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       groups.forEach(function(g){ g.classList.toggle('active', g.getAttribute('data-tg')===which); });
       picks.forEach(function(b){ var on=b.getAttribute('data-tariff')===which;
         b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
-      if(which==='mini' && window.__fillProg) window.__fillProg();
+      if(window.__fillProg) window.__fillProg(which);
     }
     picks.forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault();
       show(b.getAttribute('data-tariff')); }); });
@@ -1467,19 +1471,31 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   })();
 
   /* ===== ОДИН общий IntersectionObserver: reveal + триггеры + видимость hero/результатов ===== */
-  var progFilled=false;
-  function fillProg(){ if(progFilled)return; progFilled=true;
-    var i=document.querySelector('.prog-bar i[data-fill]'); if(!i)return;
-    var pct=parseFloat(i.getAttribute('data-fill'))||0;
-    if(reduce){ i.style.transform='scaleX('+pct/100+')'; }
-    else { requestAnimationFrame(function(){ i.style.transform='scaleX('+pct/100+')'; }); }
-    fetch("https://videorils-server.onrender.com/stats").then(function(r){return r.json();}).then(function(d){
-      var rem=(d.remaining_in_stage!=null)?d.remaining_in_stage:(d.remaining!=null?d.remaining:null);
-      if(rem!==null){ var taken=Math.max(0,100-rem); i.style.transform='scaleX('+taken/100+')';
-        var lbl=document.querySelector('[data-slots]'); if(lbl) lbl.textContent='занято '+taken+' из 100 по стартовой цене'; }
-    }).catch(function(){});
+  var progDone={};
+  // Заполняет плашку дефицита «занято X/100» для КАЖДОГО продукта из его /stats
+  // (Мини — /stats, Лайт — /stats?product=lite). which — заполнить только этот продукт
+  // (при переключении тарифов); без аргумента — оба. Один запрос на продукт (progDone).
+  function fillProg(which){
+    var blocks=document.querySelectorAll('.prog[data-prog]');
+    Array.prototype.forEach.call(blocks,function(blk){
+      var prod=blk.getAttribute('data-prog')||'mini';
+      if(which && which!==prod) return;
+      if(progDone[prod]) return; progDone[prod]=true;
+      var i=blk.querySelector('.prog-bar i[data-fill]');
+      var lbl=blk.querySelector('[data-slots]');
+      if(i){ var pct=parseFloat(i.getAttribute('data-fill'))||0;
+        if(reduce){ i.style.transform='scaleX('+pct/100+')'; }
+        else { requestAnimationFrame(function(){ i.style.transform='scaleX('+pct/100+')'; }); } }
+      var url="https://videorils-server.onrender.com/stats"+(prod!=='mini'?('?product='+prod):'');
+      fetch(url).then(function(r){return r.json();}).then(function(d){
+        var rem=(d.remaining_in_stage!=null)?d.remaining_in_stage:(d.remaining!=null?d.remaining:null);
+        if(rem!==null){ var taken=Math.max(0,100-rem);
+          if(i) i.style.transform='scaleX('+taken/100+')';
+          if(lbl) lbl.textContent='занято '+taken+' из 100 по стартовой цене'; }
+      }).catch(function(){});
+    });
   }
-  window.__fillProg = fillProg;   // вызывается переключателем тарифов при показе Мини
+  window.__fillProg = fillProg;   // вызывается переключателем тарифов (Мини/Лайт)
   if('IntersectionObserver' in window){
     var io=new IntersectionObserver(function(entries){
       entries.forEach(function(e){
@@ -1536,5 +1552,14 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   });
 })();
 </script>
+<!-- cookie-notice -->
+<div id="cknotice" role="dialog" aria-label="Уведомление о cookies" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;max-width:780px;margin:0 auto;background:#180D2C;color:#F2EEF8;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;box-shadow:0 14px 44px rgba(0,0,0,.55);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+  <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <span style="flex:1;min-width:230px">Мы используем аналитику и cookies (в т.ч. Яндекс.Метрику с Вебвизором), чтобы улучшать сайт. Подробнее — в <a href="/privacy/" style="color:#FF3D8A;text-decoration:none">Политике конфиденциальности</a>.</span>
+    <button id="ckok" type="button" style="flex:none;cursor:pointer;background:#FF3D8A;color:#fff;border:0;border-radius:10px;padding:9px 20px;font-weight:700;font-size:14px">Понятно</button>
+  </div>
+</div>
+<script>(function(){try{var K="vr_cookie_ok";if(localStorage.getItem(K))return;var n=document.getElementById("cknotice");if(!n)return;n.style.display="block";var b=document.getElementById("ckok");if(b)b.addEventListener("click",function(){try{localStorage.setItem(K,"1");}catch(e){}n.style.display="none";});}catch(e){}})();</script>
+
 </body>
 </html>
