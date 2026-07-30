@@ -24,7 +24,12 @@ document.addEventListener('click', function(e){
   var href = (a.getAttribute('href')||'').toLowerCase();
   var what = href.indexOf('lite') >= 0 ? 'lite'
            : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown');
+  var price = what === 'lite' ? 197 : (what === 'mini' ? 97 : 0);
   try{ fbq('trackCustom', 'Download', {content_name: what}); }catch(err){}
+  // TikTok — то же событие с ценой тарифа, чтобы в кабинете была видна не только
+  // конверсия, но и потенциальная выручка. Оба вызова асинхронные и переход не держат.
+  try{ if(window.ttq) ttq.track('Download',
+        {content_name: what, value: price, currency: 'USD'}); }catch(err){}
 }, true);
 </script>
 <noscript><img height="1" width="1" style="display:none"
