@@ -14,6 +14,18 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '965148686538305');
 fbq('track', 'PageView');
+// Скачивания: событие Download с content_name (lite/mini) — чтобы в отчётах было
+// видно, какой инсталлятор берут чаще. Ловим клик на ПЕРЕХВАТЕ по документу, так что
+// новые кнопки скачивания подхватятся сами. Переход по ссылке НЕ трогаем:
+// никакого preventDefault — fbq уходит асинхронно и загрузку не задерживает.
+document.addEventListener('click', function(e){
+  var a = e.target && e.target.closest ? e.target.closest('a[href*="Setup.exe"]') : null;
+  if(!a) return;
+  var href = (a.getAttribute('href')||'').toLowerCase();
+  var what = href.indexOf('lite') >= 0 ? 'lite'
+           : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown');
+  try{ fbq('trackCustom', 'Download', {content_name: what}); }catch(err){}
+}, true);
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=965148686538305&ev=PageView&noscript=1"
