@@ -2,6 +2,19 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<!-- Language auto-detect: default EN, stay RU only if browser language is ru or user chose RU before -->
+<script>
+(function(){
+  try{
+    var pref = localStorage.getItem('vr_lang');
+    if(pref === 'en'){ location.replace('/en/'); return; }
+    if(pref === 'ru'){ return; }
+    var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
+    var isRu = langs.some(function(l){ return /^ru/i.test(l); });
+    if(!isRu){ location.replace('/en/'); }
+  }catch(e){}
+})();
+</script>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -748,7 +761,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <a href="#results" class="link">Примеры</a>
       <a href="#price" class="link">Цена</a>
       <a href="#price" class="btn primary">Скачать</a>
-      <a href="/en/" class="link" title="English version">EN</a>
+      <a href="/en/" class="link" title="English version" onclick="try{localStorage.setItem('vr_lang','en')}catch(e){}">EN</a>
     </nav>
   </div>
 </header>

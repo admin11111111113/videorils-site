@@ -2,6 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- Language auto-detect: redirect to RU only if browser language is ru and user hasn't chosen EN before -->
+<script>
+(function(){
+  try{
+    var pref = localStorage.getItem('vr_lang');
+    if(pref === 'ru'){ location.replace('/'); return; }
+    if(pref === 'en'){ return; }
+    var langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
+    var isRu = langs.some(function(l){ return /^ru/i.test(l); });
+    if(isRu){ location.replace('/'); }
+  }catch(e){}
+})();
+</script>
 <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
@@ -747,7 +760,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       <a href="#results" class="link">Examples</a>
       <a href="#price" class="link">Pricing</a>
       <a href="#price" class="btn primary">Download</a>
-      <a href="/" class="link" title="Русская версия">RU</a>
+      <a href="/" class="link" title="Русская версия" onclick="try{localStorage.setItem('vr_lang','ru')}catch(e){}">RU</a>
     </nav>
   </div>
 </header>
