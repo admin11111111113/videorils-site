@@ -49,7 +49,7 @@ document.addEventListener('click', function(e){
   try{
     var token = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     var body = JSON.stringify({t: token, product: what, stage: 'click'});
-    var url = 'https://videorils-server.onrender.com/api/dl';
+    var url = 'https://videorils-server-7t7t.onrender.com/api/dl';
     // sendBeacon переживает уход со страницы: обычный fetch браузер может
     // оборвать, когда начинается загрузка файла.
     if(navigator.sendBeacon){
@@ -1088,7 +1088,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>Footage + big subtitles</li>
               <li>1 reel at a time, up to 40 seconds</li>
             </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.165/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.166/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
             <div class="dlnote">Windows · plan selected in the app</div>
           </div>
           <div class="tier best">
@@ -1106,7 +1106,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>All Mini updates included</li>
               <li>No watermark</li>
             </ul>
-            <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.165/VideoRilsMiniENSetup.exe" class="btn primary lg shine" style="width:100%">↓ Download VideoRils Mini</a></span>
+            <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.166/VideoRilsMiniENSetup.exe" class="btn primary lg shine" style="width:100%">↓ Download VideoRils Mini</a></span>
             <div class="dlnote">Windows · $97 payment — inside the app</div>
           </div>
           <div class="tier">
@@ -1119,7 +1119,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>Priority support</li>
               <li>Cheaper than paying monthly</li>
             </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.165/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.166/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
             <div class="dlnote">Windows · plan selected in the app</div>
           </div>
         </div>
@@ -1138,7 +1138,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>Clip-Mix / Montage</li>
               <li>Reels up to 120 seconds</li>
             </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.253/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.254/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
             <div class="dlnote">Windows · plan selected in the app</div>
           </div>
           <div class="tier best">
@@ -1157,7 +1157,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>All Lite updates included</li>
               <li>Started on a subscription? Pay the difference — what you paid counts toward it</li>
             </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.253/VideoRilsLiteENSetup.exe" class="btn lite lg shine" style="width:100%">↓ Download VideoRils Lite</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.254/VideoRilsLiteENSetup.exe" class="btn lite lg shine" style="width:100%">↓ Download VideoRils Lite</a>
             <div class="dlnote">Windows · $197 payment — inside the app</div>
           </div>
           <div class="tier">
@@ -1170,7 +1170,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
               <li>Priority support</li>
               <li>Cheaper than paying monthly</li>
             </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.253/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
+            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.254/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
             <div class="dlnote">Windows · plan selected in the app</div>
           </div>
         </div>
@@ -1200,7 +1200,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   var DEF="https://partner.bybit.com/b/163717";   // фолбэк, если сервер недоступен (админка переопределяет)
   function show(url){ var a=document.getElementById('bybitSiteLink'); if(a&&url)a.href=url;
     var b=document.getElementById('bybitSite'); if(b)b.style.display=''; }
-  fetch("https://videorils-server.onrender.com/key-links",{cache:"no-store"})
+  fetch("https://videorils-server-7t7t.onrender.com/key-links",{cache:"no-store"})
     .then(function(r){return r.json();})
     .then(function(d){ d=d||{};
       if((''+(d.bybit_show||'1')).trim()==='0') return;        // тумблер «Показывать» из админки
@@ -1527,7 +1527,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       if(i){ var pct=parseFloat(i.getAttribute('data-fill'))||0;
         if(reduce){ i.style.transform='scaleX('+pct/100+')'; }
         else { requestAnimationFrame(function(){ i.style.transform='scaleX('+pct/100+')'; }); } }
-      var url="https://videorils-server.onrender.com/stats"+(prod!=='mini'?('?product='+prod):'');
+      var url="https://videorils-server-7t7t.onrender.com/stats"+(prod!=='mini'?('?product='+prod):'');
       fetch(url).then(function(r){return r.json();}).then(function(d){
         var rem=(d.remaining_in_stage!=null)?d.remaining_in_stage:(d.remaining!=null?d.remaining:null);
         if(rem!==null){ var taken=Math.max(0,100-rem);
@@ -1582,7 +1582,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   if(howTrack){ window.addEventListener('scroll',reqScroll,{passive:true}); window.addEventListener('resize',reqScroll); onScroll(); }
 
   /* ===== скрытый счётчик реальных генераций (тянем из /stats, включим позже) ===== */
-  fetch("https://videorils-server.onrender.com/stats").then(function(r){return r.json();}).then(function(d){
+  fetch("https://videorils-server-7t7t.onrender.com/stats").then(function(r){return r.json();}).then(function(d){
     var n=$('rendersN'); if(n && d && d.total_renders!=null){ n.textContent=(d.total_renders||0).toLocaleString('en-US'); }
   }).catch(function(){});
 
