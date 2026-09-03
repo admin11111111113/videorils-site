@@ -49,7 +49,8 @@ for p in PAGES:
                      charset=('charset=utf-8' in re.sub(r'["\' ]', '', h.lower())),
                      viewport='name="viewport"' in h,
                      ld=re.findall(r'<script type="application/ld\+json">(.*?)</script>', h, re.S),
-                     links=re.findall(r'href="(/[^"#]*)"', h))
+                     links=re.findall(r'href="(/[^"#]*)"', h),
+                     noindex=bool(re.search(r'<meta name="robots" content="noindex', h)))
     if title: titles[title]+=1
     if desc: descs[desc]+=1
 
@@ -144,31 +145,13 @@ for url,d in data.items():
             if sim(qs[i],qs[j])>=0.8: C(f"{url}: дубль FAQ (~{int(sim(qs[i],qs[j])*100)}%): «{qs[i][:40]}» ≈ «{qs[j][:40]}»")
 
 # ---- 2 падежи городов в анкорах ----
-try:
-    sys.path.insert(0, os.path.join(os.path.dirname(ROOT),"..")) # на случай
-except Exception: pass
-# берём PREP из seo_gen если рядом
-PREP={}
-for cand in [os.path.join(r"C:\Users\admin\AppData\Local\Temp\claude\C--Users-admin\b43cdef7-e345-40d5-9811-2d0508e42f6f\scratchpad","seo_gen.py")]:
-    if os.path.exists(cand):
-        src=open(cand,encoding="utf-8").read()
-        m=re.search(r'PREP = \{(.*?)\n\}', src, re.S)
-        if m:
-            for a,b in re.findall(r'"([^"]+)":"([^"]+)"', m.group(1)): PREP[a]=b
-noms=set(re.findall(r'"[a-z-]+":"[^"]+"', "")) # placeholder
-# ищем "Рилсы в X" / "Раскрутка в X" где X — именительный (совпадает с city name, не с prep)
-citynames={}
-for url in data:
-    if url.startswith("/goroda/") and url!="/goroda/":
-        slug=url.strip("/").split("/")[-1]
-        citynames[slug]=None
-# сверяем анкоры: если анкор содержит именительную форму (нет в PREP-значениях) — флаг
-prep_vals=set(PREP.values())
-for url,d in data.items():
-    for anc in re.findall(r'(?:Рилсы|Раскрутка) в ([А-ЯЁ][а-яё\- ]+?)(?:<|,)', d["html"]):
-        anc=anc.strip()
-        if anc and anc not in prep_vals and anc not in ("вашем городе","городе"):
-            K(f"{url}: возможно кривой падеж анкора: «в {anc}»")
+# УБРАНО: проверка сверяла анкоры с PREP-словарём из seo_gen.py в scratchpad-папке
+# ПРЕДЫДУЩЕЙ сессии Клод Кода (путь содержал её session-id) — та папка временная и
+# после сессии удаляется, поэтому PREP всегда был пуст, и проверка флагала КАЖДЫЙ
+# анкор «в <Городе>» как «возможно кривой падеж», хотя падеж везде верный (сама
+# проверка была на 100% сломана, а не сайт был неправ). Убрана целиком — не
+# заводить снова на путь во временной папке; если понадобится реальная проверка
+# падежей, словарь должен жить в самом репозитории (например, seo_gen.py), не вовне.
 
 # ---- 3 переспам ----
 STOP=set("и в во на с со что как для не по это а но или же бы ли то из у о об от за до над под при про без через между чтобы если когда где чем тем так там уже ещё вы ты он она оно они мы вам вас нас его её их им них свой это этот эта эти тот те весь все всё быть есть был была было были будет будут можно нужно надо очень каждый один раз к да нет вот этом этого этой ваш ваша ваше ваши мой сам уже лишь даже потом затем после тоже здесь сейчас потому поэтому".split())
@@ -215,7 +198,10 @@ else:
     s=readf(smp)
     locs=re.findall(r'<loc>(.*?)</loc>', s)
     lm=re.findall(r'<lastmod>(.*?)</lastmod>', s)
-    repo_urls=set(SITE+u for u in data)
+    # noindex-страницы (юр-доки: offer/legal/terms/privacy/disclaimer) НЕ должны
+    # быть в sitemap — это не пропуск, а правильная практика (иначе Search Console
+    # ругается отдельным предупреждением «noindex-страница в sitemap»).
+    repo_urls=set(SITE+u for u,d in data.items() if not d.get("noindex"))
     smp_urls=set(locs)
     miss=repo_urls-smp_urls; extra=smp_urls-repo_urls
     if miss: C(f"sitemap: НЕ хватает {len(miss)} URL репо: {list(miss)[:5]}")
