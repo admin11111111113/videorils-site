@@ -4,7 +4,7 @@
 const TRUSTED_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
 const CHROMIUM_FULL_VERSION = '143.0.3650.75';
 const SEC_MS_GEC_VERSION = `1-${CHROMIUM_FULL_VERSION}`;
-const WSS_URL = `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}`;
+const WSS_DIRECT = `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1`;
 const WIN_EPOCH = 11644473600;
 let clockSkew = 0;
 
@@ -48,6 +48,13 @@ function splitBytes(text, limit = 4096) {
   return out;
 }
 
+// Microsoft пускает websocket только с User-Agent браузера Edge (Edg/ на Windows, EdgA/ на
+// Android). Из Edge — напрямую; из Chrome/Safari/Firefox — через посредника на нашем сервере
+// (тот же пакет edge_tts, что у десктопа).
+const IS_EDGE = typeof navigator !== 'undefined' && /\bEdg(A|iOS)?\//.test(navigator.userAgent || '');
+// Cloudflare Worker (worker/worker.js) — пересылает тот же websocket с UA браузера Edge
+const WORKER_WSS = 'wss://videorils-tts.videorils.workers.dev/edge';
+
 // -> {audio: Blob(audio/mpeg), words: [{offset, duration, text}]} (offset/duration в сек)
 export async function edgeSynthesize(text, voice, { rate = '+0%', pitch = '+0Hz', volume = '+0%', boundary = 'SentenceBoundary', timeout = 60 } = {}) {
   const chunks = splitBytes(xmlEscape(removeIncompatible(text)), 4096);
@@ -63,7 +70,7 @@ export async function edgeSynthesize(text, voice, { rate = '+0%', pitch = '+0Hz'
 }
 
 async function streamOnce(chunk, voice, { rate, pitch, volume, boundary, timeout }) {
-  const url = `${WSS_URL}&ConnectionId=${hex()}&Sec-MS-GEC=${await secMsGec()}&Sec-MS-GEC-Version=${SEC_MS_GEC_VERSION}`;
+  const url = `${IS_EDGE ? WSS_DIRECT : WORKER_WSS}?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&ConnectionId=${hex()}&Sec-MS-GEC=${await secMsGec()}&Sec-MS-GEC-Version=${SEC_MS_GEC_VERSION}`;
   return await new Promise((resolve, reject) => {
     let ws; try { ws = new WebSocket(url); } catch (e) { reject(e); return; }
     ws.binaryType = 'arraybuffer';

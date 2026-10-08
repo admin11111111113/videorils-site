@@ -125,8 +125,8 @@ export class Api {
     this.last_reel = null;
     this.keys_collapsed = s.keys_collapsed ?? true;
     this.consent_version = s.consent_version ?? ''; this.consent_date = s.consent_date ?? ''; this.consent_machine = s.consent_machine ?? '';
-    this.reel_scenario = s.reel_scenario ?? 'story';
-    if (!(this.reel_scenario in REEL_PROMPTS) && this.reel_scenario !== 'auto') this.reel_scenario = 'story';
+    this.reel_scenario = s.reel_scenario ?? 'auto';   // веб: по умолчанию «Авто» (просьба владельца 2026-10-08)
+    if (!(this.reel_scenario in REEL_PROMPTS) && this.reel_scenario !== 'auto') this.reel_scenario = 'auto';
     this.reel_auto_type = ''; this.custom_prompts = {};
     this.reel_caption = ''; this.reel_hashtags = ''; this.reel_topic = '';
     this.reel_emotion = s.reel_emotion ?? 'energetic';

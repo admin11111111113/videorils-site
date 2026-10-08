@@ -7033,16 +7033,6 @@ setTimeout(()=>{ if(styles.length===0){
 }},1500);
 showView('home');
 </script>
-<script type="module">
-import { Api } from './vr/api_base.js';
-import './vr/api_settings.js';
-import './vr/api_voice.js';
-const api = new Api();
-window.__vrApi = api;
-window.pywebview = { api: new Proxy({}, { get: (t, k) => (typeof api[k] === 'function')
-  ? (...a) => Promise.resolve().then(() => api[k](...a))
-  : (...a) => { console.warn('[web] ещё не перенесено:', k); return Promise.resolve({ ok: false, todo: true }); } }) };
-window.dispatchEvent(new Event('pywebviewready'));
-</script>
+<script type="module" src="./vr/app.js"></script>
 </body>
 </html>

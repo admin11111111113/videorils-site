@@ -1,0 +1,154 @@
+// Порт Api: импорт аудио/видео, распознавание (faster-whisper small int8 -> transformers.js
+// whisper-small q8, кэш в браузере), word-тайминги «Мой голос», выравнивание (app.py 8801–9006, 11133–11247).
+import { C, log, vfs, path, call_js, bar, pickFiles, re } from './core.js';
+import * as A from './audio.js';
+import { Api } from './api_base.js';
+
+const P = Api.prototype;
+const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.web.js';
+const MODEL = 'onnx-community/whisper-small_timestamped';
+let _asr = null;
+
+async function loadWhisper(progress) {
+  if (_asr) return _asr;
+  const T = await import(/* @vite-ignore */ TJS);
+  const files = {};
+  _asr = await T.pipeline('automatic-speech-recognition', MODEL, {
+    dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' }, device: 'wasm',
+    progress_callback: (p) => { if (p && p.status === 'progress' && p.total) { files[p.file] = [p.loaded, p.total]; const L = Object.values(files).reduce((a, x) => a + x[0], 0), T2 = Object.values(files).reduce((a, x) => a + x[1], 0); progress && progress(L / T2); } },
+  });
+  return _asr;
+}
+// WAV 16 кГц моно (как extract_audio_wav) -> Float32Array
+async function pcm16k(p) { const b = await A.resample(await A.decode(p), 16000, 1); return b.getChannelData(0); }
+async function hasAudio(p) { try { const b = await A.decode(p); return b.duration > 0.05; } catch (e) { return false; } }
+
+P.find_audio_on_desktop = function () { return { ok: false, msg: this._t('no_desktop_audio') }; };
+P.choose_audio_file = function (scope = 'video') {
+  return pickFiles('video/*,audio/*,.mp4,.mkv,.webm,.mov,.avi,.aac,.mp3,.m4a,.wav').then(async (files) => {
+    if (!files) return { ok: false, msg: this._t('file_not_selected') };
+    return await this._import_audio(files[0], scope);
+  });
+};
+P._audio_path_for = function (scope) { return scope === 'foreign' ? this.foreign_audio_path : this.audio_path; };
+P._import_audio = async function (file, scope = 'video') {
+  try {
+    const name = file.name || 'input.mp4'; const dst = `input/${name}`;
+    vfs.write(dst, file);
+    if (scope === 'foreign') this.foreign_audio_path = dst; else this.audio_path = dst;
+    const dur = await A.duration(dst);
+    return { ok: true, name, dur: Math.round(dur * 10) / 10 };
+  } catch (e) { return { ok: false, msg: String(e.message || e) }; }
+};
+P.on_drop = async function (file) { const res = await this._import_audio(file, 'foreign'); call_js('droppedImported', res); return res; };
+P.transcribe = async function (scope = 'video') {
+  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  const p = this._audio_path_for(scope);
+  if (!p) return { ok: false, msg: this._t('select_audio_first') };
+  if (!(await hasAudio(p))) {
+    log(`  ℹ распознавание: в файле нет аудио — пустой результат (${path.basename(p)})`);
+    if (scope === 'foreign') this.foreign_segments = []; else if (scope === 'reel') this.reel_segments = []; else this.segments = [];
+    call_js('transcribeLoading', false); call_js('transcribeDone', 0, scope);
+    return { ok: true, empty: true };
+  }
+  if (this.busy) return { ok: false, msg: this._t('already_processing') };
+  this._transcribe_worker(scope);
+  return { ok: true };
+};
+P._load_whisper = async function () { return await loadWhisper((f) => bar(3 + Math.trunc(f * 6), `Загрузка модели ${Math.trunc(f * 100)}%…`)); };
+P._transcribe_worker = async function (scope = 'video') {
+  this.busy = true;
+  try {
+    const p = this._audio_path_for(scope);
+    let audio; try { audio = await pcm16k(p); } catch (e) { audio = null; }
+    if (!audio || audio.length < 1600) {
+      log('  ℹ распознавание: пригодного аудио нет — пустой результат');
+      if (scope === 'reel') this.reel_segments = []; else if (scope === 'foreign') this.foreign_segments = []; else this.segments = [];
+      call_js('transcribeLoading', false); call_js('transcribeDone', 0, scope); return;
+    }
+    bar(3, 'Загрузка модели…'); call_js('transcribeLoading', true);
+    log('▶ Загружаю модель whisper (small, int8)…');
+    const asr = await this._load_whisper();
+    call_js('transcribeLoading', false);
+    log('✔ Модель загружена. Распознаю речь…'); bar(10, 'Распознавание…');
+    const total = Math.max(1.0, audio.length / 16000);
+    const tlang = scope === 'foreign' ? null : (scope === 'video' ? this.video_lang : 'ru');
+    const opts = { return_timestamps: true, chunk_length_s: 30, stride_length_s: 5, task: 'transcribe' };
+    if (tlang) opts.language = tlang === 'en' ? 'english' : 'russian';
+    const out = await asr(audio, opts);
+    const result = [];
+    for (const ch of (out.chunks || [])) {
+      const [s, e] = ch.timestamp || [0, 0]; const text = (ch.text || '').trim(); if (!text) continue;
+      result.push({ start: Number(s || 0), end: Number(e ?? s ?? 0), text });
+      bar(10 + Math.min(88, Math.trunc((e || s || 0) / total * 88)), 'Распознавание…');
+      log(`[${Number(s || 0).toFixed(1).padStart(6)}s] ${text}`);
+    }
+    if (scope === 'reel') this.reel_segments = result; else if (scope === 'foreign') this.foreign_segments = result; else this.segments = result;
+    bar(100, 'Готово'); log(`✔ Распознано фраз: ${result.length}`);
+    call_js('transcribeDone', result.length, scope);
+  } catch (e) {
+    log(`✖ Ошибка распознавания: ${e.message || e}`);
+    call_js('transcribeLoading', false); call_js('transcribeDone', -1, scope, String(e.message || e).slice(0, 160));
+  } finally { this.busy = false; }
+};
+// Whisper word-level -> [(слово, start, end)]
+P._transcribe_words = async function (p) {
+  try {
+    const audio = await pcm16k(p); if (!audio || audio.length < 1600) return [];
+    const asr = await this._load_whisper();
+    const klang = this.video_lang === 'en' ? 'english' : 'russian';
+    const out = await asr(audio, { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5, language: klang, task: 'transcribe' });
+    return (out.chunks || []).map(w => [(w.text || '').trim(), Number((w.timestamp || [0])[0] || 0), Number((w.timestamp || [0, 0])[1] ?? (w.timestamp || [0])[0] ?? 0)]).filter(w => w[0]);
+  } catch (e) { log(`  ⚠ тайминги слов не получены: ${e.message || e}`); return []; }
+};
+P._align_phrases = function (phrases, words, total) {
+  const n = phrases.length;
+  if (!words || !words.length) {
+    const segs = []; let t = 0.0; const tot = phrases.reduce((a, p) => a + p.length, 0) || 1;
+    for (const p of phrases) { const d = Math.max(0.4, total * p.length / tot); segs.push({ start: t, end: t + d, text: p }); t += d; }
+    return segs;
+  }
+  const segs = []; let wi = 0; const W = words.length; let last = 0.0;
+  phrases.forEach((ph, k) => {
+    const wc = Math.max(1, ph.split(/\s+/).filter(Boolean).length); let start, end;
+    if (wi < W) { start = words[wi][1]; const ei = Math.min(W - 1, wi + wc - 1); end = words[ei][2]; wi = ei + 1; }
+    else { const rem = n - k; const chunk = Math.max(0.5, (total - last) / Math.max(1, rem)); start = last; end = last + chunk; }
+    if (end <= start) end = start + 0.4;
+    segs.push({ start: Math.max(start, last), end, text: ph }); last = end;
+  });
+  return segs;
+};
+function seqRatio(a, b) {   // difflib.SequenceMatcher(None,a,b).ratio() — 2*M/T по LCS-блокам
+  if (!a.length && !b.length) return 1;
+  const m = matchBlocks(a, b); return 2 * m / (a.length + b.length);
+}
+function matchBlocks(a, b) {
+  // рекурсивный поиск самого длинного общего блока (как difflib)
+  const longest = (alo, ahi, blo, bhi) => {
+    let besti = alo, bestj = blo, bestsize = 0; let j2len = {};
+    for (let i = alo; i < ahi; i++) { const nj = {}; for (let j = blo; j < bhi; j++) { if (a[i] !== b[j]) continue; const k = (j2len[j - 1] || 0) + 1; nj[j] = k; if (k > bestsize) { besti = i - k + 1; bestj = j - k + 1; bestsize = k; } } j2len = nj; }
+    return [besti, bestj, bestsize];
+  };
+  let total = 0; const q = [[0, a.length, 0, b.length]];
+  while (q.length) { const [alo, ahi, blo, bhi] = q.pop(); const [i, j, k] = longest(alo, ahi, blo, bhi); if (k) { total += k; if (alo < i && blo < j) q.push([alo, i, blo, j]); if (i + k < ahi && j + k < bhi) q.push([i + k, ahi, j + k, bhi]); } }
+  return total;
+}
+P._align_myvoice = function (phrases, words, total) {
+  const _nrm = (w) => (w || '').toLowerCase().replace(/ё/g, 'е').replace(/[^0-9a-zа-яё]/g, '');
+  const ww = []; for (const w of (words || [])) if (w.length >= 3) { const n = _nrm(w[0]); if (n) ww.push([n, Number(w[1]), Number(w[2])]); }
+  if (!ww.length) return this._align_phrases(phrases, words, total);
+  const W = ww.length;
+  const _match = (target, j) => { for (let d = 0; d < Math.min(6, W - j); d++) { const cand = ww[j + d][0]; if (cand === target || (target.length > 3 && cand.length > 3 && seqRatio(cand, target) >= 0.8)) return j + d; } return -1; };
+  const segs = []; let wi = 0, last = 0.0;
+  for (const ph of phrases) {
+    const sw = ph.split(/\s+/).map(_nrm).filter(Boolean); let start_wi = wi, j = wi, matched_end = null;
+    for (const target of sw) { const f = _match(target, j); if (f >= 0) { if (matched_end === null) start_wi = f; j = f + 1; matched_end = ww[f][2]; } }
+    let st, en;
+    if (matched_end === null) { const ei = Math.min(W - 1, wi + Math.max(1, sw.length) - 1); st = wi < W ? ww[wi][1] : last; en = ei < W ? ww[ei][2] : total; wi = ei + 1; }
+    else { st = ww[start_wi][1]; en = matched_end; wi = j; }
+    st = Math.max(st, last); en = Math.max(en, st + 0.3);
+    segs.push({ start: Math.round(st * 1000) / 1000, end: Math.round(en * 1000) / 1000, text: ph }); last = en;
+  }
+  for (let i = 1; i < segs.length; i++) { if (segs[i].start < segs[i - 1].end) segs[i].start = segs[i - 1].end; if (segs[i].end < segs[i].start + 0.2) segs[i].end = segs[i].start + 0.2; }
+  return segs;
+};
