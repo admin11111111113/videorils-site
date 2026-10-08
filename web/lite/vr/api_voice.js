@@ -5,10 +5,10 @@ import * as A from './audio.js';
 import { Api } from './api_base.js';
 
 const P = Api.prototype;
-const EL_BASE = C['Api.EL_BASE'], EL_MIN_CHARS = C['Api.EL_MIN_CHARS'];
+const EL_BASE = C['Api.EL_BASE'], EL_MIN_CHARS = C['Api.EL_MIN_CHARS'], EL_LOW_CHARS = C['Api.EL_LOW_CHARS'];
 
 P.save_myvoice_audio = async function (b64, ext = 'webm') {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   try {
     const src = b64ToBlob(b64);
     vfs.write('temp/myvoice_raw.' + (ext || 'webm'), src);
@@ -20,7 +20,7 @@ P.save_myvoice_audio = async function (b64, ext = 'webm') {
 };
 P.clear_myvoice = function () { const p = this.myvoice_path; this.myvoice_path = ''; this.myvoice_segments = []; if (p) vfs.remove(p); return { ok: true }; };
 P.choose_myvoice_file = function () {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   const pick = pickFiles('audio/*,.wav,.mp3,.m4a,.aac,.ogg,.webm');   // синхронно из клика
   return pick.then(async (files) => {
     if (!files) return { ok: false, msg: this._t('file_not_selected') };
@@ -68,7 +68,7 @@ P._karaoke_segments = function (phrases, kseg, words, total) {
   return segs;
 };
 P.myvoice_splice_scene = async function (idx, b64, ext, seg_start, seg_end) {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   try {
     if (!(this.myvoice_path && vfs.exists(this.myvoice_path))) return { ok: false, msg: this._t('myvoice_no_recording') };
     seg_start = Math.max(0.0, parseFloat(seg_start || 0) || 0); seg_end = Math.max(seg_start, parseFloat(seg_end || 0) || 0);
@@ -97,7 +97,7 @@ for (const [name, list, idx] of [['eleven_key', 'eleven_keys', 'eleven_idx'], ['
 P.reveal_key = function (kind, idx = 0) {
   idx = parseInt(idx); if (Number.isNaN(idx)) idx = 0;
   let ks = [];
-  if (kind === 'pixabay' || kind === 'px') ks = (this.pixabay_keys && this.pixabay_keys.length) ? this.pixabay_keys : (this.pixabay_key ? [this.pixabay_key] : []);
+  if (kind === 'pixabay' || kind === 'px') ks = this.pixabay_keys || [];
   else if (kind === 'eleven' || kind === 'el') ks = this.eleven_keys || [];
   else if (kind === 'pexels' || kind === 'px2') ks = this.pexels_keys || [];
   else if (kind === 'claude' || kind === 'ai') ks = this.claude_keys || [];
@@ -105,9 +105,9 @@ P.reveal_key = function (kind, idx = 0) {
   const k = idx >= 0 && idx < ks.length ? ks[idx] : '';
   return { ok: !!k, key: k };
 };
-P.get_keys_status = function () { return { pixabay: !!this.pixabay_key, pexels: !!this.pexels_key, eleven: !!this.eleven_key, ai: !!this.claude_key, gemini: !!this.gemini_key, collapsed: this.keys_collapsed }; };
+P.get_keys_status = function () { return { pixabay: !!this.pixabay_keys.length, pexels: !!this.pexels_key, eleven: !!this.eleven_keys.length, ai: !!this.claude_key, gemini: !!this.gemini_key, collapsed: this.keys_collapsed }; };
 P.set_keys_collapsed = function (v) { this.keys_collapsed = !!v; this._persist(); return { ok: true, collapsed: this.keys_collapsed }; };
-P.get_onboarding_state = function () { const has_media = !!(this.pixabay_key || this.pexels_key); return { show: !this.media_onboarded && !has_media }; };
+P.get_onboarding_state = function () { const has_media = !!(this.pixabay_keys.length || this.pexels_key); return { show: !this.media_onboarded && !has_media }; };
 P.set_media_onboarded = function (v = true) { this.media_onboarded = !!v; this._persist(); return { ok: true }; };
 P.onboarding_check_key = async function (service, key) {
   key = (key || '').trim();
@@ -116,7 +116,7 @@ P.onboarding_check_key = async function (service, key) {
   const is_pexels = svc.includes('pex') || svc === 'media1' || svc === '1';
   let ok = false;
   try { ok = !!(is_pexels ? await this._pexels_check(key) : await this._pixabay_check(key))[0]; } catch (e) { ok = false; }
-  if (ok) { if (is_pexels) await this.set_pexels_key(key); else await this.set_pixabay_key(key); this.media_onboarded = true; this._persist(); }
+  if (ok) { if (is_pexels) await this.add_pexels_key(key); else await this.add_pixabay_key(key); this.media_onboarded = true; this._persist(); }
   return { ok };
 };
 P._el_credits_for = async function (key) {
@@ -136,38 +136,79 @@ P._el_credits_for = async function (key) {
   }
 };
 P.get_eleven_credits = async function () { if (!this.eleven_key) return { ok: false }; return await this._el_credits_for(this.eleven_key); };
-P._el_key_state = async function (key) {
-  const c = await this._el_credits_for(key);
-  if (!c.ok) return ['error', null];
-  const rem = c.remaining;
-  if (rem == null || rem < EL_MIN_CHARS) return ['spent', rem];
-  return ['ok', rem];
-};
-P.get_eleven_key_status = async function () {
-  if (!this.eleven_key) return { has: false };
-  const [state, rem] = await this._el_key_state(this.eleven_key);
-  return { has: true, mask: Api._mask(this.eleven_key), state, remaining: rem };
-};
 P._el_keys_view = function () { return this.eleven_keys.map(k => ({ mask: Api._mask(k) })); };
-P.get_eleven_masks = function () { return { keys: this.eleven_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 1 }; };
+P.get_eleven_masks = function () {
+  return { keys: this.eleven_keys.map(k => ({ mask: Api._mask(k), paused: this.eleven_paused.has(k), status: this.eleven_paused.has(k) ? 'paused' : 'checking' })), max: 5 };
+};
+// честный статус: active / low (<EL_LOW) / spent (<EL_MIN или ошибка) / paused (вручную)
 P.get_eleven_keys = async function () {
-  const out = [];
-  for (const k of this.eleven_keys) { const [state, rem] = await this._el_key_state(k); out.push({ mask: Api._mask(k), state, remaining: rem, ok: ['ok', 'low'].includes(state) }); }
-  return { keys: out, max: 1 };
+  const out = []; let usable = 0;
+  for (const k of this.eleven_keys) {
+    const paused = this.eleven_paused.has(k);
+    const c = await this._el_credits_for(k);
+    const rem = c.ok ? c.remaining : null;
+    let status;
+    if (paused) status = 'paused';
+    else if (rem == null || rem < EL_MIN_CHARS) status = 'spent';
+    else if (rem < EL_LOW_CHARS) status = 'low';
+    else status = 'active';
+    if (status === 'active' || status === 'low') usable++;
+    out.push({ mask: Api._mask(k), ok: !!c.ok, remaining: rem, paused, status });
+  }
+  return { keys: out, all_spent: !!this.eleven_keys.length && usable === 0, min: EL_MIN_CHARS, low: EL_LOW_CHARS };
 };
 P.add_eleven_key = async function (key) {
   this.track('keys_saved');
-  key = this._clean_key(key);
+  key = (key || '').trim();
   if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._el_keys_view() };
-  if (this.eleven_keys.length >= 1) return { ok: false, msg: this._t('max_1_key'), keys: this._el_keys_view() };
+  if (this.eleven_keys.length >= 5) return { ok: false, msg: this._t('max_5_keys'), keys: this._el_keys_view() };
   if (this.eleven_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._el_keys_view() };
+  const c = await this._el_credits_for(key);       // авто-проверка при сохранении
+  if (!c.ok) return { ok: false, msg: this._t('key_rejected', c.msg || ''), keys: this._el_keys_view() };
   this.eleven_keys.push(key); this._persist();
-  const [state, rem] = await this._el_key_state(key);
-  return { ok: true, has: true, mask: Api._mask(key), state, remaining: rem, keys: this._el_keys_view() };
+  return { ok: true, keys: this._el_keys_view() };
 };
-P.remove_eleven_key = function (idx = 0) {
-  const i = parseInt(idx); if (!Number.isNaN(i) && i >= 0 && i < this.eleven_keys.length) { this.eleven_keys.splice(i, 1); this.eleven_idx = 0; this._persist(); }
-  return { ok: true, has: !!this.eleven_keys.length, keys: this._el_keys_view() };
+P.remove_eleven_key = function (idx) {
+  const i = parseInt(idx);
+  if (!Number.isNaN(i) && i >= 0 && i < this.eleven_keys.length) { const k = this.eleven_keys.splice(i, 1)[0]; this.eleven_paused.delete(k); this.eleven_idx = 0; this._persist(); }
+  return { ok: true, keys: this._el_keys_view() };
+};
+// вручную отложить ключ (в конец очереди) / вернуть (в начало)
+P.pause_eleven_key = function (idx) {
+  const i = parseInt(idx); if (Number.isNaN(i)) return { ok: false };
+  if (i >= 0 && i < this.eleven_keys.length) { const k = this.eleven_keys.splice(i, 1)[0]; this.eleven_paused.add(k); this.eleven_keys.push(k); this.eleven_idx = 0; this._persist(); }
+  return this.get_eleven_keys();
+};
+P.restore_eleven_key = function (idx) {
+  const i = parseInt(idx); if (Number.isNaN(i)) return { ok: false };
+  if (i >= 0 && i < this.eleven_keys.length) { const k = this.eleven_keys.splice(i, 1)[0]; this.eleven_paused.delete(k); this.eleven_keys.unshift(k); this.eleven_idx = 0; this._persist(); }
+  return this.get_eleven_keys();
+};
+// ключ под ВЕСЬ рилс: остаток сравниваем с реальной длиной (needed); годные вперёд
+P._el_prepare_key = async function (needed) {
+  if (!this.eleven_keys.length) return [false, this._t('eleven_key_not_set')];
+  const active = [], benched = [];
+  for (const k of this.eleven_keys) {
+    if (this.eleven_paused.has(k)) { benched.push(k); continue; }
+    const c = await this._el_credits_for(k);
+    const r = c.ok ? (c.remaining || 0) : 0;
+    ((c.ok && r >= needed) ? active : benched).push(k);
+  }
+  this.eleven_keys = active.concat(benched);
+  if (!active.length) return [false, this._t('el_all_spent')];
+  this.eleven_idx = 0;
+  return [true, ''];
+};
+// аварийная ротация (401/429 посреди рилса): следующий с остатком, мимо отложенных
+P._rotate_eleven = async function () {
+  const n = this.eleven_keys.length;
+  for (let off = 1; off < n; off++) {
+    const idx = (this.eleven_idx + off) % n; const k = this.eleven_keys[idx];
+    if (this.eleven_paused.has(k)) continue;
+    const c = await this._el_credits_for(k);
+    if (c.ok && (c.remaining || 0) > 0) { log(`  ⚠ Voice Key #${this.eleven_idx + 1} исчерпан, переключаюсь на #${idx + 1}`); this.eleven_idx = idx; return true; }
+  }
+  return false;
 };
 P.set_eleven_key = function (key) { return this.add_eleven_key(key); };
 P.open_eleven_subscription = function () { webbrowser.open('https://elevenlabs.io/subscription'); return true; };
@@ -208,9 +249,7 @@ P.list_eleven_voices = async function () {
     voices.sort((a, b) => (a._pr - b._pr) || (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0));
     for (const v of voices) delete v._pr;
     const fem = voices.filter(v => v.gender === 'female'), mal = voices.filter(v => v.gender === 'male');
-    const acct = new Set(voices.map(v => v.name.toLowerCase().split(' (')[0].trim()));
-    const library = C['Api.EL_LIBRARY_RU'].filter(lv => !acct.has(lv.name.toLowerCase())).map(lv => ({ name: lv.name, voice_id: '', gender: lv.gender, desc: lv.desc, locked: true }));
-    return { ok: true, voices: [...fem, ...mal], female: fem, male: mal, library };
+    return { ok: true, voices: [...fem, ...mal], female: fem, male: mal };
   } catch (e) { return { ok: false, msg: String(e.message || e), voices: [] }; }
 };
 // демо кэшируется в IndexedDB-подобном кэше браузера (Cache API) — 1 раз на голос

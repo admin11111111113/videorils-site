@@ -25,7 +25,23 @@ export function _best_variant(vids) {
 export function _q_tokens(text) {
   return new Set(re.split('[^a-z0-9]+', (text || '').toLowerCase()).filter(w => w.length >= 3 && !C._STOP_QUERY_WORDS.has(w)));
 }
-export function _rel_tokens(topic) { const s = _q_tokens(topic); for (const w of C._WEAK_REL) s.delete(w); return s; }
+// значимые англ-токены темы/запроса (len≥3, без _TAG_STOP); кириллицу игнорируем
+export function _theme_tokens(...parts) {
+  const toks = new Set();
+  for (const p of parts) for (const w of String(p || '').toLowerCase().split(/[^a-z0-9]+/)) if (w.length >= 3 && !C._TAG_STOP.has(w)) toks.add(w);
+  return toks;
+}
+// сколько токенов темы есть в тегах хита ЦЕЛЫМИ словами (многословные — подстрокой). Пусто -> 1
+export function _hit_tag_overlap(hit, tokens) {
+  if (!tokens || !tokens.size) return 1;
+  const tags = (hit.tags || '').toLowerCase();
+  if (!tags) return 0;
+  const tag_words = new Set(tags.match(/[a-z0-9]+/g) || []);
+  let n = 0;
+  for (const t of tokens) { if (t.includes(' ')) { if (tags.includes(t)) n++; } else if (tag_words.has(t)) n++; }
+  return n;
+}
+export function _rel_tokens(topic) { const s = new Set(); for (const t of _theme_tokens(topic)) if (!C._WEAK_REL.has(t)) s.add(t); return s; }
 export function _hit_rel(h, toks) {
   if (!toks || !toks.size) return false;
   const tags = (h.tags || '').toLowerCase();
@@ -38,7 +54,7 @@ export function _hit_rel(h, toks) {
   return false;
 }
 export function _tag_relevance(tags, dom, qtok) {
-  const low = (tags || '').toLowerCase(); const tt = _q_tokens(low);
+  const low = (tags || '').toLowerCase(); const tt = _theme_tokens(low);
   const dom_hit = (dom && low.includes(dom)) ? 1.0 : 0.0;
   const q_hit = (qtok && qtok.size && [...qtok].some(x => tt.has(x))) ? 1.0 : 0.0;
   return [dom_hit, q_hit];
@@ -50,7 +66,7 @@ export function _is_weak_pick(tags, domain = '', query = '') {
   return d === 0.0 && q === 0.0;
 }
 export function _rank_video_hits(hits, domain = '', want_dur = 0.0, query = '') {
-  const dom = (domain || '').toLowerCase().trim(); const qtok = _q_tokens(query);
+  const dom = (domain || '').toLowerCase().trim(); const qtok = _theme_tokens(query);
   const score = (h) => {
     const best = _best_variant(h.videos);
     const orient = _hit_orientation_score(best.width, best.height);
@@ -62,7 +78,7 @@ export function _rank_video_hits(hits, domain = '', want_dur = 0.0, query = '') 
   return sortedBy(hits || [], score, true);
 }
 export function _rank_photo_hits(hits, domain = '', query = '') {
-  const dom = (domain || '').toLowerCase().trim(); const qtok = _q_tokens(query);
+  const dom = (domain || '').toLowerCase().trim(); const qtok = _theme_tokens(query);
   const score = (h) => {
     const orient = _hit_orientation_score(h.imageWidth, h.imageHeight);
     const [dom_hit, q_hit] = _tag_relevance(h.tags || '', dom, qtok);
@@ -151,7 +167,7 @@ export function _pix_throttle() {       // глобальная очередь (
   _pixChain = p.catch(() => { });
   return p;
 }
-export async function _pixabay_query(api_url, key, q, pp, photo, timeout = 15, order = 'popular') {
+export async function _pixabay_query(api_url, key, q, pp, photo, timeout = 20, order = 'popular') {
   const kh = await _pix_key_hash(key);
   const ck = JSON.stringify([api_url, q, pp, photo, order, kh]);
   const cached = _pix_cache_get(ck);
@@ -192,7 +208,7 @@ export async function _pixabay_query(api_url, key, q, pp, photo, timeout = 15, o
 // ---- Wikimedia Commons ----
 let _WM_LAST = 0;
 export function _query_content_tokens(q) {
-  return new Set(re.findall('[a-z]{3,}', (q || '').toLowerCase()).filter(w => !C._WM_QSTOP.has(w)));
+  return new Set(re.findall('[a-z]{3,}', (q || '').toLowerCase()).filter(w => !C._Q_STOP.has(w)));
 }
 export async function _wikimedia_search(query, limit = 20, min_side = 600) {
   const q = (query || '').trim();
@@ -235,7 +251,7 @@ export async function download_media(query, tag, key, used = null, topic = '', d
   const full = variants.length ? variants[0] : query;
   let dup_video = null, dup_image = null, loose_video = null, loose_image = null;
   const _vurl = (h) => { const v = h.videos; return (v.medium || v.small || v.large || v.tiny).url; };
-  const _relevant = (h) => !rel.size || _hit_rel(h, rel);
+  const _relevant = (h) => !rel.size || _hit_tag_overlap(h, rel) >= 1;
   const vdst = path.join(TEMP_DIR, `src_${tag}.mp4`), idst = path.join(TEMP_DIR, `src_${tag}.jpg`);
   for (const v of variants) {
     let hits, limited;
@@ -259,7 +275,7 @@ export async function download_media(query, tag, key, used = null, topic = '', d
     catch (e) { continue; }
     if (!hits || !hits.length) continue;
     const ranked = _rank_video_hits(hits, dom, 0.0, v);
-    const cand = dom_rel.size ? ranked.filter(x => _hit_rel(x, dom_rel)) : ranked;
+    const cand = dom_rel.size ? ranked.filter(x => _hit_tag_overlap(x, dom_rel) >= 1) : ranked;
     const h = _pick_hit(cand, used);
     if (h) {
       if (used !== null) used.add(h.id);
@@ -275,7 +291,7 @@ export async function download_media(query, tag, key, used = null, topic = '', d
       catch (e) { log(`     ⚠ фото «${v}»: ${e.message || e}`); continue; }
       if (!hits || !hits.length) continue;
       const ranked = _rank_photo_hits(hits, dom, v);
-      const cand = _filt ? ranked.filter(_relevant) : (dom_rel.size ? ranked.filter(x => _hit_rel(x, dom_rel)) : ranked);
+      const cand = _filt ? ranked.filter(_relevant) : (dom_rel.size ? ranked.filter(x => _hit_tag_overlap(x, dom_rel) >= 1) : ranked);
       const h = _pick_hit(cand, used);
       if (h) {
         if (used !== null) used.add(h.id);
@@ -350,6 +366,13 @@ export function _norm_pexels_video(v) {
   if (!best || !best.link) return null;
   return { id: `px_${v.id}`, is_video: true, url: best.link, thumb: v.image || '', source: 'pexels', w: best.width || v.width || 0, h: best.height || v.height || 0 };
 }
+// фото Pexels -> портретный кадр (src.portrait 1200×1600) — для нарезки
+const PEXELS_PHOTO_URL = 'https://api.pexels.com/v1/search';
+export function _norm_pexels_photo(p) {
+  const src = p.src || {}; const url = src.portrait || src.large2x || src.large || src.original;
+  if (!url) return null;
+  return { id: `pxp_${p.id}`, is_video: false, url, thumb: src.tiny || src.medium || url, source: 'pexels', w: p.width || 0, h: p.height || 0 };
+}
 export function score_clips(clips) {
   clips = clips || [];
   if (!clips.length) return { score: 0.0, res: 0, vert_frac: 0.0, n: 0 };
@@ -416,6 +439,20 @@ export class MediaProviderChain {
     if (r.status_code !== 200) { this.log(`  ⚠ Pexels «${query}»: HTTP ${r.status_code}`); return []; }
     const out = [];
     for (const v of ((r.json() || {}).videos || [])) { const n = _norm_pexels_video(v); if (n) out.push(n); }
+    return out;
+  }
+  // прямой поиск ФОТО на Pexels (тот же ключ); 429/ошибка/нет ключа -> []
+  async pexels_photos(query, per_page = 20) {
+    if (!this.pexels_key) return [];
+    this.pexels_limited = false;
+    let r;
+    try { r = await requests.get(PEXELS_PHOTO_URL, { params: { query, per_page: Math.max(1, Math.min(per_page, 80)), orientation: 'portrait', size: 'large' }, headers: { Authorization: this.pexels_key }, timeout: this.timeout }); }
+    catch (e) { this.log(`  ⚠ Pexels фото «${query}»: сеть/таймаут — ${String(e.message || e).slice(0, 60)}`); return []; }
+    const rem = r.headers.get('X-Ratelimit-Remaining'); if (rem !== null && !Number.isNaN(parseInt(rem))) this.pexels_remaining = parseInt(rem);
+    if (r.status_code === 429) { this.pexels_remaining = 0; this.pexels_limited = true; this.log(`  ⚠ Pexels фото «${query}»: HTTP 429 (лимит Pexels)`); return []; }
+    if (r.status_code !== 200) { this.log(`  ⚠ Pexels фото «${query}»: HTTP ${r.status_code}`); return []; }
+    const out = [];
+    for (const p of ((r.json() || {}).photos || [])) { const n = _norm_pexels_photo(p); if (n) out.push(n); }
     return out;
   }
 }

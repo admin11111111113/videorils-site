@@ -11,10 +11,13 @@ const _GEM_STRICT = C['Api._GEM_STRICT'];
 const CYR = /[а-яёА-ЯЁ]/, LAT = /[a-zA-Z]/;
 
 P.ai_generate_reel = async function (story) {
-  if (this.reel_source === 'foreign' && this.foreign_audio_path && !(this.foreign_segments || []).map(s => s.text || '').join(' ').trim()) return this.foreign_silent_scenes();
   this._reset_key_rotation();
   let prompt = this.get_reel_prompt(story);
-  if (prompt === '__NO_SPEECH__') return { ok: false, code: 'no_speech', msg: this._t('no_speech_or_audio') };
+  if (prompt === '__NO_SPEECH__') {
+    // немой источник / речь не распознана -> раскадровка по времени БЕЗ текста (не ошибка)
+    if (this.reel_source === 'foreign') return this.foreign_silent_scenes();
+    return { ok: false, code: 'no_speech', msg: this._t('speech_not_recognized') };
+  }
   if (!prompt) return { ok: false, msg: this._t('ai_need_story') };
   if (this.ai_provider === 'gemini' || (!this.claude_key && this.gemini_key)) prompt = prompt + _GEM_STRICT;
   prompt = prompt + this._stress_merge_suffix();
@@ -23,7 +26,7 @@ P.ai_generate_reel = async function (story) {
   this._gem_reel_end();
   if (!ok) {
     if (this._is_ai_limit(out)) this._notify_ai_limit();
-    return { ok: false, msg: out, manual: true, code: this._ai_last_reason, has_claude: !!this.claude_key };
+    return { ok: false, msg: out, manual: true };
   }
   let topic_drift = false;
   const en = this.video_lang === 'en';
@@ -35,7 +38,7 @@ P.ai_generate_reel = async function (story) {
         : 'СТРОГО ПО ТЕМЕ ИСХОДНИКА: тема твоего ролика — ТА ЖЕ, что в исходном тексте ниже; НЕ меняй предмет разговора.\n\n' + prompt;
       const [ok2, out2] = await this._ai_call(strong);
       if (ok2) out = out2;
-      if (!(ok2 && this._topic_matches(src_txt, out))) { topic_drift = true; log('[reel] тема всё ещё расходится — отдаю флаг topic_drift'); }
+      if (!(ok2 && this._topic_matches(src_txt, out))) topic_drift = true;
     }
   }
   try {
@@ -43,6 +46,9 @@ P.ai_generate_reel = async function (story) {
     if (target > 0) {
       let pred = this._predict_reel_sec(this._parse_reel_answer(out)[0]);
       const _gap = 3.0; const _cl = this._reel_char_limit(Math.trunc(target));
+      // экономия квоты: добор — необязательная полировка; на бесплатном Gemini остаток нужнее
+      const _left = this._gem_day_left();
+      if (_left !== null && _left <= 3) { log(`[reel] добор пропущен: у бесплатного Gemini осталось ${_left} запросов — берегу их на сценарии`); pred = null; }
       for (let _try = 0; _try < 2; _try++) {
         if (!(pred && pred < target - _gap)) break;
         log(`[reel] прогноз ${pred.toFixed(0)}с < цель ${target.toFixed(0)}с (допуск ${_gap.toFixed(0)}с) — добор длины, попытка ${_try + 1}/2`);
@@ -50,7 +56,11 @@ P.ai_generate_reel = async function (story) {
           ? prompt + `\n\nYOUR DRAFT IS TOO SHORT (~${pred.toFixed(0)} sec of ${target.toFixed(0)}). REWRITE LONGER: expand each line with specifics (details, numbers, examples) and/or add 1-2 scenes, so the voice-over takes ${Math.trunc(target - 2)}-${Math.trunc(target)} sec, but NOT more than ${_cl} spoken characters (otherwise it'll have to be trimmed). Same output format, same topic.`
           : prompt + `\n\nТВОЙ ЧЕРНОВИК СЛИШКОМ КОРОТКИЙ (~${pred.toFixed(0)} сек из ${target.toFixed(0)}). ПЕРЕПИШИ ДЛИННЕЕ: разверни каждую фразу конкретикой (детали, цифры, примеры) и/или добавь 1-2 сцены, чтобы озвучка заняла ${Math.trunc(target - 2)}-${Math.trunc(target)} сек, но НЕ больше ${_cl} символов произносимого текста (иначе придётся резать). Тот же формат вывода, та же тема.`;
         const [ok3, out3] = await this._ai_call(addp);
-        if (!ok3) { log(`[reel] добор НЕ ВЫПОЛНЕН (ИИ не ответил): ${String(out3).slice(0, 90)}`); break; }
+        if (!ok3) {
+          log(`[reel] добор НЕ ВЫПОЛНЕН (ИИ не ответил): ${String(out3).slice(0, 90)}`);
+          this._degrade(`ИИ не смог добрать длину — ролик будет короче цели (~${pred.toFixed(0)}с вместо ${target.toFixed(0)}с)`);
+          break;
+        }
         const pred3 = this._predict_reel_sec(this._parse_reel_answer(out3)[0]);
         if (pred3 > pred) { out = out3; pred = pred3; log(`[reel] добор применён → прогноз ${pred3.toFixed(0)}с (цель ${target.toFixed(0)}с)`); }
         else { log(`[reel] добор не помог (прогноз ${pred3.toFixed(0)}с) — оставляю исходный`); break; }
@@ -58,31 +68,7 @@ P.ai_generate_reel = async function (story) {
       if (pred && pred < target - _gap) log(`[reel] ⚠ ИТОГОВЫЙ ПРОГНОЗ ${pred.toFixed(0)}с при цели ${target.toFixed(0)}с — недобор ${(target - pred).toFixed(0)}с`);
     }
   } catch (e) { log(`[reel] добор длины пропущен: ${String(e.message || e).slice(0, 50)}`); }
-  try {
-    const climit = this._reel_char_limit(); let best_len = this._spoken_chars(out);
-    if (climit && best_len > climit) {
-      const floor = Math.round(climit * 0.95); const cands = []; let done = false;
-      for (let attempt = 1; attempt < 3; attempt++) {
-        log(`[reel] текст ${best_len} симв > лимит ${climit} — молча ужимаю (попытка ${attempt}/2, целевое окно ${floor}-${climit})`);
-        const shortp = en
-          ? prompt + `\n\nYOUR DRAFT IS TOO LONG (~${best_len} spoken characters, hard limit ${climit}). REWRITE SHORTER, but DON'T OVERCUT: land in the ${floor}-${climit} spoken-character range. Under ${floor} characters is BAD: the reel will come out noticeably shorter than intended. Cut filler, not meaning. Same output format, same topic, same number of lines or fewer.`
-          : prompt + `\n\nТВОЙ ЧЕРНОВИК СЛИШКОМ ДЛИННЫЙ (~${best_len} символов произносимого текста, жёсткий лимит ${climit}). ПЕРЕПИШИ КОРОЧЕ, но НЕ ОБРЕЗАЙ С ЗАПАСОМ: уложись в диапазон ${floor}-${climit} символов произносимого текста. Короче ${floor} символов — ПЛОХО: ролик выйдет заметно короче нужного. Убирай воду, а не смысл. Тот же формат вывода, та же тема, столько же фраз или меньше.`;
-        const [ok4, out4] = await this._ai_call(shortp);
-        const s4 = ok4 ? this._spoken_chars(out4) : 0;
-        if (!ok4 || s4 <= 0) { log(`[reel] попытка ${attempt}/2 не удалась — стоп`); done = true; break; }
-        cands.push([s4, out4]);
-        if (floor <= s4 && s4 <= climit) { log(`[reel] ужато → ${s4} симв (окно ${floor}-${climit}) ✓`); out = out4; done = true; break; }
-        if (s4 < floor) { log(`[reel] ужато СЛИШКОМ сильно: ${s4} симв при поле ${floor} — пробую ещё раз (иначе ролик недоберёт)`); continue; }
-        log(`[reel] всё ещё длинно: ${s4} симв > лимита ${climit}`); best_len = s4;
-      }
-      if (!done) {   // for…else
-        const in_win = cands.filter(c => floor <= c[0] && c[0] <= climit), over = cands.filter(c => c[0] > climit);
-        if (in_win.length) out = in_win.reduce((a, b) => Math.abs(b[0] - climit) < Math.abs(a[0] - climit) ? b : a)[1];
-        else if (over.length) { const m = over.reduce((a, b) => b[0] < a[0] ? b : a); log(`[reel] беру самый короткий из длинных: ${m[0]} симв (перебор подожмётся ускорением)`); out = m[1]; }
-        else if (cands.length) { const m = cands.reduce((a, b) => b[0] > a[0] ? b : a); log(`[reel] все варианты ниже поля ${floor}; беру самый длинный: ${m[0]} симв`); out = m[1]; }
-      }
-    }
-  } catch (e) { log(`[reel] лимит длины пропущен: ${String(e.message || e).slice(0, 50)}`); }
+  out = await this._enforce_char_limit(prompt, out, Math.trunc(this._target_sec()));
   let auto_type = null;
   try {
     const res = this._parse_reel_answer(out);
@@ -91,9 +77,38 @@ P.ai_generate_reel = async function (story) {
   } catch (e) { }
   const result = { ok: true, text: out };
   if (topic_drift) { result.topic_drift = true; result.drift_msg = 'Тема могла уйти в сторону от исходного видео — перегенерировать?'; }
-  if (auto_type) { this.reel_auto_type = auto_type; result.auto_type = auto_type; result.auto_type_ru = Api._type_ru(auto_type); }
+  if (auto_type) { this.reel_auto_type = auto_type; result.auto_type = auto_type; result.auto_type_ru = this._type_label(auto_type); }
   return result;
 };
+// тихая страховка длины (общая для «Один рилс» и «Пакета»): текст > лимита -> до 2 попыток ужать
+P._enforce_char_limit = async function (prompt, out, secs = null) {
+  try {
+    const climit = this._reel_char_limit(secs); let best_len = this._spoken_chars(out);
+    if (!climit || best_len <= climit) return out;
+    const floor = Math.round(climit * 0.95); const en = this.video_lang === 'en'; const cands = [];
+    for (let attempt = 1; attempt < 3; attempt++) {
+      log(`[reel] текст ${best_len} симв > лимит ${climit} — молча ужимаю (попытка ${attempt}/2, целевое окно ${floor}-${climit})`);
+      const shortp = en
+        ? prompt + `\n\nYOUR DRAFT IS TOO LONG (~${best_len} spoken characters, hard limit ${climit}). REWRITE SHORTER, but DON'T OVERCUT: land in the ${floor}-${climit} spoken-character range. Under ${floor} characters is BAD: the reel will come out noticeably shorter than intended. Cut filler, not meaning. Same output format, same topic, same number of lines or fewer.`
+        : prompt + `\n\nТВОЙ ЧЕРНОВИК СЛИШКОМ ДЛИННЫЙ (~${best_len} символов произносимого текста, жёсткий лимит ${climit}). ПЕРЕПИШИ КОРОЧЕ, но НЕ ОБРЕЗАЙ С ЗАПАСОМ: уложись в диапазон ${floor}-${climit} символов произносимого текста. Короче ${floor} символов — ПЛОХО: ролик выйдет заметно короче нужного. Убирай воду, а не смысл. Тот же формат вывода, та же тема, столько же фраз или меньше.`;
+      const [ok2, out2] = await this._ai_call(shortp);
+      const s2 = ok2 ? this._spoken_chars(out2) : 0;
+      if (!ok2 || s2 <= 0) { log(`[reel] попытка ${attempt}/2 не удалась — стоп`); break; }
+      cands.push([s2, out2]);
+      if (floor <= s2 && s2 <= climit) { log(`[reel] ужато → ${s2} симв (окно ${floor}-${climit}) ✓`); return out2; }
+      if (s2 < floor) { log(`[reel] ужато СЛИШКОМ сильно: ${s2} симв при поле ${floor} — пробую ещё раз (иначе ролик недоберёт)`); continue; }
+      log(`[reel] всё ещё длинно: ${s2} симв > лимита ${climit}`); best_len = s2;
+    }
+    const in_win = cands.filter(c => floor <= c[0] && c[0] <= climit);
+    if (in_win.length) return in_win.reduce((a, b) => Math.abs(b[0] - climit) < Math.abs(a[0] - climit) ? b : a)[1];
+    const over = cands.filter(c => c[0] > climit);
+    if (over.length) { const m = over.reduce((a, b) => b[0] < a[0] ? b : a); log(`[reel] беру самый короткий из длинных: ${m[0]} симв (перебор подожмётся ускорением)`); return m[1]; }
+    if (cands.length) { const m = cands.reduce((a, b) => b[0] > a[0] ? b : a); log(`[reel] все варианты ниже поля ${floor}; беру самый длинный: ${m[0]} симв`); return m[1]; }
+    return out;
+  } catch (e) { log(`[reel] лимит длины пропущен: ${String(e.message || e).slice(0, 50)}`); return out; }
+};
+// название типа сценария на языке КОНТЕНТА
+P._type_label = function (key) { const en = this.video_lang === 'en'; const r = REEL_TYPES.find(t => t[0] === key); return r ? (en ? r[3] : r[2]) : key; };
 
 // ---- типы сценария ----
 P._scenario_types = function () { return REEL_TYPES.map(([k, e, ru, en]) => ({ key: k, emoji: e, ru, en, customized: k in this.custom_prompts })); };
@@ -107,7 +122,11 @@ Api._norm_type = function (word) {
 P.get_prompt_text = function (kind) { if (!(kind in REEL_PROMPTS)) return { ok: false, msg: this._t('bad_scenario') }; return { ok: true, kind, text: this.custom_prompts[kind] ?? REEL_PROMPTS[kind], is_default: !(kind in this.custom_prompts) }; };
 P.set_custom_prompt = function () { return { ok: true, customized: false }; };
 P.reset_prompt = function (kind) { if (!(kind in REEL_PROMPTS)) return { ok: false, msg: this._t('bad_scenario') }; delete this.custom_prompts[kind]; this._persist(); return { ok: true, text: REEL_PROMPTS[kind] }; };
-P._pick_ending = function () { const base = this.video_lang === 'en' ? _REEL_ENDINGS_EN : _REEL_ENDINGS; const i = (this._ending_idx || 0) % base.length; this._ending_idx = i + 1; return base[i]; };
+P._pick_ending = function () {
+  // в СЕРИИ (кроме последнего ролика) — тизер-связка «а завтра про …»
+  const nxt = this._series_next_ending || '';
+  if (nxt) return `это ролик СЕРИИ — сделай ТИЗЕР-СВЯЗКУ на следующий выпуск: намекни «а завтра (в следующем ролике) — про ${nxt}», заверши интригующе и законченно, без обрыва на полуслове.`;
+  const base = this.video_lang === 'en' ? _REEL_ENDINGS_EN : _REEL_ENDINGS; const i = (this._ending_idx || 0) % base.length; this._ending_idx = i + 1; return base[i]; };
 P._speech_rate_factor = function () {
   const eng = this.tts_engine || '';
   try {
@@ -126,7 +145,7 @@ P._reel_char_limit = function (secs = null) {
     if (this.tts_engine === 'myvoice') cps *= C['Api._MYVOICE_CPS_MARGIN'];
     cps *= this._speech_rate_factor();
     return Math.max(60, Math.round(Number(secs) * cps));
-  } catch (e) { return 550; }
+  } catch (e) { return 1600; }
 };
 P._spoken_chars = function (answer) { try { return (this._parse_reel_answer(answer)[0] || []).reduce((a, p) => a + [...p].length, 0); } catch (e) { return 0; } };
 
@@ -136,14 +155,24 @@ P.get_reel_prompt = function (story, anti_repeat = true) {
     source = this.foreign_segments.map(s => s.text.trim()).join(' ').trim();
     if (!source) { log('[reel] foreign: пустой транскрипт — генерация отменена'); return '__NO_SPEECH__'; }
     const add = this.foreign_addition.trim(); const en = this.video_lang === 'en';
-    if (add) {
+    if (this.foreign_rewrite === 'tight') {
+      if (en) {
+        text_val = 'Rewrite this text IN YOUR OWN WORDS, but keep everything that makes it gripping: the same structure, the same facts, the same order of ideas, the same hook and the same ending. Change the wording, synonyms, phrasing - but NOT the content and NOT the structure. Goal: word-unique but identical in meaning and structure. Keep the concrete facts and details of the original.';
+        if (add) text_val += "\n\nYou MUST reflect the MEANING of the author's thought in the text as an ADDITION to the overall meaning - in your own words, woven in naturally, WITHOUT inserting the phrase verbatim and without changing the original's main topic, facts or structure. The idea should come through by meaning, not be lost: " + add;
+        text_val += '\n\nSOURCE TEXT:\n' + source;
+      } else {
+        text_val = 'Перепиши этот текст СВОИМИ словами, но сохрани всё, что делает его цепляющим: ту же структуру, те же факты, тот же порядок мыслей, тот же хук и ту же концовку. Меняй формулировки, синонимы, обороты — но НЕ содержание и НЕ структуру. Цель: сделать уникальный по словам, но идентичный по смыслу и структуре текст. Сохрани конкретные факты и детали оригинала.';
+        if (add) text_val += '\n\nОБЯЗАТЕЛЬНО отрази СМЫСЛ этой мысли автора в тексте как ДОПОЛНЕНИЕ к общему смыслу — своими словами, органично вплетённо, БЕЗ дословной вставки этой фразы и НЕ меняя основную тему, факты и структуру оригинала. Идея должна прозвучать по смыслу, а не потеряться: ' + add;
+        text_val += '\n\nИСХОДНЫЙ ТЕКСТ:\n' + source;
+      }
+    } else if (add) {
       text_val = en
-        ? "Write YOUR OWN vertical reel on a NEW topic (below), using the source video only as a FORMAT TEMPLATE (structure, rhythm, delivery style). Do NOT carry over concrete details of the source - district / place / person / brand names: they belong to the OLD context. All details, places and names must fit the NEW topic. Write in your own words, don't copy verbatim.\n\nNEW TOPIC (the main anchor - subordinate everything to it): " + add + "\n\nSOURCE VIDEO (format template only, NOT the source of topic or details):\n" + source + "\n\nFINAL CHECK: any details (districts, places, names) that 'leaked' from the old topic? Replace them with ones relevant to the new topic - nothing from the old context must remain."
-        : 'Напиши СВОЙ вертикальный ролик на НОВУЮ тему (указана ниже), используя исходное видео лишь как ОБРАЗЕЦ ФОРМАТА (структура, ритм, тип подачи). НЕ переноси конкретные детали исходника — названия районов, мест, имён, брендов: они из СТАРОГО контекста. Все детали, места и названия должны соответствовать НОВОЙ теме. Пиши своими словами, не копируй дословно.\n\nНОВАЯ ТЕМА (главный ориентир — подчиняй всё этому): ' + add + '\n\nИСХОДНОЕ ВИДЕО (только образец формата, НЕ источник темы и деталей):\n' + source + '\n\nФИНАЛЬНАЯ ПРОВЕРКА: нет ли деталей (районы, места, имена), «протёкших» из старой темы? Замени все такие на релевантные новой теме — в тексте не должно остаться ничего из старого контекста.';
+        ? "Write YOUR OWN vertical reel on a NEW topic (below), using the source video only as a FORMAT TEMPLATE (structure, rhythm, delivery style). Do NOT carry over concrete details of the source - district / place / person / brand names: they belong to the OLD context. All details, places and names must fit the NEW topic. Write in your own words, don't copy verbatim.\n\nNEW TOPIC (the main anchor - subordinate everything to it): " + add + "\n\nSOURCE VIDEO (format template only, NOT the source of topic or details):\n" + source + "\n\nFINAL CHECK: any details (districts, places, names) that 'leaked' from the old topic? Replace them with ones relevant to the new topic."
+        : 'Напиши СВОЙ вертикальный ролик на НОВУЮ тему (указана ниже), используя исходное видео лишь как ОБРАЗЕЦ ФОРМАТА (структура, ритм, тип подачи). НЕ переноси конкретные детали исходника — названия районов, мест, имён, брендов: они из СТАРОГО контекста. Все детали, места и названия должны соответствовать НОВОЙ теме. Пиши своими словами, не копируй дословно.\n\nНОВАЯ ТЕМА (главный ориентир — подчиняй всё этому): ' + add + '\n\nИСХОДНОЕ ВИДЕО (только образец формата, НЕ источник темы и деталей):\n' + source + '\n\nФИНАЛЬНАЯ ПРОВЕРКА: нет ли деталей (районы, места, имена), «протёкших» из старой темы? Замени все такие на релевантные новой.';
     } else {
       text_val = en
-        ? "The reel's topic MUST be THE SAME as in the source text below: the same subject, the same thing being discussed. Write YOUR OWN reel on THE SAME topic - a different structure, your own wording, your own examples and conclusion, but the topic, subject and essence come from the source. Do NOT copy verbatim and do NOT retell one-to-one - make a fresh, original reel ON THE VERY SAME TOPIC.\n\nSOURCE TEXT (this IS the TOPIC of your reel):\n" + source
-        : 'Тема ролика — ОБЯЗАТЕЛЬНО ТА ЖЕ, что в исходном тексте ниже: тот же предмет, та же тема разговора. Напиши СВОЙ ролик на ЭТУ ЖЕ тему — другая структура, свои формулировки, свои примеры и свой вывод, но тема, предмет и суть берутся из исходника. НЕ копируй дословно и НЕ пересказывай один-в-один — сделай свежий оригинальный ролик НА ТУ ЖЕ САМУЮ ТЕМУ.\n\nИСХОДНЫЙ ТЕКСТ (это и есть ТЕМА твоего ролика):\n' + source;
+        ? "The reel's topic MUST be THE SAME as in the source text below: the same subject, the same thing being discussed. Write YOUR OWN reel on THE SAME topic - a different structure, your own wording, your own examples and conclusion, but the topic, subject and essence come from the source. Do NOT copy verbatim and do NOT retell one-to-one - a fresh, original reel ON THE VERY SAME TOPIC.\n\nSOURCE TEXT (this IS the TOPIC of your reel):\n" + source
+        : 'Тема ролика — ОБЯЗАТЕЛЬНО ТА ЖЕ, что в исходном тексте ниже: тот же предмет, та же тема разговора. Напиши СВОЙ ролик на ЭТУ ЖЕ тему — другая структура, свои формулировки, свои примеры и свой вывод, но тема, предмет и суть берутся из исходника. НЕ копируй дословно и НЕ пересказывай один-в-один — свежий оригинальный ролик НА ТУ ЖЕ САМУЮ ТЕМУ.\n\nИСХОДНЫЙ ТЕКСТ (это и есть ТЕМА твоего ролика):\n' + source;
     }
     text_val += en
       ? '\n\nLANGUAGE RULE: the source text above may be in ANY language (often English). Your ENTIRE output must be in natural ENGLISH — TRANSLATE the meaning into English; do NOT keep foreign words and do NOT transliterate them.'
@@ -152,6 +181,21 @@ P.get_reel_prompt = function (story, anti_repeat = true) {
     source = (story || '').trim();
     if (!source) return '';
     text_val = source;
+    // СЕРИЯ: единый рассказчик (пол зафиксирован один раз) + пройденные эпизоды
+    const ser = this._series || [];
+    if (ser.length && ser.includes(source)) {
+      const broad = (this._series_theme || '').trim();
+      const prev = ser.slice(0, ser.indexOf(source));
+      const g = this._series_gender || '';
+      let gline;
+      if (g === 'ж') gline = '• Рассказчик — ЖЕНЩИНА. Пиши СТРОГО в ЖЕНСКОМ грамматическом роде: глаголы прошедшего времени с женскими окончаниями («развила», «поняла», «решила», «устроилась», «была»). НИ ОДНОГО глагола в мужском роде.\n';
+      else if (g === 'м') gline = '• Рассказчик — МУЖЧИНА. Пиши СТРОГО в МУЖСКОМ грамматическом роде: глаголы прошедшего времени с мужскими окончаниями («развил», «понял», «решил», «устроился», «был»). НИ ОДНОГО глагола в женском роде.\n';
+      else gline = '• Рассказчик — ОДИН И ТОТ ЖЕ человек: сохраняй тот же пол и лицо повествования во всех эпизодах.\n';
+      let ctx = 'КОНТЕКСТ СЕРИИ — это ЭПИЗОД одной истории' + (broad ? ` по общей теме «${broad}»` : '') + '.\n' + gline
+        + '• Рассказчик — ОДИН И ТОТ ЖЕ человек во ВСЕХ эпизодах: то же лицо повествования, не противоречь предыдущим.';
+      if (prev.length) ctx += '\n• Предыдущие эпизоды уже были про: ' + prev.join('; ') + ' — продолжай ту же историю, не противоречь им.';
+      text_val = ctx + '\n\nТЕМА ЭТОГО ЭПИЗОДА (пиши именно про неё): ' + source;
+    }
   }
   if (anti_repeat && this._session_hooks.length) {
     const past = this._session_hooks.slice(-6).map(h => '- ' + h).join('\n');
@@ -177,7 +221,7 @@ P.get_reel_prompt = function (story, anti_repeat = true) {
 P._record_hook = function (first_phrase) { const h = (first_phrase || '').trim(); if (h && !this._session_hooks.includes(h)) { this._session_hooks.push(h); this._session_hooks = this._session_hooks.slice(-8); } };
 P.get_reel_publish = function () { return { caption: this.reel_caption, tags: this.reel_hashtags }; };
 P.ai_regen_caption = async function () {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   if (!this.reel_phrases.length) return { ok: false, msg: this._t('paste_reel_answer') };
   const en = this.video_lang === 'en';
   const prompt = en
@@ -192,7 +236,7 @@ P.ai_regen_caption = async function () {
 P.get_voice_emotion = function () { return { emotion: this.reel_emotion, engine: this.tts_engine, types: EMOTION_ORDER.map(k => ({ key: k, emoji: EMOTIONS[k].emoji, ru: EMOTIONS[k].ru, en: EMOTIONS[k].en })) }; };
 P.set_reel_emotion = function (which) { if (which in EMOTIONS) { this.reel_emotion = which; this._persist(); } return { ok: true, emotion: this.reel_emotion }; };
 P.ai_hook_variants = async function () {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   let cur = '', topic = '';
   if (this.reel_scenes.length) { cur = this.reel_scenes[0].text; topic = this.reel_scenes.slice(0, 3).map(s => s.text).join(' '); }
   else if (this.reel_phrases.length) { cur = this.reel_phrases[0]; topic = this.reel_phrases.slice(0, 3).join(' '); }
@@ -339,29 +383,29 @@ P.foreign_silent_scenes = async function () {
   const bounds = await this._time_scene_bounds(p);
   if (!bounds.length) return { ok: false, msg: this._t('select_audio_first') };
   this.reel_source = 'foreign';
+  this.foreign_visual = 'source';          // немой -> кадры видео, а не сток
   this.foreign_segments = bounds.map(([s, e]) => ({ start: s, end: e, text: '' }));
   this._reset_scene_media(true);
   this.reel_scenes = bounds.map(([s, e]) => ({ text: '', orig_text: '', query: '', kw: '', clip: '', preview: '', manual_len: Math.round((e - s) * 100) / 100, src_start: s, src_end: e }));
   this.reel_caption = ''; this.reel_hashtags = ''; this.reel_topic = '';
-  log(`[reel] немое видео: ${this.reel_scenes.length} сцен по времени (без текста) — впиши текст вручную`);
+  this._swap_seen = {}; this._scene_swap_state = {};
+  log(`[reel] немое видео: ${this.reel_scenes.length} сцен по времени (без текста, кадры источника) — впиши текст вручную`);
   const out = this.get_scenes(); out.ok = true; out.silent = true; return out;
 };
 P.get_scenes = function () {
   return {
     scenes: this.reel_scenes.map((s, i) => ({
-      text: s.text, query: s.query, kw: s.kw, thumb: this._scene_thumb_url(i, s), start: s.start || 0, cta: !!s.cta,
-      weak: !!((s.pick || {}).weak && !s.clip),
-      changed: (!s.cta && !!(s.clip || s.pick) && this._text_changed_significantly(s.orig_text ?? s.text, s.text)),
+      text: s.text, query: s.query, kw: s.kw, thumb: this._scene_thumb_url(i, s), start: s.start || 0,
+      end_at: s.end_at || 0, manual_len: s.manual_len || 0,
+      changed: (!!(s.clip || s.pick) && this._text_changed_significantly(s.orig_text ?? s.text, s.text)),
     })),
     caption: this.reel_caption, tags: this.reel_hashtags, auto_rematch: this.auto_rematch || false,
-    outro: { tg: this.outro_tg, site: this.outro_site, bg: this.outro_bg, color: this.outro_color, photo: this.outro_photo || '', show: this.outro_show, enabled: this.outro_on },
   };
 };
 P.scene_set_text = async function (idx, text) {
   if (!(idx >= 0 && idx < this.reel_scenes.length)) return { ok: true, changed: false };
   const sc = this.reel_scenes[idx];
   sc.text = (text || '').trim(); delete sc.stress; delete sc.stress_manual; delete sc.homographs;
-  if (sc.cta) { this.outro_text = sc.text; this._persist(); return { ok: true, changed: false }; }
   const changed = !!(sc.clip || sc.pick) && !sc.locked && this._text_changed_significantly(sc.orig_text || '', sc.text);
   if (changed && this.auto_rematch) { const r = await this.scene_rematch(idx); return { ok: true, changed: false, auto: true, query: r.query || '', scenes: this.get_scenes().scenes }; }
   return { ok: true, changed };

@@ -65,7 +65,7 @@ P._prewarm_pron = async function (phrases) {
   log(`  🎯 ударения размечены ОДНИМ запросом на ${n} фраз (вместо ${n} посценовых вызовов Gemini)`);
 };
 P._prepare_tts_text = async function (text) {
-  const raw = this._fix_foreign_words((text || '').trim());
+  const raw = (text || '').trim();
   if (!raw || !this.el_pronounce) return raw;
   if (!(this.claude_key || this.gemini_key)) return raw;
   if (raw in this._pron_cache) return this._pron_cache[raw];
@@ -135,23 +135,22 @@ P._ensure_all_stressed = function (text) {
 P.set_el_pronounce = function (on) { this.el_pronounce = !!on; this._persist(); return { ok: true, on: this.el_pronounce }; };
 
 P._eleven_tts = async function (text, out, emotion = null, mark = true) {
-  if (!(this.eleven_key && this.eleven_voice)) throw new Error(this._t('voice_key_missing'));
+  if (!(this.eleven_keys.length && this.eleven_voice)) throw new Error(this._t('voice_key_missing'));
   if (mark) text = await this._prepare_tts_text(text);
   const url = `${EL_BASE}/text-to-speech/${this.eleven_voice}`;
-  const em = EMOTIONS[emotion || this.reel_emotion] || EMOTIONS.energetic;
+  const em = EMOTIONS[this.reel_emotion] || EMOTIONS.energetic;
   const stab = Math.max(0.5, Math.min(0.7, Number(em.stability))), styl = Math.max(0.0, Math.min(0.35, Number(em.style)));
   const body = { text, model_id: 'eleven_multilingual_v2', voice_settings: { stability: stab, similarity_boost: 0.8, style: styl, use_speaker_boost: true } };
-  const keys_n = Math.max(1, this.eleven_keys.length); const start = this.eleven_keys.length ? this.eleven_idx % keys_n : 0;
-  for (let off = 0; off < keys_n; off++) {
-    if (this.eleven_keys.length) this.eleven_idx = (start + off) % keys_n;
+  for (let _attempt = 0; _attempt < this.eleven_keys.length; _attempt++) {
     const r = await requests.post(url, { headers: this._el_headers('audio/mpeg'), json: body, timeout: 90 });
     if (r.status_code === 200) { vfs.write(out, r.blob('audio/mpeg')); return; }
-    if (r.status_code === 401 || r.status_code === 429) {
-      if (off < keys_n - 1) { log(`  ↩ ElevenLabs ключ #${this.eleven_idx + 1}/${keys_n} исчерпан (HTTP ${r.status_code}) — пробую следующий`); continue; }
-      throw new Error(this._t('voice_key_exhausted'));
+    if (r.status_code === 401 || r.status_code === 429) {     // лимит/ошибка ключа — ротация
+      if (!(await this._rotate_eleven())) throw new Error(this._t('voice_key_exhausted'));
+      continue;
     }
     throw new Error(`Voice Key ${r.status_code}: ${(r.text || '').slice(0, 120)}`);
   }
+  throw new Error(this._t('voice_key_exhausted'));
 };
 P._expand_units_for_speech = function (text) {
   if (!text) return text;
@@ -249,7 +248,7 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
   if (emotion && typeof emotion === 'object') { const o = emotion; emotion = o.emotion ?? null; mark = o.mark ?? true; label = o.label ?? ''; keep_stress = !!o.keep_stress; }
   if (re.search(C._CENSOR_RE, text || '')) return await this._synth_censored(text, out, emotion, mark, label, keep_stress);
   if (keep_stress && Api._is_mixed_stress(text || '')) return await this._synth_manual_stress(text, out, emotion, mark, label);
-  let use_eleven = ((this.tts_engine === 'eleven' || this._build_eleven_override) && !this._force_edge && this.eleven_key && this.eleven_voice && this.licensed);
+  let use_eleven = ((this.tts_engine === 'eleven' || this._build_eleven_override) && !this._force_edge && this.eleven_key && this.eleven_voice);
   let pre = keep_stress ? text : Api._strip_stress(text);
   pre = this._expand_units_for_speech(pre);
   pre = this._fix_foreign_words(pre);
@@ -270,7 +269,7 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
     await this._piper_tts(clean, out, this._build_piper_override || null);
     return;
   }
-  const em = EMOTIONS[emotion || 'calm'] || EMOTIONS.calm;
+  const em = EMOTIONS.calm;
   const rate_v = Math.max(-40, Math.min(40, this.reel_rate + (em.edge_rate || 0)));
   const pitch_v = Math.max(-30, Math.min(30, this.reel_pitch + (em.edge_pitch || 0)));
   const sgn = (v) => (v >= 0 ? '+' : '') + Math.trunc(v);
@@ -303,7 +302,7 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
     const choice = this._edge_build_choice ?? null;
     if (choice === null && edge_waited >= _EDGE_ASK_AFTER) {
       const piper_ok = this.video_lang !== 'en';
-      const eleven_ok = !!(this.eleven_key && this.eleven_voice && this.licensed);
+      const eleven_ok = !!(this.eleven_key && this.eleven_voice);
       const ans = await this._ask_edge_choice(tag, piper_ok, eleven_ok);
       const act = (ans || {}).action;
       if (act === 'piper' && piper_ok) {

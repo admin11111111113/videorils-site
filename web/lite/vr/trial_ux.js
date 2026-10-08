@@ -34,7 +34,7 @@ export function installTrialUX(api) {
       const k = gk.value.trim(); const m = gemMsgEl(); if (!k) return;
       say(m, true, '⏳ Проверяю ключ…');
       const r = await api.check_gemini_key(k);
-      if (r.ok || r.state === 'limit') { if (!api.gemini_keys.includes(k)) { api.gemini_keys = [k]; api._persist(); } say(m, true, r.ok ? '✅ Ключ Gemini работает' : '✅ Ключ принят (сейчас лимит Google — подожди минуту)'); }
+      if (r.ok || r.state === 'limit' || r.state === 'no_funds') { if (!api.gemini_keys.includes(k)) { api.gemini_keys = [k]; api._persist(); } say(m, true, r.ok ? '✅ Ключ Gemini работает' : '✅ Ключ принят (сейчас лимит Google — подожди минуту)'); }
       else say(m, false, '❌ ' + (r.msg || 'Ключ не подходит'));
     });
   }

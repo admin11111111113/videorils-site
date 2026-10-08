@@ -111,13 +111,38 @@ export function style_line(style, w, h) {
 const _dlg = (cs, ce, text) => `Dialogue: 0,${ass_time(cs)},${ass_time(ce)},Main,,0,0,0,,${text}`;
 const I = Math.trunc;
 
-export function chunk_events(words, hl, style, cs, ce, hook = false) {
+// wt — реальные пословные тайминги [(s,e)] относительно начала строки (Whisper по озвучке):
+// аним-стили подсвечивают слово ТОЧНО в момент произношения; seg_idx — № сцены (scene_color)
+export function chunk_events(words, hl, style, cs, ce, hook = false, wt = null, seg_idx = 0) {
   const mode = style.mode;
   const up = words.map(w => esc_ass(w.toUpperCase()));
   const is_key = words.map(w => hl.has(pystrip(w, LEAD_JUNK).toUpperCase()) || is_important(w));
   const dur = Math.max(0.05, ce - cs);
   const evs = [];
   const zip = (a, b) => a.map((x, k) => [x, b[k]]);
+  const KGREEN = '&H0076E600';
+  if (wt && wt.length && ['kf_word', 'jump_word', 'popin_word', 'rise_word', 'keypop_word'].includes(mode)) {
+    const _ms = (x) => Math.max(0, Math.trunc(Number(x) * 1000));
+    const out = [];
+    up.forEach((w, i) => {
+      const t0 = i < wt.length ? _ms(wt[i][0]) : Math.trunc(dur * 1000 * i / Math.max(1, up.length));
+      const t1 = i < wt.length ? _ms(wt[i][1]) : t0 + 120;
+      const key = is_key[i];
+      if (mode === 'kf_word') out.push(`{\\c${C.DIMWHITE}\\t(${t0},${t0 + 70},\\c${key ? KGREEN : YELLOW})}${w}{\\r}`);
+      else if (mode === 'jump_word') out.push(`{\\c${key ? YELLOW : WHITE}\\t(${t0},${t0 + 90},\\fscx122\\fscy122)\\t(${t0 + 90},${t0 + 240},\\fscx100\\fscy100)}${w}{\\r}`);
+      else if (mode === 'popin_word') out.push(`{\\alpha&HFF&\\fscx0\\fscy0\\t(${t0},${t0 + 130},\\alpha&H00&\\fscx100\\fscy100)}${w}{\\r}`);
+      else if (mode === 'rise_word') out.push(`{\\alpha&HFF&\\fscy55\\t(${t0},${t0 + 150},\\alpha&H00&\\fscy100)}${w}{\\r}`);
+      else if (mode === 'keypop_word') { const sc = key ? 118 : 110; out.push(`{\\c${key ? KGREEN : YELLOW}\\alpha&H55&\\t(${t0},${t0 + 80},\\alpha&H00&\\fscx${sc}\\fscy${sc})\\t(${t0 + 80},${t0 + 230},\\fscx100\\fscy100)}${w}{\\r}`); }
+      void t1;
+    });
+    evs.push(_dlg(cs, ce, out.join(' ')));
+    return evs;
+  }
+  if (mode === 'scene_color') {                       // цвет всей строки меняется по сценам
+    const pal = [YELLOW, CYAN, '&H009C2DFF', KGREEN, '&H00FFE500'];
+    evs.push(_dlg(cs, ce, `{\\c${pal[seg_idx % pal.length]}}${up.join(' ')}`));
+    return evs;
+  }
   if (hook) {
     const big = I(style.size * 1.18);
     const pre = `{\\fs${big}\\bord${I(style.outline + 1)}\\fscx72\\fscy72\\t(0,150,\\fscx100\\fscy100)}`;
@@ -223,7 +248,7 @@ export function _fit_style_size(segments, style, w, max_words, hook_first = fals
   return Math.max(28, I(size / (worst_ratio / 1.9)));
 }
 
-export function build_ass(path, segments, style, w, h, highlights_map, win_start = null, win_end = null, max_words = 3, hook_first = false) {
+export function build_ass(path, segments, style, w, h, highlights_map, win_start = null, win_end = null, max_words = 3, hook_first = false, word_times = null) {
   style = Object.assign({}, style);
   style.size = _fit_style_size(segments, style, w, max_words, hook_first);
   const head = ['[Script Info]', 'ScriptType: v4.00+', 'WrapStyle: 0', `PlayResX: ${w}`, `PlayResY: ${h}`, 'ScaledBorderAndShadow: yes', '',
@@ -232,26 +257,46 @@ export function build_ass(path, segments, style, w, h, highlights_map, win_start
     style_line(style, w, h), '', '[Events]', 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text'];
   const events = [];
   const offset = win_start !== null ? -win_start : 0.0;
+  let gwi = 0;                                  // глобальный индекс слова в word_times
   segments.forEach((seg, k) => {
     const idx = k + 1;
     const s = Number(seg.start), e = Number(seg.end);
-    if (win_end !== null && (e < win_start || s > win_end)) return;
     const text = _censor_text(clean_phrase(seg.text));
     const words = pysplit(text);
-    if (!words.length) return;
+    if (!words.length || (win_end !== null && (e < win_start || s > win_end))) { gwi += words.length; return; }
     const hl = highlights_map[idx] instanceof Set ? highlights_map[idx] : new Set(highlights_map[idx] || []);
     const chunks = split_chunks(words, max_words);
     const seg_dur = Math.max(0.2, e - s); const total = words.length;
     const is_hook = hook_first && idx === 1;
     let t = s;
     for (const chunk of chunks) {
-      const cdur = seg_dur * chunk.length / total;
-      const cs = Math.max(0.0, t + offset); const ce = Math.max(cs + 0.08, t + cdur + offset);
-      t += cdur;
-      events.push(...chunk_events(chunk, hl, style, cs, ce, is_hook));
+      const n_ch = chunk.length; let wt_rel = null, cs, ce;
+      if (word_times && gwi + n_ch <= word_times.length) {
+        const wtimes = word_times.slice(gwi, gwi + n_ch); const w0 = Number(wtimes[0][0]);
+        cs = Math.max(0.0, w0 + offset); ce = Math.max(cs + 0.08, Number(wtimes[wtimes.length - 1][1]) + offset);
+        wt_rel = wtimes.map(([ws, we]) => [Number(ws) - w0, Number(we) - w0]);
+        t = Number(wtimes[wtimes.length - 1][1]);
+      } else {
+        const cdur = seg_dur * n_ch / total;
+        cs = Math.max(0.0, t + offset); ce = Math.max(cs + 0.08, t + cdur + offset);
+        t += cdur;
+      }
+      gwi += n_ch;
+      events.push(...chunk_events(chunk, hl, style, cs, ce, is_hook, wt_rel, idx - 1));
     }
   });
   const txt = [...head, ...events].join('\n');
   if (path) vfs.writeText(path, txt);
   return txt;
+}
+
+// слова СУБТИТРОВ -> реальные тайминги Whisper [(w,s,e)] по озвучке; монотонное отображение индексов
+export function align_sub_words(sub_words, whisper_words) {
+  const N = sub_words.length, M = whisper_words.length;
+  if (!N || !M) return [];
+  if (N === 1) return [[Number(whisper_words[0][1]), Number(whisper_words[M - 1][2])]];
+  const out = [];
+  for (let i = 0; i < N; i++) { const j = Math.max(0, Math.min(M - 1, Math.round(i * (M - 1) / (N - 1)))); out.push([Number(whisper_words[j][1]), Number(whisper_words[j][2])]); }
+  for (let i = 1; i < N; i++) if (out[i][0] < out[i - 1][0]) out[i] = [out[i - 1][0], Math.max(out[i - 1][0] + 0.05, out[i][1])];
+  return out;
 }

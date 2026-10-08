@@ -1,11 +1,11 @@
 // Порт Api: AI-ключи, _ai_call/_claude_call/_gemini_call, квота Gemini, ошибки (app.py 7067–7981).
-import { C, log, re, requests, webbrowser, sleep, now, store, sha1Hex, call_js } from './core.js';
+import { C, log, re, requests, webbrowser, sleep, now, store, sha1Hex, call_js, vfs, blobToDataUrl } from './core.js';
 import { Api } from './api_base.js';
 
 const P = Api.prototype;
 const AI_BASE = C['Api.AI_BASE'], AI_VERSION = C['Api.AI_VERSION'], AI_MODELS = C['Api.AI_MODELS'], AI_CHECK_MODEL = C['Api.AI_CHECK_MODEL'];
 const GEMINI_BASE = C['Api.GEMINI_BASE'], GEMINI_CHAIN = C['Api.GEMINI_CHAIN'], _GEMINI_FALLBACK = C['Api._GEMINI_FALLBACK'], _GEM_SPAN = C['Api._GEM_SPAN'];
-const QKEY = 'vr_mini_gem_quota';
+const QKEY = 'vr_lite_gem_quota';
 
 // ── скользящее окно RPM на модель (_ai_throttle / _ai_set_rpm) ──
 const _AI_TIMES = {}, _AI_MAX_PER_MIN = {}; let _aiChain = Promise.resolve();
@@ -43,13 +43,13 @@ P.check_ai_key = async function (key = null) {
   return { ok: false, state: 'error', msg };
 };
 P._cla_keys_view = function () { return this.claude_keys.map(k => ({ mask: Api._mask(k) })); };
-P.get_claude_masks = function () { return { keys: this.claude_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 1 }; };
-P.get_claude_keys = async function () { const out = []; for (const k of this.claude_keys) { const c = await this.check_ai_key(k); out.push({ mask: Api._mask(k), ok: c.ok ?? true, state: c.state || 'ok' }); } return { keys: out, max: 1 }; };
+P.get_claude_masks = function () { return { keys: this.claude_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 5 }; };
+P.get_claude_keys = async function () { const out = []; for (const k of this.claude_keys) { const c = await this.check_ai_key(k); out.push({ mask: Api._mask(k), ok: c.ok ?? true, state: c.state || 'ok' }); } return { keys: out, max: 5 }; };
 P.add_claude_key = async function (key) {
   this.track('keys_saved');
   key = (key || '').trim();
   if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._cla_keys_view() };
-  if (this.claude_keys.length >= 1) return { ok: false, msg: this._t('max_1_key'), keys: this._cla_keys_view() };
+  if (this.claude_keys.length >= 5) return { ok: false, msg: this._t('max_5_keys'), keys: this._cla_keys_view() };
   if (this.claude_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._cla_keys_view() };
   this.claude_keys.push(key); this._persist();
   const chk = await this.check_ai_key(key);
@@ -76,19 +76,19 @@ P.check_gemini_key = async function (key = null) {
   const [ok, msg] = await this._gemini_call('Ответь одним словом: привет', key, 300);
   const sc = this._ai_last_status;
   if (ok || sc === 200) return { ok: true, state: 'ok' };
-  if (sc === 429) return { ok: false, state: 'limit', msg };
+  if (sc === 429) return { ok: false, state: 'no_funds', msg };   // ключ рабочий, дневной лимит
   if (sc === 401 || sc === 403) return { ok: false, state: 'restricted', msg };
   if (sc === 0) return { ok: false, state: 'bad_key', msg: this._t('gem_no_connection') };
   return { ok: false, state: 'bad_key', msg };
 };
 P._gem_keys_view = function () { return this.gemini_keys.map(k => ({ mask: Api._mask(k) })); };
-P.get_gemini_masks = function () { return { keys: this.gemini_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 1 }; };
-P.get_gemini_keys = async function () { const out = []; for (const k of this.gemini_keys) { const c = await this.check_gemini_key(k); out.push({ mask: Api._mask(k), ok: c.ok ?? true, state: c.state || 'ok' }); } return { keys: out, max: 1 }; };
+P.get_gemini_masks = function () { return { keys: this.gemini_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 5 }; };
+P.get_gemini_keys = async function () { const out = []; for (const k of this.gemini_keys) { const c = await this.check_gemini_key(k); out.push({ mask: Api._mask(k), ok: c.ok ?? true, state: c.state || 'ok' }); } return { keys: out, max: 5 }; };
 P.add_gemini_key = async function (key) {
   this.track('keys_saved');
   key = (key || '').trim();
   if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._gem_keys_view() };
-  if (this.gemini_keys.length >= 1) return { ok: false, msg: this._t('max_1_key'), keys: this._gem_keys_view() };
+  if (this.gemini_keys.length >= 5) return { ok: false, msg: this._t('max_5_keys'), keys: this._gem_keys_view() };
   if (this.gemini_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._gem_keys_view() };
   this.gemini_keys.push(key); this._persist();
   const chk = await this.check_gemini_key(key);
@@ -96,16 +96,15 @@ P.add_gemini_key = async function (key) {
 };
 P.remove_gemini_key = function (idx = 0) { const i = parseInt(idx); if (!Number.isNaN(i) && i >= 0 && i < this.gemini_keys.length) { this.gemini_keys.splice(i, 1); this.gemini_idx = 0; this._persist(); } return { ok: true, has: !!this.gemini_keys.length, keys: this._gem_keys_view() }; };
 P.set_gemini_key = function (key) { return this.add_gemini_key(key); };
-P._is_ai_limit = function (msg) { return !!msg && [this._t('gem_rate_min'), this._t('gem_rate_day'), this._t('gem_zero')].includes(msg); };
+P._is_ai_limit = function (msg) { return !!msg && [this._t('gem_rate'), this._t('gem_rate_min'), this._t('gem_rate_day'), this._t('gem_zero')].includes(msg); };
 P._notify_ai_limit = function () { try { call_js('aiLimitAsk', { has_paid: !!this.claude_key, reason: this._ai_last_reason || '', retry: parseInt(this._ai_last_retry || 0) || 0 }); } catch (e) { } };
 
-P._ai_call = async function (prompt, key = null, max_tokens = 4000, model = null, provider = null) {
+P._ai_call = async function (prompt, key = null, max_tokens = 4000, model = null, provider = null, images = null) {
   this._ai_last_reason = '';
-  if (!this.licensed) return await this._gemini_call(prompt, this.gemini_key, max_tokens, model);
   provider = provider || this.ai_provider;
   if (provider === 'claude' && !(key || this.claude_key) && this.gemini_key) provider = 'gemini';
   else if (provider === 'gemini' && !(key || this.gemini_key) && this.claude_key) provider = 'claude';
-  if (provider === 'gemini') return await this._gemini_call(prompt, key, max_tokens, model);
+  if (provider === 'gemini') return await this._gemini_call(prompt, key, max_tokens, model, images);
   return await this._claude_call(prompt, key, max_tokens, model);
 };
 P._claude_call = async function (prompt, key = null, max_tokens = 4000, model = null) {
@@ -254,14 +253,14 @@ P.get_gem_quota = function () {
   } catch (e) { return { ok: false }; }
 };
 
-P._gemini_call = async function (prompt, key = null, max_tokens = 4000, model = null) {
-  if (key) return await this._gemini_call_one(prompt, key, max_tokens, model);
+P._gemini_call = async function (prompt, key = null, max_tokens = 4000, model = null, images = null) {
+  if (key) return await this._gemini_call_one(prompt, key, max_tokens, model, images);
   const keys = this.gemini_keys || [];
-  if (!keys.length) return await this._gemini_call_one(prompt, null, max_tokens, model);
+  if (!keys.length) return await this._gemini_call_one(prompt, null, max_tokens, model, images);
   const n = keys.length, start = this.gemini_idx % n; let last = [false, this._t('gem_no_key')];
   for (let off = 0; off < n; off++) {
     this.gemini_idx = (start + off) % n;
-    const [ok, out] = await this._gemini_call_one(prompt, null, max_tokens, model);
+    const [ok, out] = await this._gemini_call_one(prompt, null, max_tokens, model, images);
     if (ok) return [ok, out];
     last = [ok, out];
     if (this._ai_last_status === 0 && !this._is_ai_limit(out)) break;
@@ -269,10 +268,16 @@ P._gemini_call = async function (prompt, key = null, max_tokens = 4000, model = 
   }
   return last;
 };
-P._gemini_call_one = async function (prompt, key = null, max_tokens = 4000, model = null) {
+P._gemini_call_one = async function (prompt, key = null, max_tokens = 4000, model = null, images = null) {
   key = key || this.gemini_key; this._ai_last_status = 0;
   if (!key) return [false, this._t('gem_no_key')];
-  const body = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.95, maxOutputTokens: Math.max(64, parseInt(max_tokens)), thinkingConfig: { thinkingBudget: 0 } } };
+  // images — пути к JPEG (кадры ролика для Автомонтажа) -> inline_data base64
+  const parts = [{ text: prompt }];
+  for (const p of (images || [])) {
+    try { const b = vfs.read(p); if (!b) throw new Error('нет файла'); const d = await blobToDataUrl(b); parts.push({ inline_data: { mime_type: 'image/jpeg', data: String(d).split(',')[1] } }); }
+    catch (e) { log(`  ⚠ кадр для ИИ не прочитан (${String(p).split('/').pop()}): ${String(e.message || e).slice(0, 40)}`); }
+  }
+  const body = { contents: [{ parts }], generationConfig: { temperature: 0.95, maxOutputTokens: Math.max(64, parseInt(max_tokens)), thinkingConfig: { thinkingBudget: 0 } } };
   const headers_try = [{ 'x-goog-api-key': key, 'Content-Type': 'application/json' }, { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }];
   let mids = model ? [model] : this._gem_chain();
   const seen = new Set(); mids = mids.filter(m => m && !seen.has(m) && seen.add(m));
@@ -383,3 +388,32 @@ P._stress_merge_suffix = function () {
 };
 Api._topic_words = function (text) { return new Set(re.findall('[а-яёa-z]{5,}', (text || '').toLowerCase())); };
 P._topic_matches = function (src, gen) { const a = Api._topic_words(src), b = Api._topic_words(gen); if (!a.size || !b.size) return true; let n = 0; for (const x of a) if (b.has(x)) n++; return n >= 2; };
+
+// сколько запросов Gemini осталось СЕГОДНЯ (по всей цепочке живых моделей или по одной)
+P._gem_day_left = function (model = null) {
+  try {
+    if (!this.gemini_key || this.ai_provider !== 'gemini') return null;
+    const mids = model ? [model] : GEMINI_CHAIN.filter(m => this._gem_model_alive(m));
+    let total = 0;
+    for (const m of mids) {
+      const rec = this._gem_rec(m); if (!rec) continue;
+      this._gem_roll(rec);
+      const w = rec.windows.day; const lim = w.limit;
+      if (!lim) total += C['Api._GEM_FREE_RPD_GUESS'];
+      else total += Math.max(0, parseInt(lim) - parseInt(w.count || 0));
+    }
+    return total;
+  } catch (e) { return null; }
+};
+// перед пакетом: предупредить, сколько роликов влезет в дневную бесплатную квоту
+P._gem_batch_preflight = function (n_reels) {
+  try {
+    const left = this._gem_day_left(); if (left === null) return;
+    const rec = this._gem_rec();
+    const avg = Math.max(3.0, rec ? this._gem_avg_per_reel(rec) : 3.0);
+    const fits = Math.trunc(left / Math.max(1.0, avg));
+    const alive = GEMINI_CHAIN.filter(m => this._gem_model_alive(m));
+    log(`▶ Бесплатный Gemini: ~${left} запросов на сегодня по цепочке из ${alive.length} моделей (${alive.join(', ') || '—'}), ~${avg.toFixed(1)} запроса на ролик → хватит примерно на ${fits} из ${n_reels} роликов пакета`);
+    if (fits < n_reels) this._degrade(`Дневной лимит бесплатного Gemini: из ${n_reels} роликов пакета сегодня реально соберётся ~${fits}. Остальные упрутся в лимит Google (20 запросов/сутки НА КАЖДУЮ модель, модели перебираются автоматически)`);
+  } catch (e) { }
+};

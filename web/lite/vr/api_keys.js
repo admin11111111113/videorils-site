@@ -8,7 +8,8 @@ const MEDIA_IMG = C['Api.MEDIA_IMG'], MEDIA_VID = C['Api.MEDIA_VID'], AUDIO_EXTS
 
 P.reset_reel = function () {
   this.reel_scenes = []; this.reel_caption = ''; this.reel_hashtags = ''; this.reel_topic = '';
-  this.reel_scenario = 'auto'; this.reel_seconds = 30;
+  this.reel_scenario = 'auto'; this.reel_seconds = 50;   // веб: тип всегда «Авто»
+  this.music_track = '';            // «Очистить» -> музыка одиночного рилса в дефолт
   try { this._reset_scene_media(true); } catch (e) { }
   this._persist();
   return { ok: true, seconds: this.reel_seconds, scenario: this.reel_scenario };
@@ -29,7 +30,7 @@ P.switch_reel_source = function (mode) {
 };
 P.get_foreign_info = function () {
   const full = this.foreign_segments.map(s => s.text.trim()).join(' ').trim();
-  return { has: !!this.foreign_segments.length, count: this.foreign_segments.length, text: full, rewrite: this.foreign_rewrite };
+  return { has: !!this.foreign_segments.length, count: this.foreign_segments.length, text: full, rewrite: this.foreign_rewrite, addition: this.foreign_addition };
 };
 P._is_video_file = function (p) { const l = String(p || '').toLowerCase(); return MEDIA_VID.some(e => l.endsWith(e)); };
 P.set_split_top_video = function () {
@@ -83,51 +84,53 @@ P._pixabay_check = async function (key) {
   } catch (e) { return [false, null, netState(e)]; }
 };
 P.get_pixabay_key_status = async function () {
-  if (!this.pixabay_key) return { has: false };
+  if (!this.pixabay_keys.length) return { has: false };
   const [, http, state] = await this._pixabay_check(this.pixabay_key);
   return { has: true, mask: Api._mask(this.pixabay_key), state, http };
 };
-P.set_pixabay_key = async function (key) {
-  const keys = [];
-  for (const p of (key || '').trim().split(/[\s,;]+/)) { const ck = this._clean_key(p); if (ck && !keys.includes(ck)) keys.push(ck); }
-  this.pixabay_keys = keys; this.pixabay_key = keys[0] || ''; this._pix_key_idx = 0;
-  this._invalidate_media_caches(); this._persist();
-  if (!keys.length) return { ok: true, has: false };
-  const [, http, state] = await this._pixabay_check(keys[0]);
-  if (state === 'bad_key') {
-    // веб: частая ошибка — в поле Pixabay вставили ключ Pexels (онбординг советует Pexels).
-    // Рабочий ключ Pexels сохраняем как Pexels и считаем принятым.
-    const [pok] = await this._pexels_check(keys[0]);
-    if (pok) {
-      this.pixabay_keys = []; this.pixabay_key = ''; this._invalidate_media_caches();
-      if (!this.pexels_keys.includes(keys[0])) { this.pexels_keys = [keys[0]]; this._media_chain_obj = null; }
-      this._persist();
-      return { ok: true, has: true, mask: Api._mask(keys[0]), count: 1, state: 'ok', http: 200, moved_to: 'pexels' };
-    }
-  }
-  return { ok: true, has: true, mask: Api._mask(keys[0]), count: keys.length, state, http };
+// человекочитаемое сообщение по состоянию проверки ключа
+P._key_state_msg = function (state, http = null) {
+  return ({ bad_key: this._t('keyerr_bad'), network: this._t('keyerr_net'), timeout: this._t('keyerr_timeout'), rate: this._t('keyerr_rate') })[state]
+    || this._t('keyerr_http', http !== null && http !== undefined ? http : '?');
 };
-P._pix_keys_view = function () { return this.pixabay_keys.map(k => ({ mask: Api._mask(k) })); };
-P.get_pixabay_masks = function () { return { keys: this.pixabay_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 1 }; };
+// совместимость (окно триала веба): одно поле -> добавить ключ (Pixabay или Pexels)
+P.set_pixabay_key = async function (key) {
+  key = this._clean_key(key);
+  if (!key) return { ok: true, has: !!this.pixabay_keys.length };
+  if (this.pixabay_keys.includes(key) || this.pexels_keys.includes(key)) return { ok: true, has: true, mask: Api._mask(key), state: 'ok' };
+  const r = await this.add_pixabay_key(key);
+  return Object.assign({ has: !!(this.pixabay_keys.length || this.pexels_keys.length), mask: Api._mask(key), state: r.ok ? 'ok' : 'bad_key' }, r);
+};
+P._px_keys_view = function () { return this.pixabay_keys.map(k => ({ mask: Api._mask(k) })); };
+P._pix_keys_view = P._px_keys_view;
+P.get_pixabay_masks = function () { return { keys: this.pixabay_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 5 }; };
 P.get_pixabay_keys = async function () {
   const out = []; for (const k of this.pixabay_keys) { const [ok, , state] = await this._pixabay_check(k); out.push({ mask: Api._mask(k), ok: !!ok, state }); }
-  return { keys: out, max: 1 };
+  return { keys: out, max: 5 };
 };
 P.add_pixabay_key = async function (key) {
   this.track('keys_saved');
   key = this._clean_key(key);
-  if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._pix_keys_view() };
-  if (this.pixabay_keys.length >= 1) return { ok: false, msg: this._t('max_1_key'), keys: this._pix_keys_view() };
-  if (this.pixabay_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._pix_keys_view() };
-  this.pixabay_keys.push(key); this.pixabay_key = this.pixabay_keys[0]; this._pix_key_idx = 0;
-  this._invalidate_media_caches(); this._persist();
-  const [, http, state] = await this._pixabay_check(key);
-  return { ok: true, has: true, mask: Api._mask(key), state, http, keys: this._pix_keys_view() };
+  if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._px_keys_view() };
+  if (this.pixabay_keys.length >= 5) return { ok: false, msg: this._t('max_5_keys'), keys: this._px_keys_view() };
+  if (this.pixabay_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._px_keys_view() };
+  const [ok, http, state] = await this._pixabay_check(key);   // авто-проверка при сохранении
+  if (!ok) {
+    // веб: в поле Pixabay часто вставляют ключ Pexels — рабочий ключ Pexels сохраняем как Pexels
+    if (state === 'bad_key' && !this.pexels_keys.includes(key) && this.pexels_keys.length < 5) {
+      const [pok] = await this._pexels_check(key);
+      if (pok) { this.pexels_keys.push(key); this._media_chain_obj = null; this._persist(); return { ok: true, moved_to: 'pexels', keys: this._px_keys_view(), pexels: this._pex_keys_view() }; }
+    }
+    return { ok: false, msg: this._key_state_msg(state, http), keys: this._px_keys_view() };
+  }
+  this.pixabay_keys.push(key);
+  this._persist();
+  return { ok: true, keys: this._px_keys_view() };
 };
-P.remove_pixabay_key = function (idx = 0) {
-  const i = parseInt(idx); if (!Number.isNaN(i) && i >= 0 && i < this.pixabay_keys.length) this.pixabay_keys.splice(i, 1);
-  this.pixabay_key = this.pixabay_keys[0] || ''; this._pix_key_idx = 0; this._invalidate_media_caches(); this._persist();
-  return { ok: true, has: !!this.pixabay_keys.length, keys: this._pix_keys_view() };
+P.remove_pixabay_key = function (idx) {
+  const i = parseInt(idx);
+  if (!Number.isNaN(i) && i >= 0 && i < this.pixabay_keys.length) { this.pixabay_keys.splice(i, 1); this.pixabay_idx = 0; this._persist(); }
+  return { ok: true, keys: this._px_keys_view() };
 };
 P.open_pixabay_signup = function () { webbrowser.open(C.PIXABAY_SIGNUP); return true; };
 
@@ -137,34 +140,35 @@ P._pexels_check = async function (key) {
   try {
     const r = await requests.get('https://api.pexels.com/videos/search', { params: { query: 'test', per_page: 1 }, headers: { Authorization: key }, timeout: 8 });
     if (r.status_code === 200) return [true, 200, 'ok'];
-    if ([401, 403].includes(r.status_code)) return [false, r.status_code, 'bad_key'];
+    if ([400, 401, 403].includes(r.status_code)) return [false, r.status_code, 'bad_key'];
+    if (r.status_code === 429) return [true, 429, 'rate'];
     return [false, r.status_code, 'http'];
   } catch (e) { return [false, null, netState(e)]; }
 };
-P.get_pexels_key_status = async function () {
-  if (!this.pexels_key) return { has: false };
-  const [, http, state] = await this._pexels_check(this.pexels_key);
-  return { has: true, mask: Api._mask(this.pexels_key), state, http };
+P.get_pexels_key_status = function () {
+  if (!this.pexels_keys.length) return { has: false };
+  return { has: true, mask: Api._mask(this.pexels_key) };
 };
 P._pex_keys_view = function () { return this.pexels_keys.map(k => ({ mask: Api._mask(k) })); };
-P.get_pexels_masks = function () { return { keys: this.pexels_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 1 }; };
+P.get_pexels_masks = function () { return { keys: this.pexels_keys.map(k => ({ mask: Api._mask(k), status: 'checking' })), max: 5 }; };
 P.get_pexels_keys = async function () {
   const out = []; for (const k of this.pexels_keys) { const [ok, , state] = await this._pexels_check(k); out.push({ mask: Api._mask(k), ok: !!ok, state }); }
-  return { keys: out, max: 1 };
+  return { keys: out, max: 5 };
 };
 P.add_pexels_key = async function (key) {
   this.track('keys_saved');
   key = this._clean_key(key);
   if (!key) return { ok: false, msg: this._t('key_enter'), keys: this._pex_keys_view() };
-  if (this.pexels_keys.length >= 1) return { ok: false, msg: this._t('max_1_key'), keys: this._pex_keys_view() };
+  if (this.pexels_keys.length >= 5) return { ok: false, msg: this._t('max_5_keys'), keys: this._pex_keys_view() };
   if (this.pexels_keys.includes(key)) return { ok: false, msg: this._t('key_already_added'), keys: this._pex_keys_view() };
-  this.pexels_keys.push(key); this._media_chain_obj = null; this._invalidate_media_caches(); this._persist();
-  const [, http, state] = await this._pexels_check(key);
-  return { ok: true, has: true, mask: Api._mask(key), state, http, keys: this._pex_keys_view() };
+  const [ok, http, state] = await this._pexels_check(key);
+  if (!ok) return { ok: false, msg: this._key_state_msg(state, http), keys: this._pex_keys_view() };
+  this.pexels_keys.push(key); this._media_chain_obj = null; this._persist();
+  return { ok: true, has: true, keys: this._pex_keys_view() };
 };
 P.remove_pexels_key = function (idx = 0) {
   const i = parseInt(idx);
-  if (!Number.isNaN(i) && i >= 0 && i < this.pexels_keys.length) { this.pexels_keys.splice(i, 1); this.pexels_idx = 0; this._media_chain_obj = null; this._invalidate_media_caches(); this._persist(); }
+  if (!Number.isNaN(i) && i >= 0 && i < this.pexels_keys.length) { this.pexels_keys.splice(i, 1); this.pexels_idx = 0; this._media_chain_obj = null; this._persist(); }
   return { ok: true, has: !!this.pexels_keys.length, keys: this._pex_keys_view() };
 };
 P.set_pexels_key = function (key) { return this.add_pexels_key(key); };

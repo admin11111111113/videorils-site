@@ -1,4 +1,4 @@
-// Видеорилс Мини — веб. Точка входа: собирает Api из модулей и подменяет pywebview.
+// Видеорилс Лайт — веб. Точка входа: собирает Api из модулей и подменяет pywebview.
 import { vfs, log } from './core.js';
 import { Api } from './api_base.js';
 import './api_settings.js';
@@ -12,6 +12,13 @@ import './api_scenes.js';
 import './api_build.js';
 import './api_outro.js';
 import './api_whisper.js';
+import './api_logo.js';
+import './api_media.js';
+import './api_extra.js';
+import './api_batch.js';
+import './api_cover.js';
+import './api_clipmix.js';
+import './api_am.js';
 import { sfxPreload } from './api_misc.js';
 import { loadFonts } from './fonts.js';
 import * as Piper from './piper.js';
@@ -53,15 +60,26 @@ async function boot() {
     api: new Proxy({}, {
       get: (t, k) => {
         if (typeof api[k] === 'function') return (...a) => { try { return Promise.resolve(api[k](...a)); } catch (e) { return Promise.reject(e); } };
+        if (typeof k === 'string' && !k.startsWith('_') && k !== 'then') return (...a) => { console.error('api missing: ' + k); return Promise.reject(new Error('api missing: ' + k)); };
         return undefined;
       },
     }),
   };
   // перетаскивание видео в «Из видео» (как setup_drag_drop)
   const bindDrop = () => {
-    const dz = document.getElementById('dropzone'); if (!dz || dz.__vrDrop) return; dz.__vrDrop = true;
-    dz.addEventListener('dragover', (e) => e.preventDefault());
-    dz.addEventListener('drop', (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) api.on_drop(f); });
+    const dz = document.getElementById('dropzone');
+    if (dz && !dz.__vrDrop) {
+      dz.__vrDrop = true;
+      dz.addEventListener('dragover', (e) => e.preventDefault());
+      dz.addEventListener('drop', (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) api.on_drop(f); });
+    }
+    // #amDrop — «Автомонтаж» (готовое видео под обработку)
+    const ad = document.getElementById('amDrop');
+    if (ad && !ad.__vrDrop) {
+      ad.__vrDrop = true;
+      ad.addEventListener('dragover', (e) => e.preventDefault());
+      ad.addEventListener('drop', (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) { try { window.amDropped && window.amDropped(api.am_set_video(f)); } catch (er) { } } });
+    }
   };
   bindDrop(); new MutationObserver(bindDrop).observe(document.body, { childList: true, subtree: true });
   // Разблокировка звука: первый клик «прогревает» общий плеер (#player), чтобы озвучка,

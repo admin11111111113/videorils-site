@@ -8,7 +8,7 @@ import { PIX } from './media.js';
 
 const { VOICES, VOICES_EN, VIDEO_STYLE_SUFFIX, STYLES, CAP_ZONE_STYLES, CAP_PRESET_HEX, TITLE_THEMES, REEL_PROMPTS, EMOTIONS, DOCS_VERSION } = C;
 const _EDITION = C._EDITION;
-const LIC_KEY = 'vr_mini_license', TRIAL_KEY = 'vr_mini_trial', MID_KEY = 'vr_mini_machine', FIRST_KEY = 'vr_mini_first_launch';
+const LIC_KEY = 'vr_lite_license', TRIAL_KEY = 'vr_lite_trial', MID_KEY = 'vr_lite_machine', FIRST_KEY = 'vr_lite_first_launch';
 
 // ── РЕФЕРАЛЬНЫЙ КОД (тот же алгоритм, что в app.py/Лайте/сервере) ──
 export async function referral_code(key) {
@@ -38,10 +38,11 @@ export class Api {
     this.platform = 'reel';
     this.video_lang = BV; this.video_lang_label = BV === 'en' ? 'ENGLISH' : 'РУССКИЙ';
     this.audio_path = null; this.segments = []; this.images = {}; this.highlights = {}; this.reels = []; this.last_video = null;
-    this.reel_seconds = 30; this.reel_source = 'scratch';
+    this.reel_seconds = 50; this.reel_source = 'scratch';
     const s = load_settings();
     const cl = s.content_lang ?? BV;
     this.video_lang = cl === 'en' ? 'en' : 'ru';
+    if (BV === 'en' && this.video_lang === 'ru') { this.video_lang = 'en'; s.content_lang = 'en'; save_settings(s); }
     this.video_lang_label = this.video_lang === 'en' ? 'ENGLISH' : 'РУССКИЙ';
     this.ui_lang = (s.ui_lang ?? BV) === 'en' ? 'en' : 'ru';
     this._user_pron = {};
@@ -52,26 +53,57 @@ export class Api {
     this.reel_voice_en = s.voice_en ?? 'en-US-AriaNeural'; if (!(this.reel_voice_en in VOICES_EN)) this.reel_voice_en = 'en-US-AriaNeural';
     this.reel_rate = parseInt(s.rate ?? 0) || 0; this.reel_pitch = parseInt(s.pitch ?? 0) || 0;
     this.reel_presets = s.presets ?? [];
+    // --- логотип / водяной знак ---
+    const lg = s.logo ?? {};
+    this.logo_src = lg.src ?? ''; this.logo_pos = lg.pos ?? 'br';
+    const _posxy = { tl: [0, 0], tr: [1, 0], bl: [0, 1], br: [1, 1], tc: [0.5, 0] };
+    const [_dx, _dy] = _posxy[this.logo_pos] || [0.9, 0.9];
+    this.logo_xpct = parseFloat(lg.xpct ?? _dx); this.logo_ypct = parseFloat(lg.ypct ?? _dy);
+    this.logo_size = parseInt(lg.size ?? 15) || 15; this.logo_opacity = parseInt(lg.opacity ?? 90);
+    if (Number.isNaN(this.logo_opacity)) this.logo_opacity = 90;
+    this.logo_on = !!(lg.on ?? false); this.logo_removebg = !!(lg.removebg ?? true);
+    this.logo_path = '';
+    // --- музыка (по умолчанию выкл) ---
     const mu = s.music ?? {};
     this.music_db = parseInt(mu.db ?? -19); if (Number.isNaN(this.music_db)) this.music_db = -19;
-    this.music_track = ''; this.music_folders = mu.folders ?? [];
+    this.music_track = '';
+    this._music_mode = 'reel';
+    this.voice_vol = parseInt(mu.voice_vol ?? 100); if (Number.isNaN(this.voice_vol)) this.voice_vol = 100;
+    this.music_folders = mu.folders ?? [];
     this.music_hidden = (mu.hidden ?? []).map(p => String(p).toLowerCase());
+    // --- «Нарезка» (клип-микс) ---
+    const cm = s.clipmix ?? {};
+    this.clipmix_theme = cm.theme ?? ''; this.clipmix_moments = null; this.clipmix_pool = []; this._clipmix_meta = {};
+    const _cps = cm.cps ?? 2; this.clipmix_cps = [0.5, 1, 2, 3].includes(_cps) ? _cps : 2;
+    this.clipmix_len = parseInt(cm.len ?? 20) || 20;
+    this.clipmix_caption = cm.caption ?? ''; this.clipmix_post_caption = ''; this.clipmix_post_tags = '';
+    this.clipmix_caption_on = !!(cm.caption_on ?? false);
+    this.clipmix_caption_pos = cm.caption_pos ?? 'top';
+    const _cmd = { top: [0.5, 0.12], center: [0.5, 0.5], bottom: [0.5, 0.86] }[this.clipmix_caption_pos] || [0.5, 0.12];
+    this.clipmix_cap_xpct = parseFloat(cm.cap_xpct ?? _cmd[0]); this.clipmix_cap_ypct = parseFloat(cm.cap_ypct ?? _cmd[1]);
+    this.clipmix_cap_fontpct = parseFloat(cm.cap_fontpct ?? 0.052);
+    this.clipmix_hook = cm.hook ?? ''; this.clipmix_hook_stress = cm.hook_stress ?? '';
+    this.clipmix_hook_stress_manual = [...(cm.hook_stress_manual || [])];
+    this.clipmix_beatsync = !!(cm.beatsync ?? false);
+    this.clipmix_music = cm.music ?? '';
+    this.clipmix_source = cm.source ?? 'auto'; this.clipmix_folder = cm.folder ?? '';
+    // --- стили субтитров ---
     this.yt_style = parseInt(s.yt_style ?? 0) || 0;
-    this.reel_style = Math.max(0, Math.min(STYLES.length - 1, parseInt(s.reel_style ?? 0) || 0));
+    this.reel_style = parseInt(s.reel_style ?? 0) || 0;
     this.no_subs = !!(s.no_subs ?? false);
-    this.auto_rematch = s.defaults_v2 ? !!(s.auto_rematch ?? true) : true;
-    this.defaults_v2 = true;
+    // --- озвучка ---
     const tt = s.tts ?? {};
     this.tts_engine = tt.engine ?? 'edge';
     this.piper_voice = tt.piper_voice ?? 'irina'; this.piper_speed = parseInt(tt.piper_speed ?? 0) || 0;
     this.eleven_voice = tt.eleven_voice ?? '';
+    // до 5 ключей ElevenLabs, ротация
     this.eleven_keys = (s.elevenlabs_keys || []).filter(Boolean).map(dec_secret).filter(Boolean);
-    if (!this.eleven_keys.length) {
-      const o = dec_secret(s.elevenlabs_key || '');
-      if (o) this.eleven_keys = [o]; else if (tt.keys) this.eleven_keys = tt.keys.map(x => dec_secret(x.key || '')).filter(Boolean);
-    } else { const o = dec_secret(s.elevenlabs_key || ''); if (o && !this.eleven_keys.includes(o)) this.eleven_keys.unshift(o); }
-    this.eleven_keys = this.eleven_keys.slice(0, 1);
-    this.eleven_idx = 0; this._force_edge = false;
+    { const old = dec_secret(s.elevenlabs_key || ''); if (old && !this.eleven_keys.includes(old)) this.eleven_keys.unshift(old); }
+    if (!this.eleven_keys.length && tt.keys) for (const k of tt.keys) { const v = dec_secret(k.key || ''); if (v && !this.eleven_keys.includes(v)) this.eleven_keys.push(v); }
+    this.eleven_keys = this.eleven_keys.slice(0, 5); this.eleven_idx = 0;
+    const paused = (s.elevenlabs_paused || []).filter(Boolean).map(dec_secret);
+    this.eleven_paused = new Set(paused.filter(k => this.eleven_keys.includes(k)));
+    this._force_edge = false;
     this.el_dead_voices = new Set(s.el_dead_voices || []);
     this.myvoice_path = ''; this.myvoice_segments = [];
     this.reel_wishes = s.reel_wishes ?? '';
@@ -81,8 +113,12 @@ export class Api {
     this.ref_wallet = String(s.ref_wallet || '');
     this.sub_xpct = parseFloat(s.sub_xpct ?? 0.5); this.sub_ypct = parseFloat(s.sub_ypct ?? 0.8);
     this.sub_fontpct = parseFloat(s.sub_fontpct ?? 0.05);
-    this.foreign_addition = ''; this.foreign_rewrite = 'free'; this.foreign_visual = 'stock';
+    // --- «Из видео» ---
+    this.foreign_addition = '';
+    this.foreign_rewrite = s.foreign_rewrite ?? 'free'; if (!['free', 'tight', 'subsonly'].includes(this.foreign_rewrite)) this.foreign_rewrite = 'free';
+    this.foreign_visual = s.foreign_visual ?? 'source'; if (!['source', 'stock'].includes(this.foreign_visual)) this.foreign_visual = 'source';
     this.foreign_hide_caps = !!(s.foreign_hide_caps ?? false);
+    this.foreign_fit = s.foreign_fit ?? 'blur'; if (!['blur', 'crop'].includes(this.foreign_fit)) this.foreign_fit = 'blur';
     this.foreign_tail_trim = Math.max(1, Math.min(10, parseInt(s.foreign_tail_trim ?? 3) || 3));
     this.foreign_color = !!(s.foreign_color ?? true); this.foreign_mirror = !!(s.foreign_mirror ?? false);
     this.foreign_cap_zone = this._sanitize_cap_zone(s.foreign_cap_zone);
@@ -91,22 +127,23 @@ export class Api {
     this.foreign_cap_color = _sanitize_hex(s.foreign_cap_color) || CAP_PRESET_HEX[this.foreign_cap_style] || '#000000';
     this.foreign_caps_cover = !!(s.foreign_caps_cover ?? false);
     this.foreign_len_manual = false;
-    const _pk = dec_secret(s.pixabay_key ?? s.pixabay ?? '');
-    let raw_keys = (_pk || '').split('\n').map(k => k.trim()).filter(Boolean);
-    if (!raw_keys.length) raw_keys = (s.pixabay_keys || []).map(dec_secret).filter(Boolean);
-    this.pixabay_keys = raw_keys.slice(0, 1); this.pixabay_key = this.pixabay_keys[0] || ''; this._pix_key_idx = 0;
+    // --- до 5 ключей Pixabay / Pexels ---
+    this.pixabay_keys = (s.pixabay_keys || []).filter(Boolean).map(dec_secret).filter(Boolean);
+    { const oldp = dec_secret(s.pixabay_key ?? s.pixabay ?? ''); if (oldp && !this.pixabay_keys.includes(oldp)) this.pixabay_keys.unshift(oldp); }
+    this.pixabay_keys = this.pixabay_keys.slice(0, 5); this.pixabay_idx = 0;
     this.pexels_keys = (s.pexels_keys || []).filter(Boolean).map(dec_secret).filter(Boolean);
     { const o = dec_secret(s.pexels_key || ''); if (o && !this.pexels_keys.includes(o)) this.pexels_keys.unshift(o); }
-    this.pexels_keys = this.pexels_keys.slice(0, 1); this.pexels_idx = 0;
+    this.pexels_keys = this.pexels_keys.slice(0, 5); this.pexels_idx = 0;
     this._media_chain_obj = null;
     this.media_onboarded = !!(s.media_onboarded ?? false);
+    // --- AI (до 5 ключей Claude / Gemini) ---
     this.claude_keys = (s.claude_keys || []).filter(Boolean).map(dec_secret).filter(Boolean);
     { const o = dec_secret(s.claude_key || ''); if (o && !this.claude_keys.includes(o)) this.claude_keys.unshift(o); }
-    this.claude_keys = this.claude_keys.slice(0, 1); this.claude_idx = 0;
+    this.claude_keys = this.claude_keys.slice(0, 5); this.claude_idx = 0;
     this.ai_model = s.ai_model ?? 'sonnet'; if (!['sonnet', 'opus'].includes(this.ai_model)) this.ai_model = 'sonnet';
     this.gemini_keys = (s.gemini_keys || []).filter(Boolean).map(dec_secret).filter(Boolean);
     { const o = dec_secret(s.gemini_key || ''); if (o && !this.gemini_keys.includes(o)) this.gemini_keys.unshift(o); }
-    this.gemini_keys = this.gemini_keys.slice(0, 1); this.gemini_idx = 0;
+    this.gemini_keys = this.gemini_keys.slice(0, 5); this.gemini_idx = 0;
     this.gemini_model = 'flash';
     this.ai_provider = s.ai_provider ?? 'claude'; if (!['claude', 'gemini'].includes(this.ai_provider)) this.ai_provider = 'claude';
     this._ai_last_status = 0; this._ai_last_reason = ''; this._cred_cache = {};
@@ -123,42 +160,58 @@ export class Api {
     this.sfx_enabled = !!(s.sfx_enabled ?? true);
     this.reel_images = {}; this.reel_highlights = {}; this.reel_scene_picks = {}; this.reel_scene_starts = {};
     this.last_reel = null;
-    this.keys_collapsed = s.keys_collapsed ?? true;
+    this._batch_results = []; this._batch_previews = []; this._batch_active_idx = null;
+    this.keys_collapsed = s.keys_collapsed ?? null;
     this.consent_version = s.consent_version ?? ''; this.consent_date = s.consent_date ?? ''; this.consent_machine = s.consent_machine ?? '';
     this.reel_scenario = s.reel_scenario ?? 'auto';   // веб: по умолчанию «Авто» (просьба владельца 2026-10-08)
+    this.reel_auto_type = '';
+    this.auto_rematch = s.defaults_v2 ? !!(s.auto_rematch ?? true) : true;
+    this.defaults_v2 = true;
     if (!(this.reel_scenario in REEL_PROMPTS) && this.reel_scenario !== 'auto') this.reel_scenario = 'auto';
-    this.reel_auto_type = ''; this.custom_prompts = {};
+    this.custom_prompts = {};
     this.reel_caption = ''; this.reel_hashtags = ''; this.reel_topic = '';
     this.reel_emotion = s.reel_emotion ?? 'energetic';
     this.el_pronounce = false; this._pron_cache = {}; this._stress_cache = {};
     if (!(this.reel_emotion in EMOTIONS)) this.reel_emotion = 'energetic';
-    this._session_hooks = []; this.reel_scenes = []; this.reel_scene_clips = {}; this._scene_clip_cache = {};
+    this._session_hooks = [];
+    this._series = []; this._series_theme = ''; this._series_gender = ''; this._series_next_ending = '';
+    this.reel_scenes = []; this.reel_scene_clips = {}; this._scene_clip_cache = {};
     this._thumb_tick = 0; this._reel_used_clips = null; this.clip_provider = 'm1'; this._swap_seen = {}; this._scene_swap_state = {};
+    // --- финальный кадр ---
     const o = s.outro ?? {};
-    this.outro_on = o.user_set ? !!(o.enabled ?? false) : false;
+    if (o.user_set) this.outro_on = !!(o.enabled ?? false);
+    else if (!('enabled' in o) && !!o.on) this.outro_on = true;
+    else this.outro_on = false;
     this.outro_user_set = !!(o.user_set ?? false);
+    // обложка-хук (только «1 рилс»), по умолчанию ВКЛ
+    this.hook_cover = !!(s.hook_cover ?? true);
+    // иконки платформ перенесены в Автомонтаж — здесь всегда выкл
+    this.platform_icons = false;
     this.outro_text = o.text ?? 'Продолжение в моём Телеграм';
     this.outro_tg = o.tg ?? ''; this.outro_site = o.site ?? '';
     this.outro_seconds = Math.max(3, Math.min(6, parseInt(o.seconds ?? 3) || 3));
     this.outro_voice = !!(o.voice ?? false);
     this.outro_collapsed = o.collapsed ?? null;
-    this.outro_bg = o.bg ?? 'color'; if (!['color', 'gradient', 'blur', 'photo'].includes(this.outro_bg)) this.outro_bg = 'color';
+    this.outro_bg = o.bg ?? 'gradient'; if (!['gradient', 'blur', 'color', 'photo'].includes(this.outro_bg)) this.outro_bg = 'gradient';
     this.outro_color = this._norm_hex(o.color ?? '#0a1712', '#0a1712');
     this.outro_photo = o.photo ?? '';
-    if (this.outro_bg === 'photo' && !(this.outro_photo && this._outro_photo_exists())) this.outro_bg = 'color';
+    if (this.outro_bg === 'photo' && !(this.outro_photo && this._outro_photo_exists())) this.outro_bg = 'gradient';
     const sh = (o.show || {});
-    this.outro_show = { tg_qr: !!(sh.tg_qr ?? true), tg_nick: !!(sh.tg_nick ?? true), site_qr: !!(sh.site_qr ?? true), site_link: !!(sh.site_link ?? true) };
+    this.outro_show = { tg_qr: !!(sh.tg_qr ?? true), tg_nick: !!(sh.tg_nick ?? true), site_qr: !!(sh.site_qr ?? true), site_link: !!(sh.site_link ?? true), logo: !!(sh.logo ?? true) };
     this.outro_stress_text = o.stress ?? ''; this.outro_stress_manual = [...(o.stress_manual || [])];
     this.busy = false; this.trial_active = false;
     this.promo_active = false; this.promo_code = ''; this.promo_days_left = 0;
     this._machine_id = ''; this._funnel_id_cache = '';
     this._load_license();
+    // логотип: обработанный PNG пересобираем из исходника (в фоне)
+    if (this.logo_src) thread(async () => { try { await this._process_logo(); } catch (e) { console.warn('logo process on load err:', e); } });
   }
+  get pixabay_key() { const l = this.pixabay_keys; return l && l.length ? l[(this.pixabay_idx || 0) % l.length] : ''; }
 
   // ==================== ЛИЦЕНЗИЯ ====================
-  _ping_render() { thread(async () => { try { await requests.post(`${VR_SERVER_URL}/ping-render`, { json: { product: 'mini' }, timeout: 3 }); } catch (e) { } }); }
+  _ping_render() { thread(async () => { try { await requests.post(`${VR_SERVER_URL}/ping-render`, { json: { product: 'lite' }, timeout: 3 }); } catch (e) { } }); }
   report_client_error(error_type, message = '', stage = '') {
-    thread(async () => { try { await requests.post(`${VR_SERVER_URL}/client-error`, { json: { machine_id: await this.get_machine_id(), app_version: APP_VERSION + '-web', error_type: String(error_type).slice(0, 60), message: String(message).slice(0, 200), stage: String(stage).slice(0, 24) }, timeout: 5 }); } catch (e) { } });
+    thread(async () => { try { await requests.post(`${VR_SERVER_URL}/client-error`, { json: { machine_id: await this._install_id(), app_version: APP_VERSION + '-web', error_type: String(error_type).slice(0, 60), message: String(message).slice(0, 200), stage: String(stage).slice(0, 24) }, timeout: 5 }); } catch (e) { } });
     return { ok: true };
   }
   static _ver_tuple(v) { try { return String(v).trim().split('.').map(x => { const n = parseInt(x); if (Number.isNaN(n)) throw 0; return n; }); } catch (e) { return [0]; } }
@@ -255,7 +308,7 @@ export class Api {
   }
   async get_launch_stats() {
     try {
-      const r = await requests.get(VR_SERVER_URL.replace(/\/+$/, '') + '/stats', { timeout: [10, 55] });
+      const r = await requests.get(VR_SERVER_URL.replace(/\/+$/, '') + '/stats', { params: { product: 'lite' }, timeout: [10, 55] });
       if (r.status_code === 200) { const d = r.json(); return { ok: true, stage: d.stage, current_price: d.current_price, current_price_rub: d.current_price_rub, remaining_in_stage: d.remaining_in_stage, next_price: d.next_price, next_price_rub: d.next_price_rub }; }
     } catch (e) { }
     return { ok: false };
@@ -270,7 +323,7 @@ export class Api {
   async set_pending_ref(ref) { this._pending_ref = await this._ref_for_purchase('lifetime', ref); return { ok: true }; }
   async reserve_purchase(plan = 'lifetime', ref = '') {
     plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime'].includes(plan)) plan = 'lifetime';
-    const body = { machine: await this.get_machine_id(), product: 'mini', plan, key: this.license_key || '' };
+    const body = { machine: await this.get_machine_id(), product: 'lite', plan, key: this.license_key || '' };
     const _r = await this._ref_for_purchase(plan, ref); if (_r) { body.ref = _r; this._pending_ref = _r; }
     const resp = await this._server_post('/reserve', body);
     if (resp === null) return { ok: false, reachable: false, msg: this._t('lic_server_down') };
@@ -279,7 +332,7 @@ export class Api {
   }
   async reserve_purchase_rub(plan = 'lifetime', ref = '') {
     plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime'].includes(plan)) plan = 'lifetime';
-    const body = { machine: await this.get_machine_id(), product: 'mini', plan, key: this.license_key || '', title: 'Видеорилс Мини' };
+    const body = { machine: await this.get_machine_id(), product: 'lite', plan, key: this.license_key || '', title: 'Видеорилс Лайт' };
     const _r = await this._ref_for_purchase(plan, ref); if (_r) { body.ref = _r; this._pending_ref = _r; }
     const resp = await this._server_post('/prodamus/create-link', body);
     if (resp === null) return { ok: false, reachable: false, msg: this._t('lic_server_down') };
@@ -310,8 +363,7 @@ export class Api {
   async _validate_key(key) {
     key = (key || '').trim().toUpperCase();
     if (!key) return { ok: false, status: 'invalid', reachable: true, msg: this._t('lic_bad') };
-    if (C['Api._VALID_TEST_KEYS'].has(key)) return { ok: true, status: 'ok', reachable: true, type: 'dev' };
-    const resp = await this._server_post('/check', { key, machine: await this.get_machine_id(), product: 'mini' });
+    const resp = await this._server_post('/check', { key, machine: await this.get_machine_id(), product: 'lite' });
     if (resp === null) return { ok: false, status: 'offline', reachable: false, msg: this._t('lic_server_down') };
     this._store_ref_stats(resp.referrals);
     const st = resp.status;
@@ -356,7 +408,7 @@ export class Api {
     const w = String(wallet || '').replace(/\s+/g, '') || this.ref_wallet || '';
     if (!Api._wallet_looks_trc20(w)) return { ok: false, msg: this._t('ref_wallet_bad') };
     if (w !== this.ref_wallet) this.set_ref_wallet(w);
-    const resp = await this._server_post('/referral/payout', { key: this.license_key, machine: await this.get_machine_id(), product: 'mini', wallet: w });
+    const resp = await this._server_post('/referral/payout', { key: this.license_key, machine: await this.get_machine_id(), product: 'lite', wallet: w });
     if (resp === null) return { ok: false, msg: this._t('lic_server_down') };
     if (resp.status !== 'ok') return { ok: false, msg: resp.msg || this._t('ref_payout_fail') };
     return { ok: true, amount: resp.amount, msg: resp.msg || '' };
@@ -367,12 +419,7 @@ export class Api {
     const life = parseInt(this.ref_lifetime || 0) || 0; const per = parseFloat(this.ref_per || C['Api._REF_REWARD_USD']) || C['Api._REF_REWARD_USD'];
     return { ok: true, licensed: true, code: await referral_code(key), link: await referral_link(key), wallet: this.ref_wallet || '', count: parseInt(this.ref_count || 0) || 0, lifetime: life, per, reward: parseFloat(this.ref_reward ?? life * per) || 0 };
   }
-  get_license_status() {
-    if (!this.licensed) return { licensed: false };
-    const act = this.license_activated || ''; const exp = this.license_expires || this._license_expiry(this.license_type, act);
-    let days_left = null; if (exp) { const d = fromIso(exp); days_left = d ? Math.max(0, daysBetween(d, new Date())) : null; }
-    return { licensed: true, type: this.license_type, key: this.license_key, activated: act, expires: exp, days_left };
-  }
+  get_license_status() { return { licensed: this.licensed }; }
   async activate_license(key) {
     if (!this._consent_ok()) return { ok: false, need_consent: true, msg: this._t('consent_need') };
     key = (key || '').trim();
@@ -414,12 +461,14 @@ export class Api {
   }
   track_open() { if (this._first_launch_flag()) this.track('first_launch'); this.track('app_open'); }
 
-  // Отпечаток браузера (аналог MachineGuid): случайный id, хранится в localStorage.
+  // стабильный id установки (персональная подвыборка идей, отчёты об ошибках)
+  async _install_id() { return (await sha256Hex('vr_install|' + await this.get_machine_id())).slice(0, 32); }
+  // id компьютера (аналог MachineGuid): отпечаток ЖЕЛЕЗА + хранение в 3 местах браузера —
+  // «один компьютер — одна лицензия», не слетает при очистке/смене браузера (machine.js)
   async get_machine_id() {
     if (this._machine_id) return this._machine_id;
-    let raw = store.get(MID_KEY);
-    if (!raw) { raw = uuid4hex(); store.set(MID_KEY, raw); }
-    this._machine_id = (await sha256Hex('vrmini-machine|web|' + raw)).slice(0, 32);
+    const { machineId } = await import('./machine.js');
+    this._machine_id = await machineId('vrlite-machine|web');
     return this._machine_id;
   }
 
@@ -427,7 +476,7 @@ export class Api {
   async _trial_used_local() { try { const d = JSON.parse(store.get(TRIAL_KEY) || 'null'); return !!(d && d.used) && d.mid === await this.get_machine_id(); } catch (e) { return false; } }
   async _cache_trial(used) { store.set(TRIAL_KEY, JSON.stringify({ mid: await this.get_machine_id(), used: !!used })); }
   async _trial_used() {
-    const resp = await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'status', product: 'mini' });
+    const resp = await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'status', product: 'lite' });
     if (resp !== null && resp.status === 'ok') {
       this.promo_active = !!resp.promo_active; this.promo_code = resp.promo_code || ''; this.promo_days_left = parseInt(resp.promo_days_left || 0) || 0;
       const used = !(resp.trial_available ?? true);
@@ -437,13 +486,13 @@ export class Api {
     return this._trial_used_local();
   }
   async _mark_trial_used() {
-    await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'use', product: 'mini' });
+    await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'use', product: 'lite' });
     await this._cache_trial(true);
   }
   async activate_promo(code) {
     code = (code || '').trim().toUpperCase();
     if (!code) return { ok: false, msg: this._t('promo_need') };
-    const resp = await this._server_post('/promo/activate', { machine: await this.get_machine_id(), code, product: 'mini' });
+    const resp = await this._server_post('/promo/activate', { machine: await this.get_machine_id(), code, product: 'lite' });
     if (resp === null) return { ok: false, msg: this._t('promo_offline') };
     if (resp.ok) {
       this.promo_active = true; this.promo_code = resp.promo_code || code; this.promo_days_left = parseInt(resp.promo_days_left || 0) || 0;
@@ -468,13 +517,15 @@ export class Api {
   }
   _has_access() { this._maybe_revalidate(); return this.licensed || this.promo_active || this.trial_active; }
   _license_mask() { const k = this.license_key || ''; const p = k.split('-'); return p.length >= 2 ? p[0] + '-…-' + p[p.length - 1] : k; }
-  async get_plans() {
+  get_plans() { return this.get_product_plans(); }
+  // тарифы Лайт с сервера; недоступен -> статический fallback 29/149/197
+  async get_product_plans() {
     try {
-      const r = await requests.get(`${VR_SERVER_URL}/product-plans`, { params: { product: 'mini' }, timeout: 10 });
-      const data = Object.assign({}, r.json() || {}); const raw = data.plans || {};
-      data.plans = {}; for (const [k, v] of Object.entries(raw)) data.plans[k] = (v && typeof v === 'object') ? v : { price: v };
-      return data;
-    } catch (e) { return { plans: { monthly: { price: 15 }, yearly: { price: 79 }, lifetime: { price: 97 } } }; }
+      const r = await requests.get(`${VR_SERVER_URL}/product-plans`, { params: { product: 'lite' }, timeout: 12 });
+      const data = Object.assign({}, r.json() || {});
+      if (data.plans && Object.keys(data.plans).length) return data;
+    } catch (e) { }
+    return { ok: false, plans: { monthly: 29, yearly: 149, lifetime: 197 } };
   }
   async get_upgrade_price() {
     let out;
@@ -482,39 +533,44 @@ export class Api {
     catch (e) { return { ok: false }; }
     const cur_type = this.license_type || '';
     if (['monthly', 'yearly'].includes(cur_type)) out.already_lifetime = false;
-    try { const p = (await requests.get(`${VR_SERVER_URL}/plans`, { timeout: 12 })).json() || {}; out.wallet = p.wallet || ''; out.network = p.network || 'TRC-20'; } catch (e) { }
-    if (['monthly', 'yearly'].includes(cur_type)) {
-      try {
-        const rem = out.remaining_usdt;
-        if (rem == null || parseFloat(rem) <= 0) {
-          const life = parseFloat(out.lifetime_price ?? 97) || 97; const paid = cur_type === 'monthly' ? 15.0 : 79.0;
-          const val = Math.max(life - paid, life * 0.3);
-          out.remaining_usdt = val === Math.trunc(val) ? Math.trunc(val) : Math.round(val * 100) / 100;
-        }
-      } catch (e) { }
-    }
+    try {
+      const p = (await requests.get(`${VR_SERVER_URL}/product-plans`, { params: { product: 'lite' }, timeout: 12 })).json() || {};
+      out.wallet = p.wallet || ''; out.network = p.network || 'TRC-20';
+      if (['monthly', 'yearly'].includes(cur_type)) {
+        try {
+          const rem = out.remaining_usdt;
+          if (rem == null || parseFloat(rem) <= 0) {
+            const plans = p.plans || {};
+            const life = parseFloat(plans.lifetime ?? 197) || 197;
+            const paid = parseFloat(plans[cur_type] ?? (cur_type === 'monthly' ? 29 : 149)) || 0;
+            const val = Math.max(life - paid, life * 0.3);
+            out.remaining_usdt = val === Math.trunc(val) ? Math.trunc(val) : Math.round(val * 100) / 100;
+          }
+        } catch (e) { }
+      }
+    } catch (e) { }
     out.ok = true;
     return out;
   }
   async submit_upgrade(txid, amount) {
-    const amt = parseFloat(amount); if (Number.isNaN(amt)) return { ok: false, msg: this._t('upgrade_bad_amount') };
+    const amt = parseFloat(amount); if (Number.isNaN(amt)) return { ok: false, msg: this._t('upg_bad_amount') };
     let res;
     try { const r = await requests.post(`${VR_SERVER_URL}/license/upgrade`, { json: { machine_id: await this.get_machine_id(), key: this.license_key || '', txid: (txid || '').trim(), amount: amt }, timeout: 40 }); res = Object.assign({}, r.json() || {}); }
-    catch (e) { return { ok: false, msg: this._t('upgrade_net_err', String(e.message || e).slice(0, 60)) }; }
+    catch (e) { return { ok: false, msg: this._t('upg_net', String(e.message || e).slice(0, 60)) }; }
     if (res.status === 'ok' || res.plan === 'lifetime') {
-      this.license_type = 'lifetime';
-      try { const d = JSON.parse(store.get(LIC_KEY) || '{}'); d.type = 'lifetime'; store.set(LIC_KEY, JSON.stringify(d)); } catch (e) { }
+      this.license_type = 'lifetime'; this.license_expires = '';
+      try { const d = JSON.parse(store.get(LIC_KEY) || 'null'); if (d) { d.type = 'lifetime'; d.expires = ''; store.set(LIC_KEY, JSON.stringify(d)); } } catch (e) { }
       this._persist();
       return { ok: true, plan: 'lifetime', total_paid: res.total_paid };
     }
-    return { ok: false, msg: res.msg || res.status || this._t('upgrade_unconfirmed') };
+    return { ok: false, msg: res.msg || res.status || this._t('upg_failed') };
   }
   async get_access_status() {
     if (this.licensed) {
       const _act = this.license_activated || ''; let _exp = this.license_expires || '';
       if (!_exp) _exp = this._license_expiry(this.license_type || 'lifetime', _act);
       let _dl = null; if (_exp) { const d = fromIso(_exp); _dl = d ? Math.max(0, daysBetween(d, new Date())) : null; }
-      return { licensed: true, trial_active: false, trial_used: false, trial_available: false, key_mask: this._license_mask(), key: this.license_key || '',
+      return { licensed: true, trial_active: false, trial_used: false, trial_available: false, key_mask: this._license_mask(),
         key_type: this.license_type || 'lifetime', key_expires: _exp, key_activated: _act, key_days_left: _dl,
         promo_active: this.promo_active, promo_code: this.promo_code, promo_days_left: this.promo_days_left,
         consent_ok: this._consent_ok(), docs_version: DOCS_VERSION, machine_id: await this.get_machine_id() };
@@ -566,5 +622,10 @@ export class Api {
   static _mask(key) { const k = key || ''; return k.length >= 4 ? '••••' + k.slice(-4) : '••••'; }
   ping() { return { ok: true, dir: 'web' }; }
   set_platform() { this.platform = 'reel'; return this.platform; }
-  set_reel_seconds(n) { const v = parseInt(n); this.reel_seconds = Number.isNaN(v) ? 30 : Math.max(20, Math.min(40, v)); return this.reel_seconds; }
+  set_reel_seconds(n) {
+    const v = parseInt(n); this.reel_seconds = Number.isNaN(v) ? 50 : Math.max(30, Math.min(120, v));
+    // ползунок двинули в режиме «Кадры из этого видео» -> ручная цель
+    if (this.reel_source === 'foreign' && (this.foreign_visual ?? 'source') === 'source') this.foreign_len_manual = true;
+    return this.reel_seconds;
+  }
 }

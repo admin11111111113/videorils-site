@@ -1,4 +1,4 @@
-// Видеорилс Мини — ВЕБ. Базовый слой: замены того, что в app.py давала ОС
+// Видеорилс Лайт — ВЕБ. Базовый слой: замены того, что в app.py давала ОС
 // (settings.json, папка temp, print/log, threading, sleep, webbrowser, call_js).
 // Логику НЕ меняем — только среду исполнения.
 import { RAW } from './consts.js';
@@ -34,7 +34,7 @@ export function strftime(fmt, d = new Date()) {
 export const isoNow = () => { const d = new Date(); const z = new Date(d - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 23).replace('Z', ''); };
 
 // --------------------------------------------------- settings.json -> storage --
-const SKEY = 'vr_mini_settings';
+const SKEY = 'vr_lite_settings';
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
 function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { } }

@@ -4,20 +4,22 @@
 //   Arial Black  -> Montserrat Black
 //   Segoe Script -> Marck Script
 //   Consolas     -> JetBrains Mono Bold
+//   Impact       -> Oswald Bold (обложка-хук Лайта)
 export const FONT_MAP = {
   'Arial Black': { family: 'VR Arial Black', file: 'MontserratBlack.ttf', weight: '900' },
   'Segoe Script': { family: 'VR Segoe Script', file: 'MarckScript.ttf', weight: '400' },
   'Consolas': { family: 'VR Consolas', file: 'JetBrainsMonoBold.ttf', weight: '700' },
+  'Impact': { family: 'VR Impact', files: [['OswaldBold-cyr.woff2', 'U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116'], ['OswaldBold-lat.woff2', 'U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+20AC, U+2122, U+2212']], weight: '700' },
 };
 const BASE = new URL('../fonts/', import.meta.url).href;
 let loaded = null;
 export function loadFonts() {
   if (loaded) return loaded;
-  loaded = Promise.all(Object.values(FONT_MAP).map(async f => {
-    const ff = new FontFace(f.family, `url(${BASE}${f.file})`, { weight: 'normal', style: 'normal' });
+  loaded = Promise.all(Object.values(FONT_MAP).flatMap(f => (f.files || [[f.file, null]]).map(async ([file, range]) => {
+    const ff = new FontFace(f.family, `url(${BASE}${file})`, Object.assign({ weight: 'normal', style: 'normal' }, range ? { unicodeRange: range } : {}));
     await ff.load();
     (self.document ? document.fonts : self.fonts).add(ff);
-  })).catch(e => { console.warn('fonts', e); });
+  }))).catch(e => { console.warn('fonts', e); });
   return loaded;
 }
 export function cssFont(name, size, { bold = false, italic = false } = {}) {

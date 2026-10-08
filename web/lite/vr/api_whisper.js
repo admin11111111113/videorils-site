@@ -3,6 +3,7 @@
 import { C, log, vfs, path, call_js, bar, pickFiles, re } from './core.js';
 import * as A from './audio.js';
 import { Api } from './api_base.js';
+import { clean_phrase } from './textutil.js';
 
 const P = Api.prototype;
 const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/+esm';   // +esm: переписаны импорты onnxruntime-web
@@ -18,6 +19,20 @@ async function loadWhisper(progress) {
     progress_callback: (p) => { if (p && p.status === 'progress' && p.total) { files[p.file] = [p.loaded, p.total]; const L = Object.values(files).reduce((a, x) => a + x[0], 0), T2 = Object.values(files).reduce((a, x) => a + x[1], 0); progress && progress(L / T2); } },
   });
   return _asr;
+}
+// Автоопределение языка (как faster-whisper: первый токен декодера после <|startoftranscript|>
+// на первых 30с). transformers.js без явного языка подставляет английский — поэтому сами.
+const WL = ['en','zh','de','es','ru','ko','fr','ja','pt','tr','pl','ca','nl','ar','sv','it','id','hi','fi','vi','he','uk','el','ms','cs','ro','da','hu','ta','no','th','ur','hr','bg','lt','la','mi','ml','cy','sk','te','fa','lv','bn','sr','az','sl','kn','et','mk','br','eu','is','hy','ne','mn','bs','kk','sq','sw','gl','mr','pa','si','km','sn','yo','so','af','oc','ka','be','tg','sd','gu','am','yi','lo','uz','fo','ht','ps','tk','nn','mt','sa','lb','my','bo','tl','mg','as','tt','haw','ln','ha','ba','jw','su'];
+async function detectLanguage(asr, audio) {
+  const T = await import(/* @vite-ignore */ TJS);
+  const tok = asr.tokenizer;
+  const tid = (t) => { if (tok.convert_tokens_to_ids) { const v = tok.convert_tokens_to_ids(t); return Array.isArray(v) ? v[0] : v; } const v = tok.encode(t, { add_special_tokens: false }); return v[v.length - 1]; };
+  const inp = await asr.processor(audio.slice(0, 16000 * 30));
+  const out = await asr.model({ input_features: inp.input_features, decoder_input_ids: new T.Tensor('int64', BigInt64Array.from([BigInt(tid('<|startoftranscript|>'))]), [1, 1]) });
+  const lg = out.logits.data; const sc = WL.map(l => [l, lg[tid('<|' + l + '|>')]]).filter(x => Number.isFinite(x[1]));
+  const mx = Math.max(...sc.map(x => x[1])); const z = sc.reduce((a, x) => a + Math.exp(x[1] - mx), 0);
+  sc.sort((a, b) => b[1] - a[1]);
+  return { language: sc[0][0], probability: Math.exp(sc[0][1] - mx) / z };
 }
 // WAV 16 кГц моно (как extract_audio_wav) -> Float32Array
 async function pcm16k(p) { const b = await A.resample(await A.decode(p), 16000, 1); return b.getChannelData(0); }
@@ -35,14 +50,18 @@ P._import_audio = async function (file, scope = 'video') {
   try {
     const name = file.name || 'input.mp4'; const dst = `input/${name}`;
     vfs.write(dst, file);
-    if (scope === 'foreign') this.foreign_audio_path = dst; else this.audio_path = dst;
+    if (scope === 'foreign') {
+      this.foreign_audio_path = dst; this.foreign_segments = []; this.foreign_cap_zone = null;
+      try { this._persist(); } catch (e) { }
+    } else this.audio_path = dst;
     const dur = await A.duration(dst);
+    if (scope === 'foreign') this._foreign_src_dur = dur;     // ffprobe_duration-кэш для _target_sec
     return { ok: true, name, dur: Math.round(dur * 10) / 10 };
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 };
 P.on_drop = async function (file) { const res = await this._import_audio(file, 'foreign'); call_js('droppedImported', res); return res; };
 P.transcribe = async function (scope = 'video') {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   const p = this._audio_path_for(scope);
   if (!p) return { ok: false, msg: this._t('select_audio_first') };
   if (!(await hasAudio(p))) {
@@ -75,6 +94,24 @@ P._transcribe_worker = async function (scope = 'video') {
     const tlang = scope === 'foreign' ? null : (scope === 'video' ? this.video_lang : 'ru');
     const opts = { return_timestamps: true, chunk_length_s: 30, stride_length_s: 5, task: 'transcribe' };
     if (tlang) opts.language = tlang === 'en' ? 'english' : 'russian';
+    else {   // чужое видео — АВТО-ДЕТЕКТ языка исходника (как language=None в faster-whisper)
+      const info = await detectLanguage(asr, audio);
+      opts.language = info.language;
+      log(`  🌐 язык исходника (авто-детект): ${info.language} (увер. ${Math.round(info.probability * 100)}%)`);
+    }
+    // «Моё видео — только субтитры»: пословные тайминги -> строки с точным таймингом
+    const subs_mode = scope === 'foreign' && this.foreign_rewrite === 'subsonly';
+    if (scope === 'foreign') this._foreign_lang = String(opts.language || '').toLowerCase();
+    if (subs_mode) {
+      const wout = await asr(audio, Object.assign({}, opts, { return_timestamps: 'word' }));
+      const words = (wout.chunks || []).map(w => [w.text || '', Number((w.timestamp || [0])[0] || 0), Number((w.timestamp || [0, 0])[1] ?? (w.timestamp || [0])[0] ?? 0)]);
+      const lines = this._regroup_words_to_lines(words);
+      for (const ln of lines) log(`[${ln.start.toFixed(1).padStart(6)}s] ${ln.text}`);
+      this.foreign_segments = lines;
+      bar(100, 'Готово'); log(`✔ Распознано фраз: ${lines.length}`);
+      call_js('transcribeDone', lines.length, scope);
+      return;
+    }
     const out = await asr(audio, opts);
     const result = [];
     for (const ch of (out.chunks || [])) {
@@ -91,6 +128,26 @@ P._transcribe_worker = async function (scope = 'video') {
     call_js('transcribeLoading', false); call_js('transcribeDone', -1, scope, String(e.message || e).slice(0, 160));
   } finally { this.busy = false; }
 };
+// пословные тайминги -> строки субтитров (разрыв: конец предложения, пауза > gap, лимиты)
+P._regroup_words_to_lines = function (words, max_words = 8, max_dur = 3.5, gap = 0.55) {
+  const lines = []; let cur = [];
+  for (const [w, s, e] of (words || [])) {
+    if (!(w || '').trim()) continue;
+    if (cur.length) {
+      const start0 = cur[0][1], prev_end = cur[cur.length - 1][2], prev_w = (cur[cur.length - 1][0] || '').trim();
+      const brk = cur.length >= max_words || (e - start0) > max_dur || (s - prev_end) > gap || /[.!?…]$/.test(prev_w);
+      if (brk) { lines.push(cur); cur = []; }
+    }
+    cur.push([w.trim(), s, e]);
+  }
+  if (cur.length) lines.push(cur);
+  const segs = [];
+  for (const ln of lines) {
+    const txt = clean_phrase(ln.map(x => x[0]).join(' ').replace(/\s+/g, ' ').trim());
+    if (txt) segs.push({ start: Math.round(ln[0][1] * 100) / 100, end: Math.round(ln[ln.length - 1][2] * 100) / 100, text: txt });
+  }
+  return segs;
+};
 // Whisper word-level -> [(слово, start, end)]
 P._transcribe_words = async function (p) {
   try {
@@ -99,7 +156,10 @@ P._transcribe_words = async function (p) {
     const klang = this.video_lang === 'en' ? 'english' : 'russian';
     const out = await asr(audio, { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5, language: klang, task: 'transcribe' });
     return (out.chunks || []).map(w => [(w.text || '').trim(), Number((w.timestamp || [0])[0] || 0), Number((w.timestamp || [0, 0])[1] ?? (w.timestamp || [0])[0] ?? 0)]).filter(w => w[0]);
-  } catch (e) { log(`  ⚠ тайминги слов не получены: ${e.message || e}`); return []; }
+  } catch (e) {
+    this._degrade('«Мой голос»: не удалось распознать тайминги слов — субтитры выровнены приблизительно и могут слегка расходиться с речью');
+    log(`    (детали: ${e.message || e})`); return [];
+  }
 };
 P._align_phrases = function (phrases, words, total) {
   const n = phrases.length;

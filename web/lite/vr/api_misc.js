@@ -20,7 +20,7 @@ P.get_trending_ideas = async function () {
   return { ok: false, ideas: [] };
 };
 P.use_trending_idea = async function (idea) {
-  if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   idea = idea || {};
   const title = (idea.title || '').trim();
   const base = (idea.adapted_text || idea.adapted_title || title).trim();
@@ -46,6 +46,7 @@ async function sfxManifest() {
   return _SFX;
 }
 export async function sfxPreload() { await sfxManifest(); }
+export async function sfxIndex() { return await sfxManifest(); }
 P._sfx_all = function () {
   const out = [], seen = new Set();
   for (const [cat, files] of Object.entries(_SFX || {})) {
@@ -84,10 +85,16 @@ P.import_sfx_from_downloads = function () { return { ok: true, count: 0 }; };
 
 // ================= МУЗЫКА =================
 P.set_music_db = function (n) { const v = Math.round(parseFloat(n)); this.music_db = Number.isNaN(v) ? -22 : Math.max(-40, Math.min(-6, v)); this._persist_music(); return this.music_db; };
+// трек РАЗНЫЙ для «Один рилс» (music_track) и «Клип-микс» (clipmix_music) — _music_mode
+P._cur_music_attr = function () { return this._music_mode === 'clipmix' ? 'clipmix_music' : 'music_track'; };
+P._get_cur_music = function () { return this[this._cur_music_attr()] || ''; };
+P._set_cur_music = function (v) { this[this._cur_music_attr()] = v || ''; };
+P.set_music_mode = function (mode) { this._music_mode = mode === 'clipmix' ? 'clipmix' : 'reel'; return this.get_music_settings(); };
+P.set_voice_vol = function (n) { const v = Math.round(parseFloat(n)); this.voice_vol = Number.isNaN(v) ? 100 : Math.max(0, Math.min(100, v)); this._persist_music(); return this.voice_vol; };
 P.set_music_track = function (p) {
-  if (p === '__random__') this.music_track = '__random__';
-  else { const tracks = this._collect_tracks().map(t => t.toLowerCase()); this.music_track = (p && tracks.includes(String(p).toLowerCase())) ? p : ''; }
-  this._persist_music(); return this.music_track;
+  if (p === '__random__') this._set_cur_music('__random__');
+  else { const tracks = this._collect_tracks().map(t => t.toLowerCase()); this._set_cur_music((p && tracks.includes(String(p).toLowerCase())) ? p : ''); }
+  this._persist_music(); return this._get_cur_music();
 };
 async function importAudioFile(file, dstDir) {
   let fn = file.name; let base = path.splitext(fn)[0], ext = path.splitext(fn)[1].toLowerCase();
@@ -121,12 +128,13 @@ P.remove_music_folder = function (folder) { this.music_folders = this.music_fold
 P.get_music_settings = async function () {
   const tracks = this._collect_tracks(); const items = [];
   for (const p of tracks) items.push({ path: p, name: path.basename(p), folder: 'music', dur: Math.round((await dur(p)) * 10) / 10, removable: true });
-  return { on: !!this.music_track, db: this.music_db, track: this.music_track, has: !!tracks.length, folders: this.music_folders, tracks: items };
+  const cur = this._get_cur_music();
+  return { on: !!cur, db: this.music_db, track: cur, has: !!tracks.length, voice_vol: this.voice_vol ?? 100, folders: this.music_folders, tracks: items };
 };
 P.delete_music_track = function (p) {
   if (!p) return { ok: false, msg: this._t('track_not_found') };
   vfs.remove(p); _DUR.delete(p);
-  if (this.music_track && this.music_track.toLowerCase() === String(p).toLowerCase()) this.music_track = '';
+  for (const attr of ['music_track', 'clipmix_music']) { const v = this[attr] || ''; if (v && v !== '__random__' && v.toLowerCase() === String(p).toLowerCase()) this[attr] = ''; }
   this._persist_music();
   return { ok: true, action: 'deleted' };
 };
@@ -139,7 +147,7 @@ P.preview_mix = async function (p) {
     const vbuf = await A.decode(vo); const vlen = vbuf.duration || 4.0; const fade = Math.max(0, vlen - 2.0);
     const mbuf = await A.decode(p);
     const sr = 44100; const oc = new OfflineAudioContext(2, Math.ceil(vlen * sr), sr);
-    const v = oc.createBufferSource(); v.buffer = vbuf; v.connect(oc.destination); v.start();
+    const v = oc.createBufferSource(); v.buffer = vbuf; const vg = oc.createGain(); vg.gain.value = Math.max(0, (this.voice_vol ?? 100) / 100); v.connect(vg); vg.connect(oc.destination); v.start();
     const m = oc.createBufferSource(); m.buffer = mbuf; m.loop = true;
     const g = oc.createGain(); g.gain.value = A.dbToGain(this.music_db);
     g.gain.setValueAtTime(A.dbToGain(this.music_db), fade); g.gain.linearRampToValueAtTime(0, fade + 2);
@@ -178,12 +186,14 @@ P.save_track_segment = async function (p, start, end) {
 };
 // запасной плеер (в десктопе — системный): играем файл напрямую из памяти
 P.play_voice_preview_external = function () { const u = vfs.objectUrl('temp/voice_preview.mp3'); if (!u) return false; try { new Audio(u).play().catch(() => { }); return true; } catch (e) { return false; } };
-P._pick_music = function () {
+// track — явный выбор режима (null -> music_track одиночного рилса; нарезка передаёт clipmix_music)
+P._pick_music = function (vlen = 0, track = null) {
+  const sel = track === null ? this.music_track : (track || '');
   const tracks = this._collect_tracks();
-  if (!(this.music_track && tracks.length)) return null;
-  if (this.music_track === '__random__') return choice(tracks);
+  if (!(sel && tracks.length)) return null;
+  if (sel === '__random__') return choice(tracks);
   const low = {}; for (const t of tracks) low[t.toLowerCase()] = t;
-  return low[this.music_track.toLowerCase()] || null;
+  return low[sel.toLowerCase()] || null;
 };
 
 // ================= ПРОСЛУШИВАНИЕ ГОЛОСА =================
@@ -194,7 +204,7 @@ P.preview_voice = async function () {
     await this._synth_one('Привет! Это мой голос для канала. Выбирай меня.', out);
     await vfs.flush(out);
     const res = { ok: true, url: out };
-    if (this.tts_engine === 'eleven' && this.licensed) res.credits = await this.get_eleven_credits();
+    if (this.tts_engine === 'eleven') res.credits = await this.get_eleven_credits();
     return res;
   } catch (e) { return { ok: false, msg: String(e.message || e) }; }
 };
