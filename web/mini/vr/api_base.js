@@ -414,12 +414,12 @@ export class Api {
   }
   track_open() { if (this._first_launch_flag()) this.track('first_launch'); this.track('app_open'); }
 
-  // Отпечаток браузера (аналог MachineGuid): случайный id, хранится в localStorage.
+  // id компьютера (аналог MachineGuid): отпечаток ЖЕЛЕЗА + хранение в 3 местах браузера —
+  // «один компьютер — одна лицензия», не слетает при очистке/смене браузера (machine.js)
   async get_machine_id() {
     if (this._machine_id) return this._machine_id;
-    let raw = store.get(MID_KEY);
-    if (!raw) { raw = uuid4hex(); store.set(MID_KEY, raw); }
-    this._machine_id = (await sha256Hex('vrmini-machine|web|' + raw)).slice(0, 32);
+    const { machineId } = await import('./machine.js');
+    this._machine_id = await machineId('vrmini-machine|web');
     return this._machine_id;
   }
 

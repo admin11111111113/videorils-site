@@ -747,7 +747,7 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
       <button class="rulesbtn" id="btnPromo" onclick="openPromo()" data-i18n-title="title_promo">🎟 Промокод</button>
       <button class="rulesbtn" id="btnLicense" onclick="onLicenseBtn()" title="Лицензия">🔑 Лицензия</button>
       <button class="rulesbtn" onclick="openRules()" data-i18n="btn_rules">📖 Правила</button>
-      <button class="rulesbtn" onclick="manualUpdateCheck()" data-i18n-title="title_check_update" data-i18n="btn_check_update">🔄 Обновление</button>
+      <button class="rulesbtn" style="display:none" onclick="manualUpdateCheck()" data-i18n-title="title_check_update" data-i18n="btn_check_update">🔄 Обновление</button>
     </div>
   </header>
 
@@ -2734,7 +2734,7 @@ const I18N={
   reel_center_hint:['Впиши тему выше и жми «🚀 Получить результат» — сцены появятся здесь.','Enter a topic above and hit “🚀 Get result” — scenes will appear here.'],
   reel_phone_cap:['📱 Превью стиля субтитров','📱 Subtitle style preview'],
   reel_result_cap:['📱 Готовый рилс','📱 Finished reel'],
-  reel_fullscreen:['🖥 Открыть в плеере на ПК','🖥 Open in PC player'],
+  reel_fullscreen:['🔍 Смотреть крупно','🔍 Watch large'],
   voice_hd_short:['🎙 Голос:','🎙 Voice:'],
   content_en_btn:['Рилс на английском','Reel in English'],
   scenario_auto:['🤖 Авто','🤖 Auto'],
@@ -7033,6 +7033,23 @@ setTimeout(()=>{ if(styles.length===0){
 }},1500);
 showView('home');
 </script>
+<style id="vrWebMobile">
+/* телефон: одна колонка, крупные зоны нажатия, без горизонтальной прокрутки */
+/* узкий экран: в приложении правая колонка (превью/готовый ролик) скрыта — в вебе показываем её под остальными */
+@media (max-width: 1100px){
+  .reelColRight{display:block!important;position:static!important;grid-column:1/-1}
+  .reelColRight .sub-frame.reel{max-width:360px!important}
+}
+@media (max-width: 760px){
+  html,body{overflow-x:hidden}
+  .reelColLeft,.cmColLeft,.amColLeft{position:static!important}   /* липкая колонка в одну колонку налезала на остальное */
+  .btn,button{min-height:42px}
+  input,textarea,select{font-size:16px!important}          /* iOS не зумит поле при фокусе */
+  #reelColRight,#reelColLeft,#reelColMid{width:100%!important;max-width:100%!important;flex:1 1 100%!important}
+  .modal .box,.modalbox,.mbox{max-width:calc(100vw - 24px)!important}
+  video{max-width:100%}
+}
+</style>
 <script type="module" src="./vr/app.js"></script>
 </body>
 </html>
