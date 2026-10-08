@@ -8,7 +8,8 @@
 import ast, json, re, sys, os
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else r"D:\video_factory_МИНИ\app.py"
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vr", "consts.js")
+OUT_ARG = sys.argv[2] if len(sys.argv) > 2 else None
+OUT = OUT_ARG or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vr", "consts.js")
 
 src = open(SRC, encoding="utf-8").read()
 tree = ast.parse(src)

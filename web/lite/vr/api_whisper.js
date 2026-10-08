@@ -5,7 +5,7 @@ import * as A from './audio.js';
 import { Api } from './api_base.js';
 
 const P = Api.prototype;
-const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.web.js';
+const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/+esm';   // +esm: переписаны импорты onnxruntime-web
 const MODEL = 'onnx-community/whisper-small_timestamped';
 let _asr = null;
 

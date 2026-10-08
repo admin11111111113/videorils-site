@@ -15,13 +15,19 @@ import './api_whisper.js';
 import { sfxPreload } from './api_misc.js';
 import { loadFonts } from './fonts.js';
 import * as Piper from './piper.js';
+import { installTrialUX } from './trial_ux.js';
 
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register(new URL('../sw.js', import.meta.url), { scope: new URL('../', import.meta.url).pathname });
     if (!navigator.serviceWorker.controller) {
-      await new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); setTimeout(res, 3000); });
+      await navigator.serviceWorker.ready;
+      await new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); setTimeout(res, 4000); });
+      // первый заход: без контроллера temp/… не раздаётся — один раз перезагружаем страницу
+      if (!navigator.serviceWorker.controller) {
+        try { if (!sessionStorage.getItem('vr_sw_reload')) { sessionStorage.setItem('vr_sw_reload', '1'); location.reload(); await new Promise(() => { }); } } catch (e) { }
+      }
     }
     return reg;
   } catch (e) { console.warn('SW', e); }
@@ -58,6 +64,18 @@ async function boot() {
     dz.addEventListener('drop', (e) => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) api.on_drop(f); });
   };
   bindDrop(); new MutationObserver(bindDrop).observe(document.body, { childList: true, subtree: true });
+  // Разблокировка звука: первый клик «прогревает» общий плеер (#player), чтобы озвучка,
+  // пришедшая через несколько секунд, могла играть (политика автозапуска браузеров)
+  const unlock = () => {
+    const pl = document.getElementById('player');
+    if (pl && !pl.__vrUnlocked) {
+      pl.__vrUnlocked = true; pl.muted = true;
+      pl.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+      pl.play().then(() => { pl.pause(); pl.muted = false; }).catch(() => { pl.muted = false; });
+    }
+  };
+  document.addEventListener('pointerdown', unlock, { capture: true, once: true });
+  installTrialUX(api);
   window.dispatchEvent(new Event('pywebviewready'));
 }
 boot().catch(e => { console.error(e); log('✖ запуск: ' + (e.message || e)); });

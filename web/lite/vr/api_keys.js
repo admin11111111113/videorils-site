@@ -94,6 +94,17 @@ P.set_pixabay_key = async function (key) {
   this._invalidate_media_caches(); this._persist();
   if (!keys.length) return { ok: true, has: false };
   const [, http, state] = await this._pixabay_check(keys[0]);
+  if (state === 'bad_key') {
+    // веб: частая ошибка — в поле Pixabay вставили ключ Pexels (онбординг советует Pexels).
+    // Рабочий ключ Pexels сохраняем как Pexels и считаем принятым.
+    const [pok] = await this._pexels_check(keys[0]);
+    if (pok) {
+      this.pixabay_keys = []; this.pixabay_key = ''; this._invalidate_media_caches();
+      if (!this.pexels_keys.includes(keys[0])) { this.pexels_keys = [keys[0]]; this._media_chain_obj = null; }
+      this._persist();
+      return { ok: true, has: true, mask: Api._mask(keys[0]), count: 1, state: 'ok', http: 200, moved_to: 'pexels' };
+    }
+  }
   return { ok: true, has: true, mask: Api._mask(keys[0]), count: keys.length, state, http };
 };
 P._pix_keys_view = function () { return this.pixabay_keys.map(k => ({ mask: Api._mask(k) })); };
