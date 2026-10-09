@@ -9,6 +9,14 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # музыка: понятно и для ПК, и для телефона (в вебе файл можно выбрать с любого устройства, папку — только на ПК)
+    ("music_choosefile:['🎵 Выбрать файл музыки с ПК','🎵 Choose a music file from PC']",
+     "music_choosefile:['🎵 Выбрать музыку с ПК или телефона','🎵 Choose music from PC or phone']"),
+    ("music_addfolder:['➕ Добавить папку с музыкой','➕ Add a music folder']",
+     "music_addfolder:['➕ Добавить папку с музыкой (на ПК)','➕ Add a music folder (on PC)']"),
+    ("music_import:['📥 Забрать из Загрузок','📥 Grab from Downloads']",
+     "music_import:['📥 Взять из «Загрузок» (на ПК)','📥 Grab from Downloads (on PC)']"),
+    ('data-i18n="music_choosefile">🎵 Выбрать файл музыки с ПК<', 'data-i18n="music_choosefile">🎵 Выбрать музыку с ПК или телефона<'),
     # bust() не трогает ссылки из памяти (blob:) — с «?v=» blob не находится, плеер падал в
     # запасной путь и голос звучал ДВАЖДЫ со сдвигом
     ("function bust(u){return u+(u.indexOf('?')<0?'?':'&')+'v='+Math.floor(Math.random()*1e9);}",
