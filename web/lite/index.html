@@ -2994,9 +2994,12 @@ function renderMultiKeys(r,o){
 }
 function renderPexelsKeys(r){renderMultiKeys(r,{listId:'px2KeyList',removeApi:'remove_pexels_key',kind:'pexels',prefix:'px2',dotId:'px2Dot'});}
 function renderGeminiKeys(r){renderMultiKeys(r,{listId:'gemKeyList',removeApi:'remove_gemini_key',kind:'gemini',prefix:'gem',dotId:'gemDot',
-  onKeys:(ks)=>{if(typeof loadReelAi==='function')loadReelAi();}});}
+  onKeys:(ks)=>{_aiKeyCnt.gemini=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0;if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
 function renderClaudeKeys(r){renderMultiKeys(r,{listId:'aiKeyList',removeApi:'remove_claude_key',kind:'claude',prefix:'ai',dotId:'aiDot',
-  onKeys:(ks)=>{aiKeyOn=ks.length>0;if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
+  // AI-ключ есть, если есть ЛЮБОЙ: Claude или Gemini (раньше здесь учитывался только Claude —
+  // плашка «Добавь AI-ключ» появлялась при сохранённом Gemini)
+  onKeys:(ks)=>{_aiKeyCnt.claude=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0;if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
+const _aiKeyCnt={claude:0,gemini:0};
 function savePexelsKey(){
   const k=$('px2Key').value.trim();
   if(!k){toast(t('toast_paste_px2'),'err');return;}
