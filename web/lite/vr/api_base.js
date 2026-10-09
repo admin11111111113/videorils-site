@@ -241,6 +241,7 @@ export class Api {
 
   // триал и проверка ключа — через Cloudflare (отвечает сразу, не засыпает); недоступен -> сервер лицензий
   async _cf_post(path, payload) {
+    payload = Object.assign({ client: 'web' }, payload || {});
     try {
       const r = await requests.post(CF_URL + path, { json: payload, timeout: [6, 55] });
       if (r.status_code === 200) return r.json();
@@ -249,6 +250,7 @@ export class Api {
     return await this._server_post(path, payload);
   }
   async _server_post(path, payload) {
+    payload = Object.assign({ client: 'web' }, payload || {});   // веб = место «браузер» у ключа (1 ПК + 1 браузер)
     const url = VR_SERVER_URL.replace(/\/+$/, '') + path;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
@@ -564,7 +566,7 @@ export class Api {
   async submit_upgrade(txid, amount) {
     const amt = parseFloat(amount); if (Number.isNaN(amt)) return { ok: false, msg: this._t('upg_bad_amount') };
     let res;
-    try { const r = await requests.post(`${VR_SERVER_URL}/license/upgrade`, { json: { machine_id: await this.get_machine_id(), key: this.license_key || '', txid: (txid || '').trim(), amount: amt }, timeout: 40 }); res = Object.assign({}, r.json() || {}); }
+    try { const r = await requests.post(`${VR_SERVER_URL}/license/upgrade`, { json: { client: 'web', machine_id: await this.get_machine_id(), key: this.license_key || '', txid: (txid || '').trim(), amount: amt }, timeout: 40 }); res = Object.assign({}, r.json() || {}); }
     catch (e) { return { ok: false, msg: this._t('upg_net', String(e.message || e).slice(0, 60)) }; }
     if (res.status === 'ok' || res.plan === 'lifetime') {
       this.license_type = 'lifetime'; this.license_expires = '';

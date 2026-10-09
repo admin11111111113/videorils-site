@@ -264,13 +264,16 @@ async function check(env, d) {
   if (lp !== product) return [200, { status: 'wrong_product', product: lp, msg: 'Этот ключ для другого продукта — ' + (PRODUCT_NAMES[lp] || lp) }];
   const end = expiryEnd(lic.type, lic.expires);
   if (end !== null && Date.now() >= end) return [200, { status: 'expired', msg: 'Подписка истекла' }];
-  const bound = lic.machine || '';
+  // два места привязки: приложение (machine) и браузер (machine_web) — как _lic_slot на сервере
+  const slot = String(d.client || '').trim().toLowerCase() === 'web' ? 'machine_web' : 'machine';
+  const sfx = slot === 'machine_web' ? '_web' : '';
+  const bound = lic[slot] || '';
   if (!bound) {
-    const t = pyNow(); await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { machine, activated_at: t, last_seen: t });
+    const t = pyNow(); await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { [slot]: machine, ['activated_at' + sfx]: t, ['last_seen' + sfx]: t });
     return [200, { status: 'ok', type: lic.type || 'lifetime', referrals: await refStats(env, key) }];
   }
   if (bound !== machine) return [200, { status: 'wrong_machine', msg: 'Ключ привязан к другому компьютеру' }];
-  await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { last_seen: pyNow() });
+  await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { ['last_seen' + sfx]: pyNow() });
   return [200, { status: 'ok', type: lic.type || 'lifetime', referrals: await refStats(env, key) }];
 }
 
