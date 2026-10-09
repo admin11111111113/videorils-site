@@ -107,20 +107,39 @@ export function download_voice(voice, progress) {
   _dl.set(voice, job);
   return job;
 }
-// -> Blob WAV; length_scale как в Piper (>1 медленнее), через atempo без смены тона
+// Сессия синтеза на ВЫБРАННЫЙ голос. Библиотека держит ОДНУ сессию на страницу и при новом
+// voiceId лишь меняет название, а модель оставляет первую загруженную — поэтому голос «не менялся».
+// Сбрасываем её при смене голоса. Настройки голоса (.onnx.json) перехватываем, чтобы скорость
+// задавать самой МОДЕЛИ (length_scale), как десктоп (SynthesisConfig), а не растягивать готовый
+// звук — растяжка давала эхо «как в подъезде».
+let _sess = null, _sessVoice = '', _cfg = null;
+async function session(voice) {
+  if (_sess && _sessVoice === voice) return _sess;
+  const L = await lib();
+  L.TtsSession._instance = null;
+  const orig = JSON.parse; let cfg = null;
+  JSON.parse = function (t, r) { const o = orig.call(this, t, r); if (!cfg && o && o.inference && o.audio) cfg = o; return o; };
+  try {
+    // своя сессия: WASM движка ONNX — той же мажорной версии и с того же CDN, что и сам модуль
+    // (по умолчанию библиотека берёт 1.18 с cdnjs, а jsdelivr подтягивает 1.2x -> «no available backend»)
+    _sess = await L.TtsSession.create({ voiceId: vid(voice), wasmPaths: {
+      onnxWasm: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1/dist/',
+      piperData: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.data',
+      piperWasm: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.wasm' } });
+  } finally { JSON.parse = orig; }
+  _sessVoice = voice; _cfg = cfg;
+  return _sess;
+}
+// -> Blob WAV; length_scale как в Piper (>1 медленнее) — параметр модели, тон и звук не искажаются
 export async function synth_wav(text, voice, length_scale = 1.0) {
   if (!VOICE_SET.has(voice)) voice = DEFAULT_VOICE;
   await download_voice(voice);                     // нет/битая модель -> скачать целиком, прежде чем читать
-  const L = await lib();
-  // своя сессия: WASM движка ONNX — той же мажорной версии и с того же CDN, что и сам модуль
-  // (по умолчанию библиотека берёт 1.18 с cdnjs, а jsdelivr подтягивает 1.2x -> «no available backend»)
-  const sess = await L.TtsSession.create({ voiceId: vid(voice), wasmPaths: {
-    onnxWasm: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1/dist/',
-    piperData: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.data',
-    piperWasm: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.wasm' } });
-  sess.voiceId = vid(voice);
+  const sess = await session(voice);
+  const ls = Math.max(0.5, Math.min(2.0, +length_scale || 1.0));
+  if (_cfg && _cfg.inference) { _cfg.inference.length_scale = ls; return await sess.predict(text || ''); }
+  // настройки не перехватились (другая версия библиотеки) — как раньше, растяжкой
   const wav = await sess.predict(text || '');
-  if (Math.abs(length_scale - 1.0) < 0.01) return wav;
+  if (Math.abs(ls - 1.0) < 0.01) return wav;
   const buf = await A.decode(wav);
-  return A.wav(A.atempo(buf, 1.0 / length_scale));
+  return A.wav(A.atempo(buf, 1.0 / ls));
 }
