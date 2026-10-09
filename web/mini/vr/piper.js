@@ -14,14 +14,17 @@ const vid = (v) => `ru_RU-${v}-medium`;
 const HF = 'https://huggingface.co/diffusionstudio/piper-voices/resolve/main';
 const files = (v) => [`${HF}/ru/ru_RU/${v}/medium/${vid(v)}.onnx`, `${HF}/ru/ru_RU/${v}/medium/${vid(v)}.onnx.json`];
 const MIN_MODEL = 1 << 20;     // модель medium ~60 МБ; меньше 1 МБ — недописанный/пустой файл
+const PART = '.part';          // пишем во временный файл, готовый — переименовываем
 let _stored = new Set();
+const _dl = new Map();         // голос -> идущая загрузка (не качаем параллельно, не чистим её файлы)
+const _mem = new Set();        // голоса, которые браузер не дал сохранить — работают из памяти (до закрытия вкладки)
 
 async function piperDir() { return await (await navigator.storage.getDirectory()).getDirectoryHandle('piper', { create: true }); }
 
 export function available() { return typeof WebAssembly !== 'undefined'; }
-// Скачанным считаем голос, только если модель и её json ЦЕЛЫЕ. Библиотека не ждёт окончания
-// записи в OPFS (download() возвращается раньше), и закрытая во время записи вкладка оставляла
-// пустую модель, которая числилась «скачанной» навсегда — Piper не работал никогда. Битое удаляем.
+// Скачанным считаем голос, только если модель и её json ЦЕЛЫЕ. Битое (пустое/недописанное —
+// например, закрыли вкладку во время записи) удаляем, чтобы скачать заново. Файлы голоса, который
+// СЕЙЧАС качается, не трогаем — иначе запись падала («state had changed since it was read»).
 export async function refreshStored() {
   const ok = new Set();
   try {
@@ -29,15 +32,18 @@ export async function refreshStored() {
     const sizes = {};
     for await (const [name, h] of dir.entries()) {
       if (h.kind !== 'file') continue;
-      if (name.endsWith('.crswap')) { try { await dir.removeEntry(name); } catch (e) { } continue; }
-      try { sizes[name] = (await h.getFile()).size; } catch (e) { sizes[name] = 0; }
+      // файлы идущей загрузки (временный .part и голос в работе) не открываем — это и роняло запись
+      if (name.endsWith(PART) || [..._dl.keys()].some((v) => name.startsWith(vid(v) + '.'))) continue;
+      try { sizes[name] = (await h.getFile()).size; } catch (e) { sizes[name] = -1; }
     }
     for (const [v] of RU_VOICES) {
       const m = sizes[`${vid(v)}.onnx`], j = sizes[`${vid(v)}.onnx.json`];
       if (m >= MIN_MODEL && j > 0) { ok.add(vid(v)); continue; }
-      for (const n of [`${vid(v)}.onnx`, `${vid(v)}.onnx.json`]) if (n in sizes) { try { await dir.removeEntry(n); } catch (e) { } }
+      if (_dl.has(v)) continue;                       // идёт загрузка — не мешаем
+      for (const n of Object.keys(sizes)) if (n.startsWith(vid(v) + '.')) { try { await dir.removeEntry(n); } catch (e) { } }
     }
   } catch (e) { }
+  for (const v of _mem) ok.add(vid(v));
   _stored = ok;
   return _stored;
 }
@@ -52,21 +58,54 @@ async function fetchBlob(url, onProgress) {
   if (total && got !== total) throw new Error('загрузка оборвалась');
   return new Blob(parts);
 }
-export async function download_voice(voice, progress) {
-  if (!VOICE_SET.has(voice)) throw new Error(`unknown voice: ${voice}`);
-  await refreshStored();
-  if (is_downloaded(voice)) return vid(voice);
-  const dir = await piperDir();
+// запись целиком во временный файл -> переименование в готовое имя (move); нет move — пишем сразу
+async function writeFile(dir, name, blob) {
+  const tmp = await dir.getFileHandle(name + PART, { create: true });
+  const w = await tmp.createWritable(); await w.write(blob); await w.close();
+  if (typeof tmp.move === 'function') { try { await dir.removeEntry(name); } catch (e) { } await tmp.move(name); return; }
+  const fin = await dir.getFileHandle(name, { create: true }); const w2 = await fin.createWritable(); await w2.write(blob); await w2.close();
+  try { await dir.removeEntry(name + PART); } catch (e) { }
+}
+// модель в памяти страницы — когда хранилище браузера не дало записать: подсовываем её библиотеке
+const _memBlobs = new Map();   // url -> Blob
+let _fetchHooked = false;
+function hookFetch() {
+  if (_fetchHooked) return; _fetchHooked = true;
+  const of = window.fetch.bind(window);
+  window.fetch = (u, o) => { const url = String((u && u.url) || u); const b = _memBlobs.get(url); return b ? Promise.resolve(new Response(b)) : of(u, o); };
+}
+async function _download(voice, progress) {
   const [mUrl, jUrl] = files(voice);
-  // сначала json, модель — последней: по её размеру решаем «скачано ли»
-  for (const [url, prog] of [[jUrl, null], [mUrl, (g, t) => progress && progress(Math.floor(g * 100 / t))]]) {
-    const blob = await fetchBlob(url, prog);
-    const w = await (await dir.getFileHandle(url.split('/').pop(), { create: true })).createWritable();
-    await w.write(blob); await w.close();          // ЖДЁМ запись до конца
+  const jBlob = await fetchBlob(jUrl, null);
+  const mBlob = await fetchBlob(mUrl, (g, t) => progress && progress(Math.floor(g * 100 / t)));
+  try {
+    const dir = await piperDir();
+    await writeFile(dir, jUrl.split('/').pop(), jBlob);
+    await writeFile(dir, mUrl.split('/').pop(), mBlob);   // модель — последней: по её размеру решаем «скачано ли»
+  } catch (e) {
+    // браузер не дал места/сбой хранилища — голос всё равно работает, из памяти (до закрытия вкладки)
+    console.warn('Piper: модель не сохранилась в браузере, работаю из памяти:', e && (e.name || e.message));
+    try { const dir = await piperDir(); for (const n of [jUrl, mUrl].map((u) => u.split('/').pop())) for (const x of [n, n + PART]) { try { await dir.removeEntry(x); } catch (z) { } } } catch (z) { }
+    _memBlobs.set(jUrl, jBlob); _memBlobs.set(mUrl, mBlob); hookFetch(); _mem.add(voice);
   }
-  await refreshStored();
-  if (!is_downloaded(voice)) throw new Error('голос не сохранился (нет места в браузере?)');
-  return vid(voice);
+}
+export function download_voice(voice, progress) {
+  if (!VOICE_SET.has(voice)) return Promise.reject(new Error(`unknown voice: ${voice}`));
+  // метку «качается» ставим СРАЗУ (синхронно): два быстрых нажатия иначе запускали две загрузки
+  // в один и тот же файл -> NotFoundError/«state had changed»
+  if (_dl.has(voice)) return _dl.get(voice);
+  const job = (async () => {
+    try {
+      await refreshStored();
+      if (is_downloaded(voice)) return vid(voice);
+      await _download(voice, progress);
+    } finally { _dl.delete(voice); }
+    await refreshStored();
+    if (!is_downloaded(voice)) throw new Error('голос не сохранился — попробуй ещё раз');
+    return vid(voice);
+  })();
+  _dl.set(voice, job);
+  return job;
 }
 // -> Blob WAV; length_scale как в Piper (>1 медленнее), через atempo без смены тона
 export async function synth_wav(text, voice, length_scale = 1.0) {
