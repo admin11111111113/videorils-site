@@ -178,7 +178,7 @@ async function cachedGet(env, ctx, url) {
   let body = rec.body;
   if (path === '/trending-ideas') {
     const mid = (url.searchParams.get('machine_id') || '').trim();
-    body = Object.assign({}, body, { stale: !!body.stale || body.date !== todayUTC() });
+    body = Object.assign({}, body, { stale: !!body.stale || body.date !== todayUTC(), ideas: (body.ideas || []).map((i) => fixTitle(Object.assign({}, i))) });
     if (mid) { body.ideas = await personalize(body.ideas, mid, todayUTC()); body.personalized = true; body.count = body.ideas.length; }
   }
   return body;
