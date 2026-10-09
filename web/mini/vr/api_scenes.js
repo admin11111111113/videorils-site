@@ -24,9 +24,9 @@ P.scene_preview_audio = async function (idx, engine = 'edge') {
   const out = `temp/scene_preview_${idx}.mp3`, url = out;
   if (cache[idx] === key && vfs.exists(out) && vfs.size(out) > 0) return { ok: true, url, cached: true, eleven: is_eleven, chars: [...merged].length };
   const prev_force = this._force_edge;
-  try { if (!use_final) this._force_edge = true; await this._synth_one(merged, out, { keep_stress: changed }); }
-  catch (e) { return { ok: false, msg: String(e.message || e).slice(0, 80) }; }
-  finally { this._force_edge = prev_force; }
+  try { if (!use_final) this._force_edge = true; this._tts_preview = true; await this._synth_one(merged, out, { keep_stress: changed }); }
+  catch (e) { return { ok: false, msg: String(e.message || e).slice(0, 100) }; }
+  finally { this._force_edge = prev_force; this._tts_preview = false; }
   if (!(vfs.exists(out) && vfs.size(out) > 0)) return { ok: false, msg: this._t('toast_error') };
   await vfs.flush(out);
   cache[idx] = key;

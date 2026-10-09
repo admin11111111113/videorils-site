@@ -1,5 +1,5 @@
 // Видеорилс Мини — веб. Точка входа: собирает Api из модулей и подменяет pywebview.
-import { vfs, log, restoreStore } from './core.js';
+import { vfs, log, restoreStore, uiUrls } from './core.js';
 import { Api } from './api_base.js';
 import './api_settings.js';
 import './api_voice.js';
@@ -66,7 +66,7 @@ async function boot() {
   window.pywebview = {
     api: new Proxy({}, {
       get: (t, k) => {
-        if (typeof api[k] === 'function') return (...a) => { try { return Promise.resolve(api[k](...a)); } catch (e) { return Promise.reject(e); } };
+        if (typeof api[k] === 'function') return (...a) => { try { return Promise.resolve(api[k](...a)).then((r) => uiUrls(r)); } catch (e) { return Promise.reject(e); } };
         return undefined;
       },
     }),

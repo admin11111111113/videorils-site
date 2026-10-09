@@ -9,6 +9,8 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # ссылки из памяти (blob:) — без «?t=» (с ним blob-адрес не находится и звук не играет)
+    ("r.url+'?t='+Date.now()", "(String(r.url).startsWith('blob:')?r.url:r.url+'?t='+Date.now())"),
     ("reel_fullscreen:['🖥 Открыть в плеере на ПК','🖥 Open in PC player']", "reel_fullscreen:['🔍 Смотреть крупно','🔍 Watch large']"),
     # «Галерея» -> в браузере скачивание готового ролика
     ("open_gallery:['📁 Галерея','📁 Gallery']", "open_gallery:['⬇ Скачать ролик','⬇ Download reel']"),

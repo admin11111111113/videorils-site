@@ -281,8 +281,11 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
   let edge_waited = 0;
   while (true) {
     let got = false;
-    for (let attempt = 0; attempt < 4; attempt++) {
-      await _edge_throttle();
+    // прослушивание: Microsoft отказывает ~каждому 5-му запросу вне зависимости от IP, повтор через
+    // мгновение обычно проходит — поэтому 6 БЫСТРЫХ попыток (0.4с), без роста общей паузы; сборка — как раньше
+    const PREV = !!this._tts_preview, N = PREV ? 6 : 4;
+    for (let attempt = 0; attempt < N; attempt++) {
+      if (!PREV) await _edge_throttle();
       vfs.remove(out);
       try {
         const r = await edgeSynthesize(clean, voice, { rate, pitch });
@@ -293,13 +296,15 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
         throw new NoAudioReceived();
       } catch (e) {
         const empty = (String(e.message || '').toLowerCase().includes('no audio') || e.name === 'NoAudioReceived');
-        if (empty) _edge_limit_hit();
-        const back = 2 ** (attempt + 1);
-        log(`  ⚠ Edge-TTS ${tag} попытка ${attempt + 1}/4: ` + (empty ? 'пусто (лимит частоты Microsoft)' : String(e.message || e).slice(0, 60)) + (attempt < 3 ? ` — пауза ${back}с` : ' — жду лимит'));
-        if (attempt < 3) await sleep(back);
+        if (empty && !PREV) _edge_limit_hit();
+        const back = PREV ? 0.4 : 2 ** (attempt + 1);
+        log(`  ⚠ Edge-TTS ${tag} попытка ${attempt + 1}/${N}: ` + (empty ? 'пусто (лимит частоты Microsoft)' : String(e.message || e).slice(0, 60)) + (attempt < N - 1 ? ` — пауза ${back}с` : ' — жду лимит'));
+        if (attempt < N - 1) await sleep(back);
       }
     }
     if (got) return;
+    // прослушивание — без долгого ожидания лимита: 4 быстрые попытки и сразу сообщение
+    if (this._tts_preview) throw new Error('Microsoft сейчас ограничивает озвучку — попробуй через минуту или выбери голос Piper');
     const choice = this._edge_build_choice ?? null;
     if (choice === null && edge_waited >= _EDGE_ASK_AFTER) {
       const piper_ok = this.video_lang !== 'en';

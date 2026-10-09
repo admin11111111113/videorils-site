@@ -191,7 +191,8 @@ P.preview_voice = async function () {
   if (this.busy) return { ok: false, msg: this._t('processing') };
   try {
     const out = 'temp/voice_preview.mp3';
-    await this._synth_one('Привет! Это мой голос для канала. Выбирай меня.', out);
+    this._tts_preview = true;
+    try { await this._synth_one('Привет! Это мой голос для канала. Выбирай меня.', out); } finally { this._tts_preview = false; }
     await vfs.flush(out);
     const res = { ok: true, url: out };
     if (this.tts_engine === 'eleven' && this.licensed) res.credits = await this.get_eleven_credits();

@@ -85,7 +85,7 @@ export const dec_secret = (s) => (s && !String(s).startsWith('enc:')) ? s : (s ?
 
 // ------------------------------------------------------------ call_js / log --
 export function call_js(fn, ...args) {
-  try { const f = window[fn]; if (typeof f === 'function') return f(...args); }
+  try { const f = window[fn]; if (typeof f === 'function') return f(...args.map((a) => uiUrls(a))); }
   catch (e) { console.warn('js err:', fn, e); }
 }
 let BUILD_LOG = null;                    // output/build.log -> массив строк в памяти
@@ -146,6 +146,25 @@ export const vfs = {
     try { const c = await cacheOpen(); for (const req of await c.keys()) { const rel = req.url.startsWith(VFS_BASE) ? req.url.slice(VFS_BASE.length) : ''; if (prefixes.some(p => rel.startsWith(p))) await c.delete(req); } } catch (e) { }
   },
 };
+// Ссылки ДЛЯ ПОКАЗА (thumb/url/preview/poster) на temp/… -> прямые blob-ссылки из памяти.
+// В части браузеров раздача файлов через SW не работает (картинка битая, видео 0:00) —
+// так интерфейс показывает миниатюры/клипы/озвучку вообще без SW и хранилища.
+const _UI_KEYS = new Set(['thumb', 'url', 'preview', 'poster']);
+const _UI_BLOBS = new Map();                 // path -> { blob, url }
+function _uiUrl(s) {
+  const m = /^(temp\/[^?#]+)(?:[?#].*)?$/.exec(s); if (!m) return s;
+  const p = m[1]; const b = vfs.read(p); if (!b) return s;
+  const c = _UI_BLOBS.get(p); if (c && c.blob === b) return c.url;
+  if (c) { try { URL.revokeObjectURL(c.url); } catch (e) { } }
+  const url = URL.createObjectURL(b.type ? b : new Blob([b], { type: mimeOf(p) })); _UI_BLOBS.set(p, { blob: b, url }); return url;
+}
+export function uiUrls(v, depth = 0) {
+  if (!v || typeof v !== 'object' || depth > 4) return v;
+  if (Array.isArray(v)) { v.forEach((x, i) => { v[i] = uiUrls(x, depth + 1); }); return v; }
+  for (const k of Object.keys(v)) { const x = v[k]; if (typeof x === 'string') { if (_UI_KEYS.has(k)) v[k] = _uiUrl(x); } else if (x && typeof x === 'object') uiUrls(x, depth + 1); }
+  return v;
+}
+
 export function mimeOf(p) {
   const e = (String(p).split('.').pop() || '').toLowerCase().split('?')[0];
   return ({ mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg',
