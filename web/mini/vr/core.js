@@ -120,7 +120,7 @@ export const vfs = {
   write(path, blob) {
     path = norm(path); const b = blob instanceof Blob ? blob : new Blob([blob]);
     FILES.set(path, b);
-    const p = cacheOpen().then(c => c.put(vfsKey(path), new Response(b, { headers: { 'Content-Type': b.type || mimeOf(path), 'Content-Length': String(b.size) } }))).catch(() => { });
+    const p = cacheOpen().then(c => c.put(vfsKey(path), new Response(b, { headers: { 'Content-Type': b.type || mimeOf(path), 'Content-Length': String(b.size) } }))).catch((e) => { console.warn('VFS: не записано в хранилище браузера (мало места?) — отдаём из памяти:', path, e && e.name); });
     PENDING.set(path, p); p.then(() => { if (PENDING.get(path) === p) PENDING.delete(path); });
     return path;
   },

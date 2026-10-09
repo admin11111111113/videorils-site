@@ -18,14 +18,30 @@ self.addEventListener('fetch', (event) => {
   const u = new URL(req.url);
   const rel = relOf(u.origin + u.pathname);
   if (rel === null || !VFS_PREFIXES.some(p => rel.startsWith(p))) return;
-  event.respondWith(serve(u.origin + u.pathname, req));
+  event.respondWith(serve(u.origin + u.pathname, req, event.clientId, rel));
 });
 
-async function serve(key, req) {
+// Файла нет в Cache Storage (браузер не дал места — запись молча отбрасывается) ->
+// берём его прямо из памяти страницы: ролик/превью/миниатюры работают и без хранилища.
+async function fromPage(clientId, rel) {
+  try {
+    const list = clientId ? [await self.clients.get(clientId)] : await self.clients.matchAll({ type: 'window' });
+    for (const c of list) {
+      if (!c) continue;
+      const blob = await new Promise((res) => { const ch = new MessageChannel(); const t = setTimeout(() => res(null), 4000);
+        ch.port1.onmessage = (e) => { clearTimeout(t); res(e.data || null); }; c.postMessage({ type: 'vfs-get', path: rel }, [ch.port2]); });
+      if (blob) return new Response(blob, { headers: { 'Content-Type': blob.type || 'application/octet-stream' } });
+    }
+  } catch (e) { }
+  return null;
+}
+
+async function serve(key, req, clientId, rel) {
   const cache = await caches.open(VFS_CACHE);
   let r = await cache.match(key);
   // запись в кэш асинхронна — даём ей догнать (обычно миллисекунды)
-  for (let i = 0; !r && i < 30; i++) { await new Promise(s => setTimeout(s, 100)); r = await cache.match(key); }
+  for (let i = 0; !r && i < 10; i++) { await new Promise(s => setTimeout(s, 100)); r = await cache.match(key); }
+  if (!r) r = await fromPage(clientId, rel);
   if (!r) return new Response('not found', { status: 404 });
   const range = req.headers.get('range');
   const type = r.headers.get('Content-Type') || 'application/octet-stream';

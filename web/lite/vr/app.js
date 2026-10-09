@@ -42,6 +42,11 @@ async function registerSW() {
   } catch (e) { console.warn('SW', e); }
 }
 
+// SW спрашивает файл, которого нет в Cache Storage (нет места в браузере) — отдаём из памяти
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'vfs-get' && e.ports && e.ports[0]) { let b = null; try { b = vfs.read(e.data.path); } catch (x) { } e.ports[0].postMessage(b || null); }
+});
+
 async function boot() {
   await registerSW();
   await vfs.purge(['temp/', 'output/', 'input/']);               // чистая сессия, как temp десктопа
