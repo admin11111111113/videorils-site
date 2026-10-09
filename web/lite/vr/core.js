@@ -146,13 +146,13 @@ export const vfs = {
     try { const c = await cacheOpen(); for (const req of await c.keys()) { const rel = req.url.startsWith(VFS_BASE) ? req.url.slice(VFS_BASE.length) : ''; if (prefixes.some(p => rel.startsWith(p))) await c.delete(req); } } catch (e) { }
   },
 };
-// Ссылки ДЛЯ ПОКАЗА (thumb/url/preview/poster) на temp/… -> прямые blob-ссылки из памяти.
+// Ссылки ДЛЯ ПОКАЗА (thumb/url/preview/poster) на temp/…, assets/voice_demos/…, assets/user/… -> blob-ссылки из памяти.
 // В части браузеров раздача файлов через SW не работает (картинка битая, видео 0:00) —
 // так интерфейс показывает миниатюры/клипы/озвучку вообще без SW и хранилища.
 const _UI_KEYS = new Set(['thumb', 'url', 'preview', 'poster']);
 const _UI_BLOBS = new Map();                 // path -> { blob, url }
 function _uiUrl(s) {
-  const m = /^(temp\/[^?#]+)(?:[?#].*)?$/.exec(s); if (!m) return s;
+  const m = /^((?:temp|assets\/voice_demos|assets\/user)\/[^?#]+)(?:[?#].*)?$/.exec(s); if (!m) return s;
   const p = m[1]; const b = vfs.read(p); if (!b) return s;
   const c = _UI_BLOBS.get(p); if (c && c.blob === b) return c.url;
   if (c) { try { URL.revokeObjectURL(c.url); } catch (e) { } }
