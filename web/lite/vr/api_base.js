@@ -282,10 +282,11 @@ export class Api {
     const eng = this.tts_engine || 'edge', prev = this._force_edge;
     try {
       if (eng === 'eleven' || eng === 'myvoice') this._force_edge = true;
+      this._tts_preview = true;                       // прослушивание — быстрые повторы, без долгого ожидания
       await this._synth_one(t, out, { keep_stress: true });
-      return { ok: true, url: this.get_play_url(out) };
+      return { ok: true, url: out + '?t=' + Math.trunc(Date.now() / 1000) };   // как в приложении — СТРОКА-ссылка (get_play_url отдаёт объект)
     } catch (e) { return { ok: false, msg: String(e.message || e) }; }
-    finally { this._force_edge = prev; }
+    finally { this._force_edge = prev; this._tts_preview = false; }
   }
   apply_local_pron(word, form) {
     const w = (word || '').trim().toLowerCase().slice(0, 40);

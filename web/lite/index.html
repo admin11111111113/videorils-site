@@ -9641,11 +9641,17 @@ function showClipModal(kind,url,loop){       // общий плеер (клип�
   }
   $('clipModal').style.display='flex';
 }
-function scPlay(i){                       // просмотр клипа сцены целиком
+function scPlay(i){                       // просмотр клипа сцены (с «Моментом» — только выбранный отрезок)
   toast(t('sb_loading_clip'));
   api('scene_play',i).then(r=>{
     if(!r||!r.ok){toast(r&&r.msg||t('toast_error'),'err');return;}
     showClipModal(r.kind,r.url,true);
+    const sc=sbScenes[i]||{}, a=+sc.start||0, b=+sc.end_at||0;
+    const v=r.kind==='video'?$('clipModalBody').querySelector('video'):null;
+    if(v&&(a>0||b>0)){
+      v.addEventListener('loadedmetadata',()=>{try{v.currentTime=a;}catch(e){}});
+      v.ontimeupdate=()=>{const e=b>0?b:(v.duration||0); if(v.currentTime>=e-0.05||v.currentTime<a-0.15){try{v.currentTime=a;}catch(x){}}};
+    }
   }).catch(()=>toast(t('toast_error'),'err'));
 }
 function scTrim(i){                        // ✂️ выбрать ОТРЕЗОК клипа (начало → конец)
@@ -9679,11 +9685,16 @@ function scTrim(i){                        // ✂️ выбрать ОТРЕЗО
     $('clipTrimApply').onclick=()=>{
       const a=+s0.value,b=+s1.value;
       if(sbScenes[i]){sbScenes[i].start=a;sbScenes[i].end_at=b;}
-      api('scene_set_trim',i,a,b).then(()=>{toast(t('sb_trim_range_set').replace('{a}',a.toFixed(1)).replace('{b}',b.toFixed(1)));closeClipModal();});
+      api('scene_set_trim',i,a,b).then(r=>{
+        // карточка показывает ВЫБРАННЫЙ момент: миниатюра — кадр его начала
+        if(r&&r.thumb){const th=$('sbthumb'+i); if(th)fillThumb(th,i,r.thumb);}
+        toast(t('sb_trim_range_set').replace('{a}',a.toFixed(1)).replace('{b}',b.toFixed(1)));closeClipModal();});
     };
     $('clipTrimReset').onclick=()=>{
       if(sbScenes[i]){sbScenes[i].start=0;sbScenes[i].end_at=0;}
-      api('scene_set_trim',i,0,0).then(()=>{toast(t('sb_trim_off'));closeClipModal();});
+      api('scene_set_trim',i,0,0).then(r=>{
+        if(r&&r.thumb){const th=$('sbthumb'+i); if(th)fillThumb(th,i,r.thumb);}
+        toast(t('sb_trim_off'));closeClipModal();});
     };
   }).catch(()=>toast(t('toast_error'),'err'));
 }

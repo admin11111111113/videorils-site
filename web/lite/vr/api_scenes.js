@@ -266,12 +266,21 @@ P.scene_set_length = function (idx, secs) {
   return { ok: true, manual_len: v };
 };
 // «Своя сборка» триммер: отрезок клипа [start, end] (0,0 = весь клип)
-P.scene_set_trim = function (idx, start, end) {
+P.scene_set_trim = async function (idx, start, end) {
   if (!(idx >= 0 && idx < this.reel_scenes.length)) return { ok: false };
   let a = Math.max(0.0, parseFloat(start || 0) || 0), b = parseFloat(end || 0) || 0;
   if (b <= a + 0.2) b = 0.0;
   this.reel_scenes[idx].start = a; this.reel_scenes[idx].end_at = b;
-  return { ok: true, start: a, end_at: b };
+  const res = { ok: true, start: a, end_at: b };
+  // миниатюра карточки = кадр НАЧАЛА момента (как в приложении)
+  try {
+    const clip = this.reel_scenes[idx].clip || '';
+    if (clip && vfs.exists(clip) && /\.(mp4|mov|webm|mkv)$/i.test(clip)) {
+      await makeThumb(clip, `temp/scene_${idx}_thumb.jpg`, 240, a);
+      this._thumb_tick++; res.thumb = `temp/scene_${idx}_thumb.jpg?t=${this._thumb_tick}`;
+    }
+  } catch (e) { log(`  ⚠ миниатюра момента сцены ${idx + 1}: ${String(e.message || e).slice(0, 60)}`); }
+  return res;
 };
 // полный сброс рабочего места «Из видео» при смене режима
 P.clear_foreign_source = function () {
