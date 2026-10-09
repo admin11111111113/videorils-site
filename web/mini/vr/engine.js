@@ -111,6 +111,7 @@ export async function renderReel(spec) {
   // ---------- 3) кодеры ----------
   const vcodec = (await M.getFirstEncodableVideoCodec(['avc', 'vp9', 'av1'], { width: W, height: H })) || 'avc';
   const acodec = (await M.getFirstEncodableAudioCodec(['aac', 'opus'])) || 'aac';
+  try { (await import('./core.js')).log(`  🎞 кодек: видео ${vcodec}, звук ${acodec} (${vcodec === 'avc' ? 'mp4' : 'webm'})`); } catch (e) { }
   const canvas = new OffscreenCanvas(W, H); const ctx = canvas.getContext('2d', { alpha: false });
   const output = new M.Output({ format: vcodec === 'avc' ? new M.Mp4OutputFormat({ fastStart: 'in-memory' }) : new M.WebMOutputFormat(), target: new M.BufferTarget() });
   const vsrc = new M.CanvasSource(canvas, { codec: vcodec, bitrate: 8e6, keyFrameInterval: 2 });

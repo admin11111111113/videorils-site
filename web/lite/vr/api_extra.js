@@ -1,6 +1,6 @@
 // Порт Api (Лайт): мелкие функции — микшер, иконки, «только субтитры» (строки/видео), обложка-хук
 // вкл/выкл, ударения хука нарезки, серия, просмотр/правка роликов пакета, скорость готового рилса.
-import { C, log, vfs, path, now, bar, call_js, strftime } from './core.js';
+import { C, log, vfs, path, now, bar, call_js, strftime , mimeOf } from './core.js';
 import { build_ass, clean_phrase } from './textutil.js';
 import * as A from './audio.js';
 import { Api } from './api_base.js';
@@ -102,12 +102,20 @@ P._ensure_reel_master = function () {
   }
   return this._reel_master_path || lr;
 };
+// готовый ролик в плеер — ПРЯМОЙ blob-ссылкой из памяти: без SW и хранилища браузера
+// (у части браузеров видео через SW не грузилось — плеер 0:00). Прошлую ссылку освобождаем.
+function _blobUrlOf(api, src) {
+  const b = vfs.read(src); if (!b) return '';
+  try { if (api._preview_blob_url) URL.revokeObjectURL(api._preview_blob_url); } catch (e) { }
+  api._preview_blob_url = URL.createObjectURL(b.type ? b : new Blob([b], { type: mimeOf(src) }));
+  return api._preview_blob_url;
+}
 P.get_reel_preview_url = async function () {
   try {
     this._ensure_reel_master();
     const src = this._reel_master_path || this.last_reel || ''; if (!src || !vfs.exists(src)) return { ok: false };
-    const dst = 'temp/preview_reel' + (path.splitext(src)[1] || '.mp4'); vfs.copy(src, dst); await vfs.flush(dst);
-    return { ok: true, url: dst + '?t=' + Math.trunc(now()) };
+    const url = _blobUrlOf(this, src); if (!url) return { ok: false };
+    return { ok: true, url };
   } catch (e) { return { ok: false }; }
 };
 // «Сохранить в галерею» на выбранной скорости: setpts=PTS/N + atempo=N (тон сохраняется)

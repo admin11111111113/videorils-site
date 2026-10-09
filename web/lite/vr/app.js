@@ -47,6 +47,12 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
   if (e.data && e.data.type === 'vfs-get' && e.ports && e.ports[0]) { let b = null; try { b = vfs.read(e.data.path); } catch (x) { } e.ports[0].postMessage(b || null); }
 });
 
+document.addEventListener('error', (e) => {
+  const v = e.target; if (!v || v.tagName !== 'VIDEO' || !v.error) return;
+  const why = { 1: 'прервано', 2: 'сеть', 3: 'не декодируется', 4: 'формат не поддерживается' }[v.error.code] || v.error.code;
+  try { log(`  ⚠ плеер не смог показать видео: ${why} (${(v.currentSrc || v.src || '').slice(0, 60)})`); } catch (x) { }
+}, true);
+
 async function boot() {
   await registerSW();
   await vfs.purge(['temp/', 'output/', 'input/']);               // чистая сессия, как temp десктопа

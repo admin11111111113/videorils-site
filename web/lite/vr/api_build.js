@@ -1,6 +1,6 @@
 // Порт Api: build_reel, озвучка фраз, _build_reel_worker, подгонка длины, финальный кадр,
 // результат/просмотр (app.py 11037–12204, 12749–12900).
-import { C, log, re, vfs, path, call_js, bar, now, strftime, sleep, _build_log_open, _build_log_close, choice, pysplit, APP_VERSION } from './core.js';
+import { C, log, re, vfs, path, call_js, bar, now, strftime, sleep, _build_log_open, _build_log_close, choice, pysplit, APP_VERSION , mimeOf } from './core.js';
 import { build_ass, align_sub_words, clean_phrase } from './textutil.js';
 import { download_media, _download, PIX, _pix_reset_counters } from './media.js';
 import { probeOk } from './thumbs.js';
@@ -462,10 +462,18 @@ P.open_video = P.open_reel;
 // «Галерея» = папка output -> в браузере это «Скачать ролик»
 P.open_folder = function () { if (this.last_reel && vfs.exists(this.last_reel)) { downloadBlob(vfs.read(this.last_reel), path.basename(this.last_reel)); return true; } return false; };
 P.clear_reel_preview = function () { this._reel_master_path = ''; this.last_reel = ''; return { ok: true }; };
+// готовый ролик в плеер — ПРЯМОЙ blob-ссылкой из памяти: без SW и хранилища браузера
+// (у части браузеров видео через SW не грузилось — плеер 0:00). Прошлую ссылку освобождаем.
+function _blobUrlOf(api, src) {
+  const b = vfs.read(src); if (!b) return '';
+  try { if (api._preview_blob_url) URL.revokeObjectURL(api._preview_blob_url); } catch (e) { }
+  api._preview_blob_url = URL.createObjectURL(b.type ? b : new Blob([b], { type: mimeOf(src) }));
+  return api._preview_blob_url;
+}
 P.get_reel_preview_url = async function () {
   const src = this.last_reel || ''; if (!src || !vfs.exists(src)) return { ok: false };
-  const dst = 'temp/preview_reel' + path.splitext(src)[1]; vfs.copy(src, dst); await vfs.flush(dst);
-  return { ok: true, url: dst + '?t=' + Math.trunc(now()) };
+  const url = _blobUrlOf(this, src); if (!url) return { ok: false };
+  return { ok: true, url };
 };
 P.extract_audio = async function () {
   const src = this.last_reel || ''; if (!src || !vfs.exists(src)) return { ok: false, msg: this._t('extract_no_reel') };
