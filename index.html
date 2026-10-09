@@ -49,7 +49,7 @@ document.addEventListener('click', function(e){
   try{
     var token = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     var body = JSON.stringify({t: token, product: what, stage: 'click'});
-    var url = 'https://videorils-server-7t7t.onrender.com/api/dl';
+    var url = 'https://videorils-tts.videorils.workers.dev/api/dl';
     // sendBeacon переживает уход со страницы: обычный fetch браузер может
     // оборвать, когда начинается загрузка файла.
     if(navigator.sendBeacon){
@@ -1419,7 +1419,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       if(i){ var pct=parseFloat(i.getAttribute('data-fill'))||0;
         if(reduce){ i.style.transform='scaleX('+pct/100+')'; }
         else { requestAnimationFrame(function(){ i.style.transform='scaleX('+pct/100+')'; }); } }
-      var url="https://videorils-server-7t7t.onrender.com/stats"+(prod!=='mini'?('?product='+prod):'');
+      var url="https://videorils-tts.videorils.workers.dev/stats"+(prod!=='mini'?('?product='+prod):'');
       fetch(url).then(function(r){return r.json();}).then(function(d){
         var rem=(d.remaining_in_stage!=null)?d.remaining_in_stage:(d.remaining!=null?d.remaining:null);
         if(rem!==null){ var taken=Math.max(0,100-rem);
@@ -1474,7 +1474,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   if(howTrack){ window.addEventListener('scroll',reqScroll,{passive:true}); window.addEventListener('resize',reqScroll); onScroll(); }
 
   /* ===== скрытый счётчик реальных генераций (тянем из /stats, включим позже) ===== */
-  fetch("https://videorils-server-7t7t.onrender.com/stats").then(function(r){return r.json();}).then(function(d){
+  fetch("https://videorils-tts.videorils.workers.dev/stats").then(function(r){return r.json();}).then(function(d){
     var n=$('rendersN'); if(n && d && d.total_renders!=null){ n.textContent=(d.total_renders||0).toLocaleString('ru-RU'); }
   }).catch(function(){});
 

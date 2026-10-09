@@ -21,7 +21,10 @@ export const C = revive(RAW);
 export const BUILD_VARIANT = 'ru';
 export const APP_VERSION = C.APP_VERSION;          // та же версия логики, что и десктоп
 export const WEB_VERSION = 'web-' + C.APP_VERSION;
-export const VR_SERVER_URL = C['Api.VR_SERVER_URL'];
+// сервер лицензий — только через Cloudflare (быстрые ответы + пересылка на Render)
+export const VR_SERVER_URL = 'https://videorils-tts.videorils.workers.dev';
+// Cloudflare-помощник: быстрый триал + кэш чтений сервера лицензий (не ждём спящий Render)
+export const CF_URL = 'https://videorils-tts.videorils.workers.dev';
 
 // ---------------------------------------------------------------- sleep/time --
 export const sleep = (sec) => new Promise(r => setTimeout(r, Math.max(0, sec * 1000)));
@@ -35,10 +38,39 @@ export const isoNow = () => { const d = new Date(); const z = new Date(d - d.get
 
 // --------------------------------------------------- settings.json -> storage --
 const SKEY = 'vr_lite_settings';
-function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { } }
+// Настройки/ключи/лицензия/триал — localStorage + КОПИЯ в IndexedDB: браузер (нет места на
+// диске, «очистка», расширения) может потерять одно из хранилищ — при запуске восстанавливаем
+// из другого (restoreStore). Плюс просим «постоянное хранилище», чтобы браузер не стирал сам.
+const BK_DB = 'vr_backup', BK_ST = 'kv';
+let _bkDb = null;
+function bkOpen() {
+  if (_bkDb) return _bkDb;
+  _bkDb = new Promise((res) => { try { const r = indexedDB.open(BK_DB, 1); r.onupgradeneeded = () => r.result.createObjectStore(BK_ST);
+    r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (e) { res(null); } });
+  return _bkDb;
+}
+function bkPut(k, v) { bkOpen().then((db) => { if (!db) return; try { const s = db.transaction(BK_ST, 'readwrite').objectStore(BK_ST); v === null ? s.delete(k) : s.put(v, k); } catch (e) { } }); }
+function bkAll() {
+  return bkOpen().then((db) => new Promise((res) => { if (!db) return res({}); try { const out = {}; const c = db.transaction(BK_ST, 'readonly').objectStore(BK_ST).openCursor();
+    c.onsuccess = () => { const cur = c.result; if (cur) { out[cur.key] = cur.value; cur.continue(); } else res(out); }; c.onerror = () => res(out); } catch (e) { res({}); } }));
+}
+const _bkKey = (k) => typeof k === 'string' && k.startsWith('vr_');
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return _mem[k] ?? null; } }
+function lsSet(k, v) { if (_bkKey(k)) bkPut(k, String(v)); _mem[k] = String(v); try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+function lsDel(k) { if (_bkKey(k)) bkPut(k, null); delete _mem[k]; try { localStorage.removeItem(k); } catch (e) { } }
+const _mem = {};
 export const store = { get: lsGet, set: lsSet, del: lsDel };
+// при запуске (до создания Api): то, чего нет в localStorage, берём из копии; и наоборот — докладываем копию
+export async function restoreStore() {
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { }); } catch (e) { }
+  try {
+    const bk = await bkAll();
+    for (const [k, v] of Object.entries(bk)) { let cur = null; try { cur = localStorage.getItem(k); } catch (e) { }
+      if (cur === null) { _mem[k] = v; try { localStorage.setItem(k, v); } catch (e) { } } }
+    let n = 0; try { n = localStorage.length; } catch (e) { }
+    for (let i = 0; i < n; i++) { const k = localStorage.key(i); if (_bkKey(k) && !(k in bk)) bkPut(k, localStorage.getItem(k)); }
+  } catch (e) { }
+}
 
 export function load_settings() {
   try { return JSON.parse(lsGet(SKEY) || '{}') || {}; } catch (e) { return {}; }

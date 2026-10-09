@@ -39,6 +39,8 @@ MOBILE_CSS = """<style id="vrWebMobile">
   #reelColRight,#reelColLeft,#reelColMid{width:100%!important;max-width:100%!important;flex:1 1 100%!important}
   .modal .box,.modalbox,.mbox{max-width:calc(100vw - 24px)!important}
   video{max-width:100%}
+  .slider-wrap > span[style*="min-width:120px"]{min-width:0!important}   /* подпись слайдера не выталкивает значение за экран */
+  #btnLangReel{white-space:normal!important}
 }
 </style>
 """

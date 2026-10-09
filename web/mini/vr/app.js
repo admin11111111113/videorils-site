@@ -1,5 +1,5 @@
 // Видеорилс Мини — веб. Точка входа: собирает Api из модулей и подменяет pywebview.
-import { vfs, log } from './core.js';
+import { vfs, log, restoreStore } from './core.js';
 import { Api } from './api_base.js';
 import './api_settings.js';
 import './api_voice.js';
@@ -46,6 +46,7 @@ async function boot() {
     }
   } catch (e) { }
   await Promise.all([sfxPreload(), loadFonts(), Piper.refreshStored().catch(() => { })]);
+  await restoreStore();                                          // ключи/лицензия: восстановить из копии
   const api = new Api();
   window.__vrApi = api;
   try { api.track_open(); } catch (e) { }

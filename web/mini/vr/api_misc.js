@@ -1,6 +1,6 @@
 // Порт Api: «Идеи дня», SFX, музыка, прослушка голоса, позиция/размер субтитров, язык,
 // буфер обмена (app.py 8198–8800).
-import { C, log, re, requests, webbrowser, vfs, pickFiles, path, VR_SERVER_URL, choice, now, TEMP_DIR } from './core.js';
+import { C, log, re, requests, webbrowser, vfs, pickFiles, path, VR_SERVER_URL, CF_URL, choice, now, TEMP_DIR } from './core.js';
 import * as A from './audio.js';
 import { Api } from './api_base.js';
 
@@ -13,7 +13,7 @@ async function dur(p) { if (_DUR.has(p)) return _DUR.get(p); const d = await A.d
 // ================= ИДЕИ ДНЯ =================
 P.get_trending_ideas = async function () {
   try {
-    const url = VR_SERVER_URL.replace(/\/+$/, '') + '/trending-ideas?machine_id=' + await this.get_machine_id() + '&lang=ru';
+    const url = CF_URL + '/trending-ideas?machine_id=' + await this.get_machine_id() + '&lang=ru';
     const r = await requests.get(url, { timeout: [10, 55] });
     if (r.status_code === 200) { const d = r.json(); return { ok: true, date: d.date, stale: !!d.stale, ideas: d.ideas || [] }; }
   } catch (e) { }

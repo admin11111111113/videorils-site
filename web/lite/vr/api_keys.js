@@ -1,6 +1,6 @@
 // Порт Api: reset/источник, свои файлы, split, заголовок, музыка-сбор, Media/Pexels-ключи,
 // ссылки «получить ключ», Bybit (app.py 6547–7066).
-import { C, log, re, requests, webbrowser, vfs, pickFiles, path, VR_SERVER_URL } from './core.js';
+import { C, log, re, requests, webbrowser, vfs, pickFiles, path, VR_SERVER_URL, CF_URL } from './core.js';
 import { Api } from './api_base.js';
 
 const P = Api.prototype;
@@ -180,7 +180,7 @@ P._key_link = async function (service, fallback) {
   try {
     let links = this._key_links_cache;
     if (links === undefined || links === null) {
-      const r = await requests.get(`${VR_SERVER_URL}/key-links`, { timeout: 6 });
+      const r = await requests.get(`${CF_URL}/key-links`, { timeout: 6 });
       links = r.status_code === 200 ? r.json() : {};
       this._key_links_cache = (links && typeof links === 'object') ? links : {};
       links = this._key_links_cache;

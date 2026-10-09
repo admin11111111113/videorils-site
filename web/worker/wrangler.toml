@@ -2,3 +2,10 @@ name = "videorils-tts"
 main = "worker.js"
 compatibility_date = "2026-10-01"
 workers_dev = true
+
+[[kv_namespaces]]
+binding = "TRIALS"
+id = "2a615b38c83b458f8dc7e4869aeac4a2"
+
+[triggers]
+crons = ["17 * * * *"]

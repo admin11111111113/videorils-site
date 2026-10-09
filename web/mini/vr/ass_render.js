@@ -5,8 +5,18 @@
 // PlayRes = размер кадра, ScaledBorderAndShadow: yes.
 import { cssFont, FONT_MAP } from './fonts.js';
 
-// Метрики Arial Black (как у libass по шрифту десктопа): ascent/descent в долях кегля
-const ASC = 2254 / 2048, DESC = 634 / 2048;
+// libass задаёт кегль ASS как ПОЛНУЮ высоту шрифта (usWinAscent+usWinDescent), а не em:
+// em = Fontsize × upem/(winAsc+winDesc). Метрики — по шрифтам ДЕСКТОПА (их видит libass в
+// приложении), чтобы размер и межстрочие совпадали с готовым видео приложения.
+const FONT_METRICS = {
+  'Arial Black': { asc: 2254, desc: 634, upem: 2048 },
+  'Segoe Script': { asc: 2230, desc: 1014, upem: 2048 },
+  'Consolas': { asc: 1884, desc: 514, upem: 2048, cal: 0.917 },   // JetBrains Mono шире Consolas
+};
+function fm(fn) { return FONT_METRICS[fontName(fn)] || FONT_METRICS['Arial Black']; }
+function emOf(fn, fs) { const m = fm(fn); return fs * m.upem / (m.asc + m.desc) * (m.cal || 1); }
+function ascOf(fn) { const m = fm(fn); return m.asc / (m.asc + m.desc); }
+function descOf(fn) { const m = fm(fn); return m.desc / (m.asc + m.desc); }
 const ITALIC_SHEAR = 0.2126;          // синтетический курсив FreeType (как libass)
 
 function assColor(s) {               // &HAABBGGRR | &HBBGGRR -> {r,g,b,a(0..1 непрозр.)}
@@ -160,7 +170,7 @@ function animState(run, tMs, evDurMs) {
 let _m = null;
 function mctx() { if (!_m) _m = new OffscreenCanvas(8, 8).getContext('2d'); return _m; }
 function fontName(fn) { return FONT_MAP[fn] ? fn : 'Arial Black'; }
-function runWidth(text, s) { const c = mctx(); c.font = cssFont(fontName(s.fn), Math.max(1, s.fs)); return c.measureText(text).width * (s.fscx / 100); }
+function runWidth(text, s) { const c = mctx(); c.font = cssFont(fontName(s.fn), Math.max(1, emOf(s.fn, s.fs))); return c.measureText(text).width * (s.fscx / 100); }
 
 // Раскладка события в строки (с умным переносом WrapStyle 0)
 function layout(ev, states, maxW) {
@@ -220,16 +230,16 @@ export class AssRenderer {
     const style = ev.styleRef; const W = this.doc.W, H = this.doc.H;
     const ml = ev.ml || style.ml, mr = ev.mr || style.mr, mv = ev.mv || style.mv;
     const states = ev.runs.map(r => r.br ? null : animState(r, tMs, durMs));
-    // перенос — по КОНЕЧНЫМ размерам анимации (стабильная раскладка, как итог libass)
-    const finalStates = ev.runs.map(r => r.br ? null : animState(r, 1e9, durMs));
+    // перенос — по ТЕКУЩИМ размерам кадра: libass переразбивает строки на каждом кадре
+    // (у хука с \fscx72→100 в начале одна строка, после анимации может стать две)
     const maxW = W - ml - mr;
-    const linesF = layout(ev, finalStates, maxW);
+    const linesF = layout(ev, states, maxW);
     // текущая (анимированная) раскладка тех же строк
     const lines = linesF.map(ln => ln.map(it => { const st = states[it.ri]; return Object.assign({}, it, { st, w: runWidth(it.text, st) }); }));
     const lineMetrics = lines.map(ln => {
       let w = 0, asc = 0, desc = 0;
-      for (const it of ln) { w += it.w; const fsY = it.st.fs * it.st.fscy / 100; asc = Math.max(asc, fsY * ASC); desc = Math.max(desc, fsY * DESC); }
-      if (!ln.length) { const fsY = style.fs; asc = fsY * ASC; desc = fsY * DESC; }
+      for (const it of ln) { w += it.w; const fsY = it.st.fs * it.st.fscy / 100; asc = Math.max(asc, fsY * ascOf(it.st.fn)); desc = Math.max(desc, fsY * descOf(it.st.fn)); }
+      if (!ln.length) { const fsY = style.fs; asc = fsY * ascOf(style.fn); desc = fsY * descOf(style.fn); }
       return { w, asc, desc };
     });
     const totalH = lineMetrics.reduce((a, m) => a + m.asc + m.desc, 0);
@@ -271,12 +281,13 @@ export class AssRenderer {
         ctx.translate(x, base);
         ctx.scale(st.fscx / 100, st.fscy / 100);
         if (st.i) ctx.transform(1, 0, -ITALIC_SHEAR, 1, 0, 0);
-        ctx.font = cssFont(fontName(st.fn), Math.max(1, st.fs));
+        const em = emOf(st.fn, st.fs);
+        ctx.font = cssFont(fontName(st.fn), Math.max(1, em));
         ctx.textBaseline = 'alphabetic'; ctx.lineJoin = 'round'; ctx.miterLimit = 2;
         const sx = 100 / st.fscx;          // обводка/тень в пикселях кадра, не в масштабе текста
         const bord = bs === 3 ? 0 : st.bord;
         const blur = st.blur || 0;
-        const embolden = st.b ? Math.max(1, st.fs / 32) : 0;   // синтетический bold (libass)
+        const embolden = st.b ? Math.max(1, em / 24) : 0;   // синтетический bold (FreeType embolden = em/24)
         if (pass === 'shadow' && bs !== 3 && st.shad > 0) {
           ctx.save(); ctx.translate(st.shad * sx, st.shad * (100 / st.fscy));
           if (blur) ctx.filter = `blur(${blur * 0.6}px)`;
@@ -287,7 +298,7 @@ export class AssRenderer {
         } else if (pass === 'outline' && bord > 0) {
           if (blur) ctx.filter = `blur(${blur * 0.6}px)`;
           ctx.strokeStyle = rgba(st.c3, a * (st.alpha3 ?? 1)); ctx.lineWidth = (bord * 2 + embolden) * sx; ctx.strokeText(it.text, 0, 0);
-          if (st.u) { const uw = it.w * sx; ctx.fillStyle = rgba(st.c3, a); ctx.fillRect(-bord * sx, st.fs * 0.1 - bord, uw + 2 * bord * sx, st.fs * 0.07 + 2 * bord); }
+          if (st.u) { const uw = it.w * sx; ctx.fillStyle = rgba(st.c3, a); ctx.fillRect(-bord * sx, em * 0.1 - bord, uw + 2 * bord * sx, em * 0.07 + 2 * bord); }
         } else if (pass === 'fill') {
           if (blur && bord === 0) ctx.filter = `blur(${blur * 0.6}px)`;
           let fill = rgba(st.c1, a * (st.alpha1 ?? 1));
@@ -306,7 +317,7 @@ export class AssRenderer {
           ctx.fillStyle = fill;
           if (embolden) { ctx.strokeStyle = fill; ctx.lineWidth = embolden * sx; ctx.strokeText(it.text, 0, 0); }
           ctx.fillText(it.text, 0, 0);
-          if (st.u) ctx.fillRect(0, st.fs * 0.1, it.w * sx, st.fs * 0.07);
+          if (st.u) ctx.fillRect(0, em * 0.1, it.w * sx, em * 0.07);
         }
         ctx.restore();
       }

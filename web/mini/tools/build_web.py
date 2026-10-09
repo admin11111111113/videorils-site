@@ -9,6 +9,10 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # триал: окно закрываем СРАЗУ после «Готово» (как в Лайте), статус обновляем фоном —
+    # иначе при медленном сервере окно висело минутами с «Готово, собираем видео…»
+    ("refreshAccess().then(()=>{ setTimeout(()=>{ free(); closeLic(); maybeMediaOnb(); }, 900); });",
+     "setTimeout(()=>{ free(); closeLic(); maybeMediaOnb(); }, 900); refreshAccess();"),
     ("reel_fullscreen:['🖥 Открыть в плеере на ПК','🖥 Open in PC player']", "reel_fullscreen:['🔍 Смотреть крупно','🔍 Watch large']"),
     # триал: для клипов годится ЛЮБОЙ ключ видео (Pixabay или Pexels), как и в самой сборке
     ("if(r&&r.pixabay){ next(); }", "if(r&&(r.pixabay||r.pexels)){ next(); }"),
@@ -50,6 +54,8 @@ MOBILE_CSS = """<style id="vrWebMobile">
   #reelColRight,#reelColLeft,#reelColMid{width:100%!important;max-width:100%!important;flex:1 1 100%!important}
   .modal .box,.modalbox,.mbox{max-width:calc(100vw - 24px)!important}
   video{max-width:100%}
+  .slider-wrap > span[style*="min-width:120px"]{min-width:0!important}   /* подпись слайдера не выталкивает значение за экран */
+  #btnLangReel{white-space:normal!important}
 }
 </style>
 """

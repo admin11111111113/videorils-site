@@ -1,6 +1,6 @@
 // Порт class Api: __init__ + лицензия/триал/промо/рефералы/оплата (app.py 2918–4595).
 import {
-  C, APP_VERSION, VR_SERVER_URL, BUILD_VARIANT, load_settings, save_settings, dec_secret, enc_secret,
+  C, APP_VERSION, VR_SERVER_URL, CF_URL, BUILD_VARIANT, load_settings, save_settings, dec_secret, enc_secret,
   log, call_js, sleep, now, requests, webbrowser, thread, store, sha256Hex, uuid4hex, isoNow, strftime, re,
 } from './core.js';
 import { _sanitize_hex } from './textutil.js';
@@ -186,6 +186,15 @@ export class Api {
   }
   _log_gem_429(r) { try { console.debug('---- 429 ----\n' + (r.text || '').slice(0, 2000)); } catch (e) { } }
 
+  // триал и проверка ключа — через Cloudflare (отвечает сразу, не засыпает); недоступен -> сервер лицензий
+  async _cf_post(path, payload) {
+    try {
+      const r = await requests.post(CF_URL + path, { json: payload, timeout: [6, 55] });
+      if (r.status_code === 200) return r.json();
+      if (r.status_code >= 400 && r.status_code < 500) return null;
+    } catch (e) { }
+    return await this._server_post(path, payload);
+  }
   async _server_post(path, payload) {
     const url = VR_SERVER_URL.replace(/\/+$/, '') + path;
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -239,7 +248,7 @@ export class Api {
   fetch_pron_dict() {
     thread(async () => {
       try {
-        const r = await requests.get(VR_SERVER_URL.replace(/\/+$/, '') + '/pronunciation-dict?machine_id=' + await this.get_machine_id(), { timeout: [10, 55] });
+        const r = await requests.get(CF_URL + '/pronunciation-dict?machine_id=' + await this.get_machine_id(), { timeout: [10, 55] });
         if (r.status_code !== 200) return;
         const d = (r.json() || {}).dict || {}; const srv = {}; let add = 0;
         for (const [w, s] of Object.entries(d)) {
@@ -255,7 +264,7 @@ export class Api {
   }
   async get_launch_stats() {
     try {
-      const r = await requests.get(VR_SERVER_URL.replace(/\/+$/, '') + '/stats', { timeout: [10, 55] });
+      const r = await requests.get(CF_URL + '/stats', { timeout: [10, 55] });
       if (r.status_code === 200) { const d = r.json(); return { ok: true, stage: d.stage, current_price: d.current_price, current_price_rub: d.current_price_rub, remaining_in_stage: d.remaining_in_stage, next_price: d.next_price, next_price_rub: d.next_price_rub }; }
     } catch (e) { }
     return { ok: false };
@@ -311,7 +320,7 @@ export class Api {
     key = (key || '').trim().toUpperCase();
     if (!key) return { ok: false, status: 'invalid', reachable: true, msg: this._t('lic_bad') };
     if (C['Api._VALID_TEST_KEYS'].has(key)) return { ok: true, status: 'ok', reachable: true, type: 'dev' };
-    const resp = await this._server_post('/check', { key, machine: await this.get_machine_id(), product: 'mini' });
+    const resp = await this._cf_post('/check', { key, machine: await this.get_machine_id(), product: 'mini' });
     if (resp === null) return { ok: false, status: 'offline', reachable: false, msg: this._t('lic_server_down') };
     this._store_ref_stats(resp.referrals);
     const st = resp.status;
@@ -427,7 +436,7 @@ export class Api {
   async _trial_used_local() { try { const d = JSON.parse(store.get(TRIAL_KEY) || 'null'); return !!(d && d.used) && d.mid === await this.get_machine_id(); } catch (e) { return false; } }
   async _cache_trial(used) { store.set(TRIAL_KEY, JSON.stringify({ mid: await this.get_machine_id(), used: !!used })); }
   async _trial_used() {
-    const resp = await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'status', product: 'mini' });
+    const resp = await this._cf_post('/trial', { machine: await this.get_machine_id(), action: 'status', product: 'mini' });
     if (resp !== null && resp.status === 'ok') {
       this.promo_active = !!resp.promo_active; this.promo_code = resp.promo_code || ''; this.promo_days_left = parseInt(resp.promo_days_left || 0) || 0;
       const used = !(resp.trial_available ?? true);
@@ -437,7 +446,7 @@ export class Api {
     return this._trial_used_local();
   }
   async _mark_trial_used() {
-    await this._server_post('/trial', { machine: await this.get_machine_id(), action: 'use', product: 'mini' });
+    await this._cf_post('/trial', { machine: await this.get_machine_id(), action: 'use', product: 'mini' });
     await this._cache_trial(true);
   }
   async activate_promo(code) {
@@ -470,7 +479,7 @@ export class Api {
   _license_mask() { const k = this.license_key || ''; const p = k.split('-'); return p.length >= 2 ? p[0] + '-…-' + p[p.length - 1] : k; }
   async get_plans() {
     try {
-      const r = await requests.get(`${VR_SERVER_URL}/product-plans`, { params: { product: 'mini' }, timeout: 10 });
+      const r = await requests.get(`${CF_URL}/product-plans`, { params: { product: 'mini' }, timeout: 10 });
       const data = Object.assign({}, r.json() || {}); const raw = data.plans || {};
       data.plans = {}; for (const [k, v] of Object.entries(raw)) data.plans[k] = (v && typeof v === 'object') ? v : { price: v };
       return data;
@@ -482,7 +491,7 @@ export class Api {
     catch (e) { return { ok: false }; }
     const cur_type = this.license_type || '';
     if (['monthly', 'yearly'].includes(cur_type)) out.already_lifetime = false;
-    try { const p = (await requests.get(`${VR_SERVER_URL}/plans`, { timeout: 12 })).json() || {}; out.wallet = p.wallet || ''; out.network = p.network || 'TRC-20'; } catch (e) { }
+    try { const p = (await requests.get(`${CF_URL}/plans`, { timeout: 12 })).json() || {}; out.wallet = p.wallet || ''; out.network = p.network || 'TRC-20'; } catch (e) { }
     if (['monthly', 'yearly'].includes(cur_type)) {
       try {
         const rem = out.remaining_usdt;
