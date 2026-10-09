@@ -33,7 +33,9 @@ async function registerSW() {
       await new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); setTimeout(res, 4000); });
       // первый заход: без контроллера temp/… не раздаётся — один раз перезагружаем страницу
       if (!navigator.serviceWorker.controller) {
-        try { if (!sessionStorage.getItem('vr_sw_reload')) { sessionStorage.setItem('vr_sw_reload', '1'); location.reload(); await new Promise(() => { }); } } catch (e) { }
+        // и после Ctrl+F5 (жёсткое обновление отключает SW для вкладки): раньше перезагрузка была
+        // ОДИН раз на вкладку — после неё ролик в плеере не показывался. Защита от цикла — не чаще раза в 30 с.
+        try { const last = +sessionStorage.getItem('vr_sw_reload') || 0; if (Date.now() - last > 30000) { sessionStorage.setItem('vr_sw_reload', String(Date.now())); location.reload(); await new Promise(() => { }); } } catch (e) { }
       }
     }
     return reg;

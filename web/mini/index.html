@@ -4993,8 +4993,12 @@ function loadTrendingIdeas(){
             closeIdeas();
             const ta=$('reelStory'); if(ta){ta.value=rr.text||'';ta.focus();}
             toast(rr.unique?t('ideas_applied_unique'):t('ideas_applied'));
+          }else{
+            // раньше отказ (нет лицензии/триала) молча глотался — кнопка «ничего не делала»
+            toast((rr&&rr.msg)||t('ideas_offline'),'err');
+            if(rr&&rr.code==='no_license'){ closeIdeas(); if(typeof showLic==='function')showLic(); }
           }
-        });
+        }).catch(()=>{ use.disabled=false;use.textContent=t('ideas_use'); toast(t('ideas_offline'),'err'); });
       };
       card.appendChild(ttl);card.appendChild(body);card.appendChild(use);
       list.appendChild(card);

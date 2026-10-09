@@ -107,6 +107,23 @@ function isFresh(path, rec) {
 }
 
 const asDict = (v) => Array.isArray(v) ? Object.fromEntries(v.map((x, i) => [String(i), x]).filter(([, x]) => x)) : (v && typeof v === 'object' ? v : {});
+
+// заголовок идеи: первое предложение (≤80) или обрезка по границе слова с «…» — как short_title на сервере;
+// чинит уже сохранённые заголовки, обрезанные ровно по 80 символов посреди слова
+function shortTitle(text, n = 80) {
+  const t = String(text || '').split(/\s+/).filter(Boolean).join(' ');
+  if (t.length <= n) return t;
+  for (const sep of ['. ', '! ', '? ']) { const i = t.indexOf(sep); if (i > 0 && i < n) return t.slice(0, i + 1); }
+  let cut = t.slice(0, n - 1); const j = cut.lastIndexOf(' ');
+  if (j >= Math.floor(n / 2)) cut = cut.slice(0, j);
+  return cut.replace(/[ ,.;:—-]+$/, '') + '…';
+}
+function fixTitle(it) {
+  if (!it || typeof it !== 'object') return it;
+  const full = it.adapted_text || '';
+  for (const k of ['title', 'adapted_title']) { const v = it[k] || ''; if (full && v.length === 80 && full.startsWith(v) && full.length > 80) it[k] = shortTitle(full); }
+  return it;
+}
 async function fbRead(env, path, search) {
   if (path === '/pronunciation-dict') { const d = asDict(await fb(env, 'GET', '/pronunciation_dict')); return { ok: true, dict: d, count: Object.keys(d).length }; }
   if (path === '/key-links') return asDict(await fb(env, 'GET', '/key_links'));
@@ -119,7 +136,7 @@ async function fbRead(env, path, search) {
     const keys = Object.keys(last);
     if (!keys.length) { const ideas = custom.filter((i) => !hidden.has(i.id)); return { date: ideas.length ? todayUTC() : null, ideas, stale: !ideas.length, lang }; }
     const latest = keys.sort().pop(), rec = last[latest] || {};
-    const ideas = custom.concat(rec.ideas || []).filter((i) => !hidden.has(i && i.id));
+    const ideas = custom.concat(rec.ideas || []).filter((i) => !hidden.has(i && i.id)).map(fixTitle);
     return { date: rec.date || latest, ideas, generated_at: rec.generated_at || '', stale: latest !== todayUTC(), lang };
   }
   return null;
