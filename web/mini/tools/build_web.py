@@ -9,6 +9,10 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # bust() не трогает ссылки из памяти (blob:) — с «?v=» blob не находится, плеер падал в
+    # запасной путь и голос звучал ДВАЖДЫ со сдвигом
+    ("function bust(u){return u+(u.indexOf('?')<0?'?':'&')+'v='+Math.floor(Math.random()*1e9);}",
+     "function bust(u){if(String(u).startsWith('blob:'))return u;return u+(u.indexOf('?')<0?'?':'&')+'v='+Math.floor(Math.random()*1e9);}"),
     # ссылки из памяти (blob:) — без «?t=» (с ним blob-адрес не находится и звук не играет)
     ("r.url+'?t='+Date.now()", "(String(r.url).startsWith('blob:')?r.url:r.url+'?t='+Date.now())"),
     # триал: окно закрываем СРАЗУ после «Готово» (как в Лайте), статус обновляем фоном —

@@ -177,7 +177,7 @@ P.save_track_segment = async function (p, start, end) {
   } catch (ex) { return { ok: false, msg: String(ex.message || ex) }; }
 };
 // запасной плеер (в десктопе — системный): играем файл напрямую из памяти
-P.play_voice_preview_external = function () { const u = vfs.objectUrl('temp/voice_preview.mp3'); if (!u) return false; try { new Audio(u).play().catch(() => { }); return true; } catch (e) { return false; } };
+P.play_voice_preview_external = function () { const _n = Date.now(); if (_n - (this._ext_play_at || 0) < 2000) return true; this._ext_play_at = _n; const u = vfs.objectUrl('temp/voice_preview.mp3'); if (!u) return false; try { new Audio(u).play().catch(() => { }); return true; } catch (e) { return false; } };
 P._pick_music = function () {
   const tracks = this._collect_tracks();
   if (!(this.music_track && tracks.length)) return null;
