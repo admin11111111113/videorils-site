@@ -2605,6 +2605,8 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
       <div id="licStatusBox" style="display:none;margin-bottom:14px;padding:12px;border:1px solid var(--line);border-radius:12px">
         <div style="font-weight:800;color:var(--green)" data-i18n="lic_active_head">✅ Лицензия активна</div>
         <div class="hint" id="licStatusLine" style="margin:4px 0 0"></div>
+        <div id="licKeyRow" style="display:none;margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap"><code id="licKeyFull" style="user-select:all;font-weight:800;letter-spacing:.5px;font-size:14px"></code><button class="btn ghost" style="padding:5px 12px;font-size:12.5px" onclick="copyLicKey(this)">📋 Скопировать ключ</button></div>
+        <div class="hint" id="licKeyHint" style="display:none;margin:4px 0 0">Сохраните ключ — с ним лицензия восстанавливается в любом браузере на этом ПК.</div>
         <!-- детали и апгрейд — в центральной колонке, чтобы «что с лицензией сейчас»
              читалось в одном месте; сам апгрейд по-прежнему в окне статуса -->
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:13px">
@@ -10944,6 +10946,11 @@ function closeLicStatus(){ $('licStatusModal').classList.remove('show'); }
 function openLic(){ $('licenseModal').classList.add('show'); loadPlans(); refreshAccess(); renderBybit();
   // лицензированному подгружаем цену доплаты до Навсегда (зачёт оплаченного) и перерисовываем карточки
   if(access.licensed){ api('get_upgrade_price').then(p=>{ if(p&&p.ok&&!p.already_lifetime&&p.remaining_usdt!=null){ _upg=p; if(licPlansData)renderPlans(licPlansData); } }).catch(()=>{}); } }
+// полный ключ лицензии + «Скопировать» (сохранить ключ — восстановить лицензию после очистки браузера)
+function showLicKey(key){ const r=$('licKeyRow'), f=$('licKeyFull'), h=$('licKeyHint'); if(!r||!f)return;
+  if(key){ f.textContent=key; r.style.display='flex'; if(h)h.style.display='block'; } else { r.style.display='none'; if(h)h.style.display='none'; } }
+function copyLicKey(btn,src){ const k=(($(src||'licKeyFull')||{}).textContent||'').trim(); if(!k||k==='—')return;
+  api('copy_text',k).then(()=>{ const o=btn.textContent; btn.textContent='✓ Скопировано'; setTimeout(()=>{btn.textContent=o;},1600); }).catch(()=>{}); }
 function closeLic(){ _upgradeIntent=false; $('licenseModal').classList.remove('show'); if($('payPanel'))$('payPanel').style.display='none'; }
 /* «Купить USDT на Bybit» — партнёрская ссылка приходит с сервера (/key-links →
    bybit_buy_usdt). Пусто -> блок скрыт (не ведём в никуда). */
@@ -10973,6 +10980,7 @@ function applyAccessUI(){
       const ptype=(kt==='monthly')?t('licst_monthly'):((kt==='yearly')?t('licst_yearly'):t('licst_lifetime'));
       const label=(kt==='lifetime')?t('lic_forever'):(access.expires?t('lic_until').replace('{d}',access.expires):ptype);
       $('licStatusLine').textContent=((access.key_mask||'')+' · '+label).trim();
+      showLicKey(access.key||'');
       const u=$('licColUntil'), a=$('licColActivated');
       if(u)u.textContent=(kt==='lifetime')?t('lic_forever'):(fmtDate(access.key_expires)||'—');
       if(a)a.textContent=fmtDate(access.key_activated)||'—';

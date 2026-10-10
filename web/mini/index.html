@@ -1482,6 +1482,8 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
       <div id="licModalStatus" style="display:none;margin-bottom:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(34,197,94,.06)">
         <div style="font-weight:800;color:var(--mint)"><span data-i18n="licst_active">Лицензия активна</span> · <span id="licModalStatusType">—</span></div>
         <div id="licModalStatusSub" class="hint" style="margin:4px 0 0"></div>
+        <div id="licKeyRow" style="display:none;margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap"><code id="licKeyFull" style="user-select:all;font-weight:800;letter-spacing:.5px;font-size:14px"></code><button class="btn ghost" style="padding:5px 12px;font-size:12.5px" onclick="copyLicKey(this)">📋 Скопировать ключ</button></div>
+        <div class="hint" id="licKeyHint" style="display:none;margin:4px 0 0">Сохраните ключ — с ним лицензия восстанавливается в любом браузере на этом ПК.</div>
         <!-- апгрейд/продление живёт в отдельном окне статуса — уводим туда кнопкой -->
         <button class="btn ghost" id="licColUpgBtn" style="width:100%;margin-top:10px;display:none"
                 onclick="showLicenseStatus()" data-i18n="licst_upg_btn">Сменить тариф / апгрейд</button>
@@ -1785,6 +1787,9 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
         <div id="licstUntilRow" style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--mut)" data-i18n="lic_until">Действует до</span><b id="licstUntil">—</b></div>
         <div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--mut)" data-i18n="lic_activated_on">Активирован</span><b id="licstActivated">—</b></div>
         <div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--mut)" data-i18n="lic_binding">Привязка</span><b data-i18n="lic_this_pc">этот ПК</b></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:var(--mut)">Ключ</span>
+          <span style="display:flex;align-items:center;gap:8px"><code id="licstKey" style="user-select:all;font-weight:800;letter-spacing:.5px">—</code>
+          <button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="copyLicKey(this,'licstKey')">📋 Скопировать</button></span></div>
       </div>
       <div id="licPlanCardsLbl" class="hint" style="margin:0 0 8px 2px" data-i18n="licst_upg_lbl">Сменить тариф / апгрейд:</div>
       <div id="licPlanCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px"></div>
@@ -6262,7 +6267,8 @@ function applyAccessUI(){
       if($('licModalStatusType')) $('licModalStatusType').textContent=tp;
       const sub=(kt==='lifetime')?t('lic_forever')
         :((access.key_days_left!=null)?t('lic_days_left').replace('{n}',access.key_days_left):(fmtDate(access.key_expires)||''));
-      if($('licModalStatusSub')) $('licModalStatusSub').textContent=((access.key_mask||'')+' · '+sub).trim(); } }
+      if($('licModalStatusSub')) $('licModalStatusSub').textContent=((access.key_mask||'')+' · '+sub).trim();
+      showLicKey(access.key||''); } }
   // кнопка апгрейда/продления в центральной колонке — окно статуса открывается из неё
   const ub=$('licColUpgBtn'); if(ub) ub.style.display=(licd&&access.key_type!=='lifetime')?'block':'none';
   const box=$('licTrialBox');
@@ -6283,6 +6289,11 @@ function applyAccessUI(){
   applyConsentGate();
   applyActivationState();     // State 1 (новый) / State 2 (вернувшийся)
 }
+// полный ключ лицензии + «Скопировать» (сохранить ключ — восстановить лицензию после очистки браузера)
+function showLicKey(key){ const r=$('licKeyRow'), f=$('licKeyFull'), h=$('licKeyHint'); if(!r||!f)return;
+  if(key){ f.textContent=key; r.style.display='flex'; if(h)h.style.display='block'; } else { r.style.display='none'; if(h)h.style.display='none'; } }
+function copyLicKey(btn,src){ const k=(($(src||'licKeyFull')||{}).textContent||'').trim(); if(!k||k==='—')return;
+  api('copy_text',k).then(()=>{ const o=btn.textContent; btn.textContent='✓ Скопировано'; setTimeout(()=>{btn.textContent=o;},1600); }).catch(()=>{}); }
 // кнопка «Лицензия» в шапке: динамическая (активна -> статус; нет -> покупка)
 function applyLicenseBtn(){
   const b=$('btnLicense'); if(!b)return;
@@ -6315,6 +6326,7 @@ function showLicenseStatus(){
     const lt=access.key_type;
     $('licstTypeBand').textContent = lt==='monthly'?t('licst_monthly'):(lt==='yearly'?t('licst_yearly'):t('licst_lifetime'));
     $('licstActivated').textContent = fmtDate(access.key_activated)||'—';
+    if($('licstKey'))$('licstKey').textContent = access.key||'—';
     const cd=$('licstCountdown');
     if(lifetime){
       $('licstUntil').textContent=t('lic_forever');

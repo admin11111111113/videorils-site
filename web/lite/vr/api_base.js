@@ -582,7 +582,7 @@ export class Api {
       const _act = this.license_activated || ''; let _exp = this.license_expires || '';
       if (!_exp) _exp = this._license_expiry(this.license_type || 'lifetime', _act);
       let _dl = null; if (_exp) { const d = fromIso(_exp); _dl = d ? Math.max(0, daysBetween(d, new Date())) : null; }
-      return { licensed: true, trial_active: false, trial_used: false, trial_available: false, key_mask: this._license_mask(),
+      return { licensed: true, trial_active: false, trial_used: false, trial_available: false, key_mask: this._license_mask(), key: this.license_key || '',
         key_type: this.license_type || 'lifetime', key_expires: _exp, key_activated: _act, key_days_left: _dl,
         promo_active: this.promo_active, promo_code: this.promo_code, promo_days_left: this.promo_days_left,
         consent_ok: this._consent_ok(), docs_version: DOCS_VERSION, machine_id: await this.get_machine_id() };
