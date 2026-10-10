@@ -306,6 +306,14 @@ P.scene_set_trim = async function (idx, start, end) {
   } catch (e) { log(`  ⚠ миниатюра момента сцены ${idx + 1}: ${String(e.message || e).slice(0, 60)}`); }
   return res;
 };
+// сколько секунд сцена на экране: озвучка последней сборки (тот же текст) или прогноз по словам
+P.scene_need_sec = function (idx) {
+  if (!(idx >= 0 && idx < this.reel_scenes.length)) return { ok: false };
+  const txt = (this.reel_scenes[idx].text || '').trim(); let need = 0;
+  try { const sg = (this.reel_segments || [])[idx]; if (sg && (sg.text || '').trim() === txt) need = Number(sg.end) - Number(sg.start); } catch (e) { need = 0; }
+  if (!(need > 0)) need = Math.max(1.2, pysplit(txt).length / this._wps()) + 0.35;
+  return { ok: true, need: Math.round(need * 10) / 10 };
+};
 // полный сброс рабочего места «Из видео» при смене режима
 P.clear_foreign_source = function () {
   this.foreign_audio_path = null; this.foreign_segments = []; this.foreign_cap_zone = null; this._foreign_src_dur = 0;

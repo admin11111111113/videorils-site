@@ -3436,7 +3436,13 @@ function initReelLayout(){
     const gal=document.createElement('button'); gal.className='btn ghost'; gal.id='reelColGallery';
     gal.style.cssText='flex:1 1 0;margin:0';
     gal.textContent=(typeof t==='function')?t('open_gallery'):'📁 Галерея';   // ключ уже с 📁 — не дублируем
-    gal.onclick=()=>{ if(ready())api('open_folder'); };
+    gal.onclick=()=>{ if(!ready())return;
+      const spd=(typeof _reelSpeed!=='undefined')?_reelSpeed:1, batch=(typeof phoneBatchActive!=='undefined')&&phoneBatchActive;
+      if(batch||Math.abs(spd-1)<0.001){ api('open_folder'); return; }
+      const old=gal.textContent; gal.disabled=true; gal.textContent=t('reel_saving');
+      api('save_reel_speed',spd).then(r=>{ gal.disabled=false; gal.textContent=old;
+        if(r&&r.ok)api('open_folder'); else toast((r&&r.msg)||t('toast_error'),'err'); })
+        .catch(()=>{ gal.disabled=false; gal.textContent=old; toast(t('toast_error'),'err'); }); };
     // «🎵 Извлечь звук» — справа в той же строке (для показанного видео: одиночный рилс или
     // текущий ролик карусели пакета). Скрыта, пока видео не показано (тогда Галерея занимает строку).
     const ex=document.createElement('button'); ex.className='btn ghost'; ex.id='reelColExtract';
@@ -3549,7 +3555,13 @@ function initClipmixLayout(){
     // [📁 Галерея | 🎵 Извлечь звук] -> подпись+хэштеги НИЖЕ (как в «Один рилс»/пакете).
     const gal=document.createElement('button'); gal.className='btn ghost'; gal.id='cmColGallery'; gal.style.cssText='flex:1 1 0;margin:0';
     gal.textContent=(typeof t==='function')?t('open_gallery'):'📁 Галерея';   // ключ уже с 📁 — не дублируем
-    gal.onclick=()=>{ if(ready())api('open_folder'); };
+    gal.onclick=()=>{ if(!ready())return;
+      const spd=(typeof _reelSpeed!=='undefined')?_reelSpeed:1, batch=(typeof phoneBatchActive!=='undefined')&&phoneBatchActive;
+      if(batch||Math.abs(spd-1)<0.001){ api('open_folder'); return; }
+      const old=gal.textContent; gal.disabled=true; gal.textContent=t('reel_saving');
+      api('save_reel_speed',spd).then(r=>{ gal.disabled=false; gal.textContent=old;
+        if(r&&r.ok)api('open_folder'); else toast((r&&r.msg)||t('toast_error'),'err'); })
+        .catch(()=>{ gal.disabled=false; gal.textContent=old; toast(t('toast_error'),'err'); }); };
     const ex=document.createElement('button'); ex.className='btn ghost'; ex.id='cmExtract';
     ex.style.cssText='flex:1 1 0;margin:0;display:none';   // виден только когда нарезка собрана
     ex.textContent=(typeof t==='function')?t('extract_audio'):'🎵 Извлечь звук';
@@ -4870,6 +4882,7 @@ const I18N={
   sb_auto_stress:['Показывать ударения в тексте сцен (проверить произношение до сборки)','Show stress marks in scene text (check pronunciation before building)'],
   sb_trim_lbl2:['✂️ Выбери отрезок клипа — тяни «Начало» и «Конец»:','✂️ Pick a clip segment — drag “Start” and “End”:'],
   sb_trim_start:['Начало','Start'],
+  sb_trim_need:['сцена звучит {n}с — отрезок не короче','scene lasts {n}s — segment can’t be shorter'],
   sb_trim_end:['Конец','End'],
   sb_trim_range:['Отрезок {a}–{b}с (длина {d}с)','Segment {a}–{b}s (length {d}s)'],
   sb_trim_apply2:['✓ Применить отрезок','✓ Apply segment'],
@@ -9666,23 +9679,31 @@ function scTrim(i){                        // ✂️ выбрать ОТРЕЗО
     const s0=$('clipTrimSlider'),s1=$('clipTrimSliderEnd');
     const l0=$('clipTrimLab'),l1=$('clipTrimLabEnd'),lr=$('clipTrimRange');
     const sc=sbScenes[i]||{}; const curS=+sc.start||0, curE=+sc.end_at||0;
-    const upd=()=>{
-      let a=+s0.value,b=+s1.value;
-      if(b<a+0.5){ b=Math.min(+s1.max,a+0.5); s1.value=b; }
+    // отрезок НЕ КОРОЧЕ самой сцены (сколько она звучит), иначе клип зациклится внутри сцены
+    let need=0.5, dur=10; const needP=api('scene_need_sec',i).then(n=>{ if(n&&n.ok&&n.need>0)need=+n.need; }).catch(()=>{});
+    const minLen=()=>Math.max(0.5,Math.min(need,dur));
+    const upd=(moved)=>{
+      let a=+s0.value,b=+s1.value; const L=minLen();
+      if(b<a+L){
+        if(moved==='end'){ a=Math.max(0,b-L); if(b<a+L)b=Math.min(dur,a+L); s0.value=a; }   // конец тянет начало назад
+        else { b=Math.min(dur,a+L); if(b<a+L){ a=Math.max(0,b-L); s0.value=a; } }      // начало толкает конец
+        s1.value=b;
+      }
       l0.textContent=a.toFixed(1)+t('sec_short'); l1.textContent=b.toFixed(1)+t('sec_short');
-      lr.textContent=t('sb_trim_range').replace('{a}',a.toFixed(1)).replace('{b}',b.toFixed(1)).replace('{d}',(b-a).toFixed(1));
+      lr.textContent=t('sb_trim_range').replace('{a}',a.toFixed(1)).replace('{b}',b.toFixed(1)).replace('{d}',(b-a).toFixed(1))
+        +(need>0.5?'  ·  '+t('sb_trim_need').replace('{n}',L.toFixed(1)):'');
     };
     v.addEventListener('loadedmetadata',()=>{
-      const dur=Math.max(1,v.duration||10);
+      dur=Math.max(1,v.duration||10);
       s0.max=dur.toFixed(1); s1.max=dur.toFixed(1);
       s0.value=Math.min(curS,dur-0.5);
       s1.value=(curE>0&&curE<=dur)?curE:dur;
-      upd(); try{v.currentTime=+s0.value;v.play();}catch(e){}
+      needP.then(()=>{ upd(); try{v.currentTime=+s0.value;v.play();}catch(e){} });
     });
     // превью: крутим ТОЛЬКО выбранный отрезок [начало, конец]
     v.ontimeupdate=()=>{const a=+s0.value,b=+s1.value; if(v.currentTime>=b||v.currentTime<a-0.15){try{v.currentTime=a;}catch(e){}}};
-    s0.oninput=()=>{upd();try{v.currentTime=+s0.value;v.play();}catch(e){}};
-    s1.oninput=()=>{upd();try{v.currentTime=Math.max(0,+s1.value-0.6);v.play();}catch(e){}};
+    s0.oninput=()=>{upd('start');try{v.currentTime=+s0.value;v.play();}catch(e){}};
+    s1.oninput=()=>{upd('end');try{v.currentTime=Math.max(0,+s1.value-0.6);v.play();}catch(e){}};
     $('clipTrimApply').onclick=()=>{
       const a=+s0.value,b=+s1.value;
       if(sbScenes[i]){sbScenes[i].start=a;sbScenes[i].end_at=b;}
@@ -10518,7 +10539,7 @@ function showReelInPreview(colId, boxId){
       fs.className='btn ghost'; fs.textContent=t('extract_audio'); fs.onclick=()=>extractAudio(fs);
       if(colId==='reelColRight'&&!$('reelColExtract'))box.appendChild(fs);
       // «Сохранить в галерею» на ВЫБРАННОЙ скорости (реальная ffmpeg-обработка только тут).
-      if(colId==='reelColRight'){
+      if(false){
         const sv=document.createElement('button'); sv.className='btn pp'; sv.id='reelSaveSpeedBtn';
         sv.style.cssText='width:100%;margin-top:8px';
         sv.textContent=t('reel_save_gallery'); sv.onclick=()=>saveReelToGallery(sv);
@@ -10938,6 +10959,8 @@ async function activatePromo(){
         .replace('%2',+(r.days||3)).replace('%3',promoDate(r.expires));
       inp.value='';
       refreshAccess();         // перечитываем доступ -> блок перерисуется как «активен»
+      // промокод принят -> сообщение подсказкой и закрываем окна промокода и лицензии (остаёмся, где были)
+      toast(msg.textContent); setTimeout(()=>{ closePromo(); if(typeof closeLic==='function')closeLic(); }, 1200);
     }else{
       // сервер уже прислал человекочитаемую причину (неизвестный код / уже использован)
       msg.style.color='var(--yellow)';
@@ -11455,6 +11478,17 @@ showView('home');
 html.vrPhone *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 /* телефон в «виде ПК» очень высокий: карточки «С чего начнём?» — нормальных пропорций, кнопка крупная */
 html.vrPhone .home2col{min-height:0!important}
+/* телефон: окно «Выбери клип для сцены» и просмотр клипа — крупно, по центру, превью по 2 в ряд */
+html.vrPhone #swapPicker,html.vrPhone #clipModal{align-items:center!important}
+html.vrPhone #swapPicker .modal{max-width:none!important;width:94vw!important}
+html.vrPhone #swapPicker .modal-head .mt{font-size:30px!important}
+html.vrPhone #swapPicker .modal-x{font-size:34px!important;padding:6px 14px!important}
+html.vrPhone #swapPicker .hint{font-size:22px!important}
+html.vrPhone #swapPickGrid{grid-template-columns:repeat(2,1fr)!important;gap:16px!important}
+html.vrPhone #swapPickGrid .cmcard{border-radius:16px!important}
+html.vrPhone #swapPickGrid .cmcard img{height:auto!important;aspect-ratio:3/4;max-height:58vh}
+html.vrPhone #swapPicker .btn{font-size:24px!important;min-height:72px!important}
+html.vrPhone #clipModalBody video,html.vrPhone #clipModalBody img{max-height:80vh!important;width:auto!important;max-width:92vw!important}
 html.vrPhone .homeright .pcard{min-height:0!important;height:auto!important;aspect-ratio:4/5;max-height:760px}
 html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;border-radius:14px!important;min-width:min(70%,340px)}
 </style>

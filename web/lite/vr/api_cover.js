@@ -4,6 +4,7 @@
 import { C, log, vfs, path, now, blobToDataUrl, choice } from './core.js';
 import { loadFonts, cssFont } from './fonts.js';
 import { Api } from './api_base.js';
+import { _pixabay_query, _download } from './media.js';
 
 const P = Api.prototype;
 const W = 1080, H = 1920;
@@ -25,6 +26,9 @@ P._cover_fetch = async function (kind, seed) {
   const mods = kind === 'wide' ? wide : close;
   const q = `${topic} ${mods[seed % mods.length]}`;
   if (!(this._cover_bg_used instanceof Set)) this._cover_bg_used = new Set();
+  // сначала ФОТО (сотни КБ) — в браузере/на телефоне качать целое видео ради одного кадра очень долго
+  const photo = await this._cover_photo(q, `cov_${kind}_${seed}`);
+  if (photo) return photo;
   const _prev = this._reel_used_clips; this._reel_used_clips = this._cover_bg_used;
   let src = null, isv = null;
   try { [src, isv] = await this._download_pixabay(q, `cov_${kind}_${seed}`); } catch (e) { src = null; } finally { this._reel_used_clips = _prev; }
@@ -35,6 +39,29 @@ P._cover_fetch = async function (kind, seed) {
     return vfs.exists(frame) ? frame : null;
   }
   return src;
+};
+// фото для фона обложки: Pexels -> Pixabay (ротация ключей), без повторов; null -> дальше видео-путь
+P._cover_photo = async function (q, tag) {
+  const used = this._cover_bg_used; const dst = `temp/${tag}.jpg`;
+  const take = async (id, url) => {
+    if (!url || used.has(id)) return false;
+    try { await _download(url, dst, 12); } catch (e) { return false; }
+    if (!(vfs.exists(dst) && vfs.size(dst) > 0)) return false;
+    used.add(id); return true;
+  };
+  if (this.pexels_key) {
+    let ph = []; try { ph = await this._pexels_call('pexels_photos', q, 15); } catch (e) { ph = []; }
+    for (const c of ph.slice(0, 4)) if (await take(c.id, c.url)) return dst;
+  }
+  const keys = this.pixabay_keys || [];
+  for (let off = 0; off < keys.length; off++) {
+    const key = keys[((this.pixabay_idx || 0) + off) % keys.length]; if (!key) continue;
+    let hits, lim; try { [hits, lim] = await _pixabay_query('https://pixabay.com/api/', key, q, 20, true, 12); } catch (e) { continue; }
+    if (lim) continue;
+    for (const h of (hits || []).slice(0, 4)) if (await take('pxb_' + h.id, h.largeImageURL || h.webformatURL)) return dst;
+    break;
+  }
+  return null;
 };
 P.set_cover_theme = function (story) { this._cover_theme = String(story || '').trim().slice(0, 400); return { ok: true }; };
 // обложка в фоне ПАРАЛЛЕЛЬНО с генерацией сцен (по теме); фронт опрашивает poll_cover_async
@@ -232,7 +259,7 @@ function fitDraw(ctx, bmp, tw, th, filter = 'none') {
 }
 // СПЛИТ-ЭКРАН: две разные тематические фото — одна Ч/Б-приглушённая, другая насыщенная
 P._cover_split_bg = async function (seed) {
-  const pa = await this._cover_fetch('wide', seed), pb = await this._cover_fetch('wide', seed + 300);
+  const [pa, pb] = await Promise.all([this._cover_fetch('wide', seed), this._cover_fetch('wide', seed + 300)]);
   if (!(pa && pb)) return null;
   let a, b; try { a = await loadImg(pa); b = await loadImg(pb); } catch (e) { return null; }
   const c = new OffscreenCanvas(W, H); const x = c.getContext('2d');
@@ -272,12 +299,13 @@ P._build_cover_png = async function (seed = null, params = null, mode = 'all', f
   if (seed === null) seed = this._cover_seed || 0;
   if ((mode === 'text' || mode === 'bg') && this._cover_params) params = this._cover_params;
   else { params = params || this._cover_axes_pick(); this._cover_params = params; }
-  let base;
-  if (mode === 'text' && this._cover_bg_base) { base = new OffscreenCanvas(W, H); base.getContext('2d').drawImage(this._cover_bg_base, 0, 0); }
-  else { base = await this._cover_compose_bg(seed, params); const cp = new OffscreenCanvas(W, H); cp.getContext('2d').drawImage(base, 0, 0); this._cover_bg_base = cp; }
+  const bgP = (async () => {
+    if (mode === 'text' && this._cover_bg_base) { const b = new OffscreenCanvas(W, H); b.getContext('2d').drawImage(this._cover_bg_base, 0, 0); return b; }
+    const b = await this._cover_compose_bg(seed, params); const cp = new OffscreenCanvas(W, H); cp.getContext('2d').drawImage(b, 0, 0); this._cover_bg_base = cp; return b;
+  })();
+  const [base, short] = await Promise.all([bgP, this._cover_short_text(hook, mode === 'all' || mode === 'text', !fast_text)]);
   const fontName = params.font_name === 'Impact' ? 'Impact' : 'Arial Black';
   const keyl = new Set([...(hook_keyset || [])].map(k => String(k || '').toLowerCase().replace(/^[.,!?:;»«"()]+|[.,!?:;»«"()]+$/g, '')));
-  const short = await this._cover_short_text(hook, mode === 'all' || mode === 'text', !fast_text);
   let groups = short.split('/').map(part => part.toUpperCase().split(/\s+/).filter(Boolean)).filter(g => g.length);
   if (!groups.length) groups = [[hook.toUpperCase().slice(0, 16)]];
   const acc = hexRgb(params.accent), acc2 = hexRgb(params.accent2 || params.accent);

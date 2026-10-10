@@ -6543,6 +6543,8 @@ async function activatePromo(){
       msg.textContent=t('promo_ok2').replace('%1',r.code||code)
         .replace('%2',+(r.days||3)).replace('%3',promoDate(r.expires));
       inp.value=''; refreshAccess();
+      // промокод принят -> сообщение подсказкой и закрываем окна промокода и лицензии (остаёмся, где были)
+      toast(msg.textContent); setTimeout(()=>{ closePromo(); if(typeof closeLic==='function')closeLic(); }, 1200);
     }else{
       msg.style.color='var(--yellow)';
       msg.textContent=(r&&r.msg)||t('promo_fail');
@@ -7087,6 +7089,17 @@ showView('home');
 html.vrPhone *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 /* телефон в «виде ПК» очень высокий: карточки «С чего начнём?» — нормальных пропорций, кнопка крупная */
 html.vrPhone .home2col{min-height:0!important}
+/* телефон: окно «Выбери клип для сцены» и просмотр клипа — крупно, по центру, превью по 2 в ряд */
+html.vrPhone #swapPicker,html.vrPhone #clipModal{align-items:center!important}
+html.vrPhone #swapPicker .modal{max-width:none!important;width:94vw!important}
+html.vrPhone #swapPicker .modal-head .mt{font-size:30px!important}
+html.vrPhone #swapPicker .modal-x{font-size:34px!important;padding:6px 14px!important}
+html.vrPhone #swapPicker .hint{font-size:22px!important}
+html.vrPhone #swapPickGrid{grid-template-columns:repeat(2,1fr)!important;gap:16px!important}
+html.vrPhone #swapPickGrid .cmcard{border-radius:16px!important}
+html.vrPhone #swapPickGrid .cmcard img{height:auto!important;aspect-ratio:3/4;max-height:58vh}
+html.vrPhone #swapPicker .btn{font-size:24px!important;min-height:72px!important}
+html.vrPhone #clipModalBody video,html.vrPhone #clipModalBody img{max-height:80vh!important;width:auto!important;max-width:92vw!important}
 html.vrPhone .homeright .pcard{min-height:0!important;height:auto!important;aspect-ratio:4/5;max-height:760px}
 html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;border-radius:14px!important;min-width:min(70%,340px)}
 </style>

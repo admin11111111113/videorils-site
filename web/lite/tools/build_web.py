@@ -53,6 +53,19 @@ UI_PATCHES = [
     ("if(anchor)R.insertBefore(box,anchor); else R.appendChild(box);", "if(anchor&&anchor.parentNode===R)R.insertBefore(box,anchor); else R.appendChild(box);"),
     # веб обновляется сам — кнопка проверки обновлений не нужна
     ('<button class="rulesbtn" onclick="manualUpdateCheck()"', '<button class="rulesbtn" style="display:none" onclick="manualUpdateCheck()"'),
+    # веб: без «Сохранить в галерею» — остаётся одна «Скачать ролик», и она качает на ВЫБРАННОЙ скорости
+    ("""      if(colId==='reelColRight'){
+        const sv=document.createElement('button'); sv.className='btn pp'; sv.id='reelSaveSpeedBtn';""",
+     """      if(false){
+        const sv=document.createElement('button'); sv.className='btn pp'; sv.id='reelSaveSpeedBtn';"""),
+    ("""    gal.onclick=()=>{ if(ready())api('open_folder'); };""",
+     """    gal.onclick=()=>{ if(!ready())return;
+      const spd=(typeof _reelSpeed!=='undefined')?_reelSpeed:1, batch=(typeof phoneBatchActive!=='undefined')&&phoneBatchActive;
+      if(batch||Math.abs(spd-1)<0.001){ api('open_folder'); return; }
+      const old=gal.textContent; gal.disabled=true; gal.textContent=t('reel_saving');
+      api('save_reel_speed',spd).then(r=>{ gal.disabled=false; gal.textContent=old;
+        if(r&&r.ok)api('open_folder'); else toast((r&&r.msg)||t('toast_error'),'err'); })
+        .catch(()=>{ gal.disabled=false; gal.textContent=old; toast(t('toast_error'),'err'); }); };"""),
     # «Галерея» (папка output) в браузере = скачать ролик
     ("open_folder:['📁 Папка output','📁 output folder']", "open_folder:['⬇ Скачать ролик','⬇ Download reel']"),
 ]
@@ -96,6 +109,17 @@ MOBILE_CSS = """<style id="vrWebMobile">
 html.vrPhone *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 /* телефон в «виде ПК» очень высокий: карточки «С чего начнём?» — нормальных пропорций, кнопка крупная */
 html.vrPhone .home2col{min-height:0!important}
+/* телефон: окно «Выбери клип для сцены» и просмотр клипа — крупно, по центру, превью по 2 в ряд */
+html.vrPhone #swapPicker,html.vrPhone #clipModal{align-items:center!important}
+html.vrPhone #swapPicker .modal{max-width:none!important;width:94vw!important}
+html.vrPhone #swapPicker .modal-head .mt{font-size:30px!important}
+html.vrPhone #swapPicker .modal-x{font-size:34px!important;padding:6px 14px!important}
+html.vrPhone #swapPicker .hint{font-size:22px!important}
+html.vrPhone #swapPickGrid{grid-template-columns:repeat(2,1fr)!important;gap:16px!important}
+html.vrPhone #swapPickGrid .cmcard{border-radius:16px!important}
+html.vrPhone #swapPickGrid .cmcard img{height:auto!important;aspect-ratio:3/4;max-height:58vh}
+html.vrPhone #swapPicker .btn{font-size:24px!important;min-height:72px!important}
+html.vrPhone #clipModalBody video,html.vrPhone #clipModalBody img{max-height:80vh!important;width:auto!important;max-width:92vw!important}
 html.vrPhone .homeright .pcard{min-height:0!important;height:auto!important;aspect-ratio:4/5;max-height:760px}
 html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;border-radius:14px!important;min-width:min(70%,340px)}
 </style>
