@@ -342,13 +342,17 @@ async function apiEv(env, req, d) {
   } catch (e) { return [200, { ok: true, stored: false }]; }
   return [200, { ok: true }];
 }
-async function pingRender(env, d) {
+async function pingRender(env, d, web) {
   let product = String(d.product || 'mini').trim().toLowerCase(); if (!PRODUCTS.includes(product)) product = 'other';
+  // ролик из браузера (запрос с нашего сайта) — отдельной строкой «<продукт>_web» + счётчик по дням,
+  // чтобы в админке было видно, делают ли ролики в веб-версии
+  const key = web ? product + '_web' : product;
   try {
     await fbTxn(env, '/videorils_render_stats', (cur) => {
       cur = cur || {};
       cur.total = (parseInt(cur.total || 0) || 0) + 1;
-      const by = cur.by_product || {}; by[product] = (parseInt(by[product] || 0) || 0) + 1; cur.by_product = by;
+      const by = cur.by_product || {}; by[key] = (parseInt(by[key] || 0) || 0) + 1; cur.by_product = by;
+      if (web) { const wd = cur.web_days || {}; const dd = dayUTC(); wd[dd] = (parseInt(wd[dd] || 0) || 0) + 1; cur.web_days = wd; }
       cur.last_at = pyNow();
       return cur;
     });
@@ -383,7 +387,7 @@ export default {
     if ((url.pathname === '/api/ev' || url.pathname === '/ping-render') && req.method === 'POST' && fbOn(env)) {
       let d = {}; try { d = await req.clone().json(); } catch (e) { }
       let r = null;
-      try { r = url.pathname === '/api/ev' ? await apiEv(env, req, d || {}) : await pingRender(env, d || {}); } catch (e) { r = null; }
+      try { r = url.pathname === '/api/ev' ? await apiEv(env, req, d || {}) : await pingRender(env, d || {}, fromSite); } catch (e) { r = null; }
       if (r) return new Response(JSON.stringify(r[1]), { status: r[0], headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
       // r === null -> ниже обычная пересылка на Render
     }
