@@ -223,7 +223,7 @@ const keyId = async (key) => (await md5hex(key.trim().toUpperCase())).slice(0, 1
 // _expiry_end: «%Y-%m-%d» — действует включительно по этот день; старый «%Y-%m» — до 1-го числа следующего месяца
 function expiryEnd(type, expires) {
   const e = String(expires || '').trim();
-  if (!['monthly', 'yearly'].includes(type) || !e) return null;
+  if (!['weekly', 'monthly', 'yearly'].includes(type) || !e) return null;
   if (e.length === 7) { const [y, m] = e.split('-').map(Number); if (!y || !m) return null; return Date.UTC(y, m, 1); }
   const t = Date.parse(e.slice(0, 10) + 'T00:00:00Z'); return Number.isNaN(t) ? null : t + 86400000;
 }

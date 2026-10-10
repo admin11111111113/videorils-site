@@ -9,6 +9,7 @@ import { PIX } from './media.js';
 const { VOICES, VOICES_EN, VIDEO_STYLE_SUFFIX, STYLES, CAP_ZONE_STYLES, CAP_PRESET_HEX, TITLE_THEMES, REEL_PROMPTS, EMOTIONS, DOCS_VERSION } = C;
 const _EDITION = C._EDITION;
 const LIC_KEY = 'vr_lite_license', TRIAL_KEY = 'vr_lite_trial', MID_KEY = 'vr_lite_machine', FIRST_KEY = 'vr_lite_first_launch';
+const WEB_PLANS_FB = { web_week: { type: 'weekly', rub: 599, days: 7 }, web_month: { type: 'monthly', rub: 1799, days: 30 }, web_year: { type: 'yearly', rub: 13190, days: 365 } };
 
 // ── РЕФЕРАЛЬНЫЙ КОД (тот же алгоритм, что в app.py/Лайте/сервере) ──
 export async function referral_code(key) {
@@ -343,7 +344,7 @@ export class Api {
     return { ok: true, amount: resp.amount, wallet: resp.wallet || '', network: resp.network || 'TRC-20', expires_in: resp.expires_in || 1800 };
   }
   async reserve_purchase_rub(plan = 'lifetime', ref = '') {
-    plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime'].includes(plan)) plan = 'lifetime';
+    plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime', 'web_week', 'web_month', 'web_year'].includes(plan)) plan = 'lifetime';
     const body = { machine: await this.get_machine_id(), product: 'lite', plan, key: this.license_key || '', title: 'Видеорилс Лайт' };
     const _r = await this._ref_for_purchase(plan, ref); if (_r) { body.ref = _r; this._pending_ref = _r; }
     const resp = await this._server_post('/prodamus/create-link', body);
@@ -361,7 +362,7 @@ export class Api {
     if (resp === null) return { ok: false, reachable: false, msg: this._t('lic_server_down') };
     if (resp.status === 'paid' && resp.key) {
       const key = resp.key.trim().toUpperCase(); const ltype = resp.type || 'lifetime'; const now_iso = isoNow();
-      const exp = this._license_expiry(ltype, now_iso);
+      const exp = (resp.expires && String(resp.expires).length >= 10) ? String(resp.expires).slice(0, 10) : this._license_expiry(ltype, now_iso);
       store.set(LIC_KEY, JSON.stringify({ key, type: ltype, activated: now_iso, expires: exp }));
       Object.assign(this, { license_key: key, license_type: ltype, license_activated: now_iso, license_expires: exp, licensed: true });
       return { ok: true, paid: true, key };
@@ -400,9 +401,9 @@ export class Api {
     call_js('licenseState', { licensed: this.licensed, msg: res.msg || '' });
   }
   _license_expiry(lic_type, activated_iso) {
-    if (!['monthly', 'yearly'].includes(lic_type)) return '';
+    if (!['weekly', 'monthly', 'yearly'].includes(lic_type)) return '';
     const base = fromIso(activated_iso) || new Date();
-    const d = new Date(base.getTime() + (lic_type === 'monthly' ? 30 : 365) * 86400000);
+    const d = new Date(base.getTime() + ({ weekly: 7, monthly: 30 }[lic_type] || 365) * 86400000);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
   _store_ref_stats(block) {
@@ -535,9 +536,9 @@ export class Api {
     try {
       const r = await requests.get(`${CF_URL}/product-plans`, { params: { product: 'lite' }, timeout: 12 });
       const data = Object.assign({}, r.json() || {});
-      if (data.plans && Object.keys(data.plans).length) return data;
+      if (data.plans && Object.keys(data.plans).length) { if (!data.web_plans) data.web_plans = WEB_PLANS_FB; return data; }
     } catch (e) { }
-    return { ok: false, plans: { monthly: 29, yearly: 149, lifetime: 197 } };
+    return { ok: false, plans: { monthly: 29, yearly: 149, lifetime: 197 }, web_plans: WEB_PLANS_FB };
   }
   async get_upgrade_price() {
     let out;

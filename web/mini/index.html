@@ -2590,6 +2590,7 @@ const I18N={
   licst_type:['Тип:','Type:'],
   licst_lifetime:['Навсегда','Lifetime'],
   licst_monthly:['Месяц','Monthly'],
+  licst_weekly:['Неделя','Weekly'],
   licst_yearly:['Год','Yearly'],
   upg_forever:['навсегда','forever'],
   upg_until:['до','until'],
@@ -6264,7 +6265,7 @@ function applyAccessUI(){
   const ms=$('licModalStatus');
   if(ms){ ms.style.display=licd?'block':'none';
     if(licd){ const kt=access.key_type||'lifetime';
-      const tp=(kt==='monthly')?t('licst_monthly'):((kt==='yearly')?t('licst_yearly'):t('licst_lifetime'));
+      const tp=(kt==='weekly')?t('licst_weekly'):(kt==='monthly')?t('licst_monthly'):((kt==='yearly')?t('licst_yearly'):t('licst_lifetime'));
       if($('licModalStatusType')) $('licModalStatusType').textContent=tp;
       const sub=(kt==='lifetime')?t('lic_forever')
         :((access.key_days_left!=null)?t('lic_days_left').replace('{n}',access.key_days_left):(fmtDate(access.key_expires)||''));
@@ -6316,7 +6317,7 @@ let _upg=null;
 function fmtDate(s){ if(!s)return''; try{const d=new Date(s); if(isNaN(d.getTime()))return s; const p=n=>(''+n).padStart(2,'0'); return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear(); }catch(e){return s;} }
 function _planLabel(type,exp){
   if(type==='lifetime')return t('licst_lifetime')+' · '+t('upg_forever');
-  const base=(type==='yearly')?t('licst_yearly'):t('licst_monthly');
+  const base=(type==='yearly')?t('licst_yearly'):(type==='weekly'?t('licst_weekly'):t('licst_monthly'));
   return base+(exp?(' · '+t('upg_until')+' '+exp):'');
 }
 function showLicenseStatus(){
@@ -6325,7 +6326,7 @@ function showLicenseStatus(){
     if(!access.licensed){ showLic(); return; }   // на всякий случай
     const lifetime=access.key_type==='lifetime';
     const lt=access.key_type;
-    $('licstTypeBand').textContent = lt==='monthly'?t('licst_monthly'):(lt==='yearly'?t('licst_yearly'):t('licst_lifetime'));
+    $('licstTypeBand').textContent = lt==='weekly'?t('licst_weekly'):lt==='monthly'?t('licst_monthly'):(lt==='yearly'?t('licst_yearly'):t('licst_lifetime'));
     $('licstActivated').textContent = fmtDate(access.key_activated)||'—';
     if($('licstKey'))$('licstKey').textContent = access.key||'—';
     const cd=$('licstCountdown');
@@ -7111,6 +7112,193 @@ html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;
   function end(e){ if(!act)return; fire('mouseup',e.changedTouches[0],document); act=null; }
   document.addEventListener('touchend',end,{capture:true}); document.addEventListener('touchcancel',end,{capture:true});
 })();</script>
+<script>window.__vrWebPlansFB={web_week:{type:"weekly",rub:539,days:7},web_month:{type:"monthly",rub:1199,days:30},web_year:{type:"yearly",rub:8990,days:365}};</script>
+<!-- ВЕБ-ПОДПИСКА (только сайт, программы для ПК не трогает): 3 яркие ступени
+     7 дней / 30 дней / Год, кнопка «Оплатить» -> страница Продамуса в новой вкладке ->
+     сайт сам опрашивает оплату и вставляет присланный ключ. Подключается из build_web.py. -->
+<style id="vrWebSubs">
+.vrSubs{display:flex;flex-direction:column;gap:10px;width:100%;margin:6px 0 4px}
+.vrSub{position:relative;border-radius:14px;padding:12px 12px;color:#fff;overflow:hidden;display:flex;align-items:center;gap:10px;
+  border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 26px -14px var(--g1);transition:transform .15s}
+.vrSub:hover{transform:translateY(-1px)}
+.vrSub::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,var(--g1),var(--g2));opacity:.92;z-index:0}
+.vrSub>*{position:relative;z-index:1}
+.vrSub.w{--g1:#06b6d4;--g2:#3b82f6}
+.vrSub.m{--g1:#a855f7;--g2:#ec4899}
+.vrSub.y{--g1:#f59e0b;--g2:#ef4444}
+.vrSub .a{flex:0 0 auto}
+.vrSub .lvl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.vrSub .per{font-size:18px;font-weight:900;white-space:nowrap}
+.vrSub .b{flex:1 1 auto;min-width:0;text-align:right}
+.vrSub .pr{font-size:22px;font-weight:900;line-height:1.05;white-space:nowrap;text-shadow:0 2px 10px rgba(0,0,0,.25)}
+.vrSub .pd{font-size:11px;font-weight:700;opacity:.92;white-space:nowrap}
+.vrSub .old{font-size:11px;opacity:.75;text-decoration:line-through;white-space:nowrap}
+.vrSub .tag{display:inline-block;font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.28);margin-top:3px;white-space:nowrap}
+.vrSub .pay{flex:0 0 auto;padding:10px 14px;border:0;border-radius:10px;cursor:pointer;
+  font-size:14px;font-weight:900;color:#1a1033;background:#fff;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
+.vrSub .pay:hover{filter:brightness(.95)}
+.vrSubsNote{font-size:12px;color:var(--mut);text-align:center;margin:8px 0 0;width:100%}
+.vrSubLeft{width:100%;font-weight:800;margin:0 0 6px;font-variant-numeric:tabular-nums}
+.vrPayGo{display:block;text-align:center;margin:10px 0 4px;padding:14px;border-radius:12px;font-size:17px;font-weight:900;
+  color:#fff!important;text-decoration:none;background:linear-gradient(135deg,#a855f7,#ec4899);box-shadow:0 8px 24px -10px #ec4899}
+#vrSubTimer{margin-left:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#vrSubTimer.warn{color:#fbbf24;border-color:rgba(251,191,36,.6)!important}
+#vrSubTimer.bad{color:#f87171;border-color:rgba(248,113,113,.7)!important}
+#vrSubWarn{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9998;max-width:min(560px,94vw);display:flex;gap:10px;align-items:center;
+  padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,#7c2d12,#9a3412);border:1px solid #fb923c;color:#fff;font-weight:700;font-size:14px;box-shadow:0 12px 34px -12px #000}
+#vrSubWarn button{border:0;border-radius:9px;padding:8px 12px;font-weight:900;cursor:pointer}
+#vrSubWarn .go{background:#fff;color:#7c2d12}#vrSubWarn .x{background:transparent;color:#fff;font-size:18px;padding:4px 8px}
+#vrSubEnd{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,3,15,.78)}
+#vrSubEnd .box{max-width:min(460px,94vw);padding:22px;border-radius:18px;background:#16112b;border:1px solid #a855f7;color:#fff;text-align:center}
+#vrSubEnd h3{margin:0 0 8px;font-size:20px}
+html.vrPhone .vrSub{padding:18px 16px}
+html.vrPhone .vrSub .per{font-size:22px}html.vrPhone .vrSub .lvl{font-size:14px}
+html.vrPhone .vrSub .pr{font-size:25px}html.vrPhone .vrSub .pd,html.vrPhone .vrSub .old{font-size:13px}
+html.vrPhone .vrSub .tag{font-size:14px}
+html.vrPhone .vrSub .pay{font-size:19px;padding:14px 12px}
+html.vrPhone .vrSubsNote,html.vrPhone .vrSubLeft{font-size:18px}
+html.vrPhone .vrPayGo{font-size:24px;padding:20px}
+html.vrPhone #vrSubWarn{font-size:22px;bottom:30px}html.vrPhone #vrSubWarn button{font-size:22px;padding:12px 16px}
+html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:30px}
+</style>
+<script>
+(function(){
+  const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  const FB=window.__vrWebPlansFB;
+  function plansOf(pr){ const w=(pr&&pr.web_plans)||FB||{}; return (w.web_week&&w.web_month&&w.web_year)?w:FB; }
+  // карточки ступеней в box (окно лицензии / окно «Моя лицензия»)
+  function draw(box, title){
+    if(!box)return;
+    const lic=(typeof access!=='undefined')&&access&&access.licensed;
+    if(lic&&(access.key_type||'lifetime')==='lifetime'){ box.innerHTML=''; return; }   // ключ «навсегда» из программы — продлевать нечего
+    const getp=(typeof api==='function')?api('get_plans'):Promise.resolve(null);
+    Promise.resolve(getp).catch(()=>null).then(pr=>{
+      const P=plansOf(pr); const w=P.web_week.rub, m=P.web_month.rub, y=P.web_year.rub;
+      const save=Math.max(0,Math.round((1-y/(m*12))*100));
+      const card=(cls,lvl,per,price,days,old,tag,plan)=>'<div class="vrSub '+cls+'">'
+        +'<div class="a"><div class="lvl">'+lvl+'</div><div class="per">'+per+'</div>'+(tag?'<span class="tag">'+tag+'</span>':'')+'</div>'
+        +'<div class="b"><div class="pr">'+fmt(price)+' ₽</div><div class="pd">≈ '+fmt(price/days)+' ₽ в день</div>'+(old?'<div class="old">'+fmt(old)+' ₽</div>':'')+'</div>'
+        +'<button class="pay" onclick="vrSubPay(\''+plan+'\')">Оплатить</button></div>';
+      box.innerHTML=(title?'<div style="width:100%;font-weight:800;margin:0 0 6px">'+title+'</div>':'')
+        +(lic&&subEnd()?'<div class="vrSubLeft">⏳ До конца подписки: <span class="vrSubLeftT">'+fmtLeft(subEnd()-Date.now())+'</span></div>':'')
+        +'<div class="vrSubs">'
+        +card('w','Старт','7 дней',w,7,0,'','web_week')
+        +card('m','Популярный','30 дней',m,30,w*30/7>m?Math.round(w*30/7):0,'🔥 хит','web_month')
+        +card('y','Максимум','Год',y,365,m*12,'−'+save+'%','web_year')
+        +'</div><div class="vrSubsNote">Без автосписаний: оплатил срок — пользуешься. Ключ придёт и вставится сам.'
+        +(lic?' Продление прибавит дни к текущему сроку.':'')+'</div>';
+      const sb=document.getElementById('scarBanner'); if(sb)sb.style.display='none';
+    });
+  }
+
+  // ---------- срок подписки: таймер у кнопки «Лицензия», предупреждение, окно «закончилась» ----------
+  // конец = следующий день после даты expires (как на сервере: действует ВКЛЮЧИТЕЛЬНО по эту дату)
+  function subEnd(){
+    if(typeof access==='undefined'||!access||!access.licensed) return 0;
+    const kt=access.key_type||'lifetime', e=String(access.key_expires||'');
+    if(kt==='lifetime'||e.length<10) return 0;
+    const t=Date.parse(e.slice(0,10)+'T00:00:00Z'); return isNaN(t)?0:t+86400000;
+  }
+  function fmtLeft(ms){
+    if(ms<=0) return '0:00:00';
+    const s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), x=s%60;
+    const p=n=>String(n).padStart(2,'0');
+    return (d?d+' д ':'')+h+':'+p(m)+':'+p(x);
+  }
+  // за сколько до конца предупреждать: неделя — за 2 дня, месяц — за 3, год — за 7
+  const warnMs=()=>({weekly:2,monthly:3,yearly:7}[(access&&access.key_type)||'']||3)*86400000;
+  function renewOpen(){ const w=document.getElementById('vrSubWarn'); if(w)w.remove();
+    if(typeof onLicenseBtn==='function') onLicenseBtn(); else if(typeof openLic==='function') openLic(); }
+  window.vrRenewOpen=renewOpen;
+  function showWarn(left){
+    const day=new Date().toISOString().slice(0,10);
+    try{ if(sessionStorage.getItem('vrSubWarn')===day) return; }catch(e){}
+    if(document.getElementById('vrSubWarn')) return;
+    const w=document.createElement('div'); w.id='vrSubWarn';
+    w.innerHTML='<span>⚠️ Подписка закончится через <b class="vrSubLeftT">'+fmtLeft(left)+'</b> — продли, чтобы не прерываться</span>'
+      +'<button class="go" onclick="vrRenewOpen()">Продлить</button><button class="x" title="Скрыть">✕</button>';
+    w.querySelector('.x').onclick=()=>{ try{sessionStorage.setItem('vrSubWarn',day);}catch(e){} w.remove(); };
+    document.body.appendChild(w);
+  }
+  function showEnded(){
+    if(document.getElementById('vrSubEnd')) return;
+    const m=document.createElement('div'); m.id='vrSubEnd';
+    m.innerHTML='<div class="box"><h3>⏰ Подписка закончилась</h3><div style="margin:0 0 14px;opacity:.9">Ролики, которые уже сделаны, остаются у тебя. Чтобы делать новые — продли подписку.</div>'
+      +'<button class="btn pp" style="width:100%;padding:12px;font-size:16px;font-weight:900" onclick="document.getElementById(\'vrSubEnd\').remove();vrRenewOpen()">Продлить подписку</button>'
+      +'<button class="btn ghost" style="width:100%;margin-top:8px" onclick="document.getElementById(\'vrSubEnd\').remove()">Позже</button></div>';
+    document.body.appendChild(m);
+  }
+  let lastWasSub=false;
+  try{ lastWasSub=localStorage.getItem('vrSubHad')==='1'; }catch(e){}
+  function tickTimer(){
+    const end=subEnd(); const btn=document.getElementById('btnLicense');
+    let el=document.getElementById('vrSubTimer');
+    if(!end){ if(el)el.remove(); return; }
+    try{ localStorage.setItem('vrSubHad','1'); }catch(e){} lastWasSub=true;
+    const left=end-Date.now();
+    if(!el&&btn){ el=document.createElement('button'); el.id='vrSubTimer'; el.className='rulesbtn'; el.title='До конца подписки'; el.onclick=renewOpen; btn.after(el); }
+    if(el){ el.textContent='⏳ '+fmtLeft(left); el.classList.toggle('warn',left<=warnMs()&&left>86400000); el.classList.toggle('bad',left<=86400000); }
+    document.querySelectorAll('.vrSubLeftT').forEach(x=>{ x.textContent=fmtLeft(left); });
+    if(left<=0){ if(el)el.remove(); if(!window.__vrSubEndDone){ window.__vrSubEndDone=1; try{ if(window.__vrApi) window.__vrApi.licensed=false; }catch(e){} if(typeof access!=='undefined'&&access)access.licensed=false; if(typeof applyAccessUI==='function')applyAccessUI(); showEnded(); } return; }
+    if(left<=warnMs()) showWarn(left);
+  }
+  setInterval(tickTimer,1000);
+  // сервер ответил «Подписка истекла» (проверка ключа) -> понятное окно с продлением, а не просто тост
+  const _ls=window.licenseState;
+  window.licenseState=function(s){
+    if(s&&!s.licensed&&(lastWasSub||/истек/i.test(s.msg||''))){ if(typeof access!=='undefined'&&access)access.licensed=false;
+      if(typeof applyAccessUI==='function')applyAccessUI(); try{localStorage.removeItem('vrSubHad');}catch(e){} lastWasSub=false; showEnded(); return; }
+    if(_ls) return _ls(s);
+  };
+  // замена карточек «Навсегда»: окно лицензии (Лайт renderPlans / Мини renderActivationPlans)
+  // и окно «Моя лицензия» (renderPlanCards) — везде одни и те же ступени
+  window.renderPlans=function(){ draw(document.getElementById('licPlans'), ''); };
+  window.renderActivationPlans=function(){ draw(document.getElementById('licPlans'), ''); };
+  window.renderPlanCards=function(){ draw(document.getElementById('licPlanCards'), 'Продлить подписку'); };
+  window.loadLaunchStats=function(){ const b=document.getElementById('scarBanner'); if(b)b.style.display='none'; };
+  // «Оплатить»: тот же путь, что и в приложении (бронь -> Продамус), + авто-проверка оплаты
+  let poll=null, until=0, linkShown='';
+  window.vrSubPay=function(plan){
+    if(typeof startBuy==='function') startBuy(plan);              // Лайт
+    else if(typeof startPurchase==='function') startPurchase(plan); // Мини
+    const nr=document.getElementById('payNoRenew'); if(nr) nr.style.display='block';
+    linkShown=''; until=Date.now()+35*60*1000;
+    if(poll) clearInterval(poll);
+    poll=setInterval(tick, 5000); setTimeout(tick, 1500);
+  };
+  function done(key){
+    clearInterval(poll); poll=null;
+    if(typeof stopPayTimers==='function') stopPayTimers();
+    const pp=document.getElementById('payPanel'); if(pp) pp.style.display='none';
+    if(typeof showPaySuccess==='function'){ showPaySuccess(key||''); }      // Мини: экран «Оплачено»
+    else {
+      const go=()=>{ if(typeof closeLic==='function')closeLic(); if(typeof toast==='function')toast('✅ Оплата прошла — ключ '+(key||'')+' вставлен, подписка активна'); };
+      if(typeof refreshAccess==='function') Promise.resolve(refreshAccess()).then(go, go); else go();
+    }
+  }
+  function tick(){
+    if(Date.now()>until){ clearInterval(poll); poll=null; return; }
+    // ссылка на оплату — большой кнопкой (браузер мог не открыть вкладку сам)
+    try{
+      const lk=(typeof _payRubLink!=='undefined')?_payRubLink:'';
+      const lb=document.getElementById('payRubLink');
+      if(lk&&lb&&linkShown!==lk){ linkShown=lk; lb.style.display='block';
+        lb.innerHTML=''; const a=document.createElement('a'); a.className='vrPayGo'; a.href=lk; a.target='_blank'; a.rel='noopener';
+        a.textContent='💳 Перейти к оплате'; lb.appendChild(a);
+        const h=document.createElement('div'); h.className='hint'; h.style.cssText='margin:4px 0 0;text-align:center';
+        h.textContent='После оплаты вернись сюда — ключ придёт и вставится сам.'; lb.appendChild(h);
+        const box=document.getElementById('payRubBox'); if(box) box.style.display='block'; }
+    }catch(e){}
+    const amt=(typeof payAmountVal!=='undefined')?payAmountVal:null;
+    if(!amt||typeof api!=='function') return;
+    api('check_payment', amt, '').then(r=>{ if(r&&r.ok&&r.paid&&poll) done(r.key); }).catch(()=>{});
+  }
+  // вернулся со страницы оплаты — сразу проверяем, не ждём 5 сек
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&poll) tick(); });
+  // кнопка «Выкупить навсегда» в окне «Моя лицензия» — в вебе только подписка
+  document.addEventListener('DOMContentLoaded',()=>{ const b=document.getElementById('licBuyLifetime'); if(b)b.style.display='none'; });
+})();
+</script>
 <script type="module" src="./vr/app.js"></script>
 </body>
 </html>

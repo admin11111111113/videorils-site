@@ -66,6 +66,10 @@ UI_PATCHES = [
       api('save_reel_speed',spd).then(r=>{ gal.disabled=false; gal.textContent=old;
         if(r&&r.ok)api('open_folder'); else toast((r&&r.msg)||t('toast_error'),'err'); })
         .catch(()=>{ gal.disabled=false; gal.textContent=old; toast(t('toast_error'),'err'); }); };"""),
+    # веб-подписка: тип ключа «Неделя» (7 дней)
+    ("licst_monthly:['Месяц','Monthly'],", "licst_monthly:['Месяц','Monthly'],\n  licst_weekly:['Неделя','Weekly'],"),
+    ("lt==='monthly'?t('licst_monthly')", "lt==='weekly'?t('licst_weekly'):lt==='monthly'?t('licst_monthly')"),
+    ("(kt==='monthly')?t('licst_monthly')", "(kt==='weekly')?t('licst_weekly'):(kt==='monthly')?t('licst_monthly')"),
     # «Галерея» (папка output) в браузере = скачать ролик
     ("open_folder:['📁 Папка output','📁 output folder']", "open_folder:['⬇ Скачать ролик','⬇ Download reel']"),
 ]
@@ -132,7 +136,10 @@ html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;
   document.addEventListener('touchend',end,{capture:true}); document.addEventListener('touchcancel',end,{capture:true});
 })();</script>
 """
-s = s[:i] + MOBILE_CSS + SHIM + s[i:]
+# веб-подписка: 3 ступени 7 дней / 30 дней / год вместо «Навсегда» + авто-проверка оплаты
+WEBSUBS = ('<script>window.__vrWebPlansFB={web_week:{type:"weekly",rub:599,days:7},web_month:{type:"monthly",rub:1799,days:30},web_year:{type:"yearly",rub:13190,days:365}};</script>\n'
+           + io.open(os.path.join(os.path.dirname(OUT), "..", "websubs.html"), encoding="utf-8").read())
+s = s[:i] + MOBILE_CSS + WEBSUBS + SHIM + s[i:]
 s = s.replace("<title>", "<title>Веб · ", 1)
 s = s.replace("<head>", '<head>\n<meta name="robots" content="noindex, nofollow">', 1)
 io.open(OUT, "w", encoding="utf-8").write(s)
