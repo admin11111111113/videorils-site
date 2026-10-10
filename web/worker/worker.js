@@ -295,6 +295,67 @@ async function proxy(req, url, origin) {
   return new Response(r.body, { status: r.status, headers: out });
 }
 
+
+// ---------------- статистика (1:1 с funnel.py /api/ev и app.py /ping-render) ----------------
+const EVENTS = ['first_launch', 'app_open', 'keys_saved', 'niche_selected', 'topic_set', 'generate_started', 'reel_done', 'generate_failed'];
+const EDITIONS = ['lite', 'mini', 'yt', '?'];
+const _evRate = new Map();                      // install_id -> [ts…] (≤60 в минуту, как _rate_ok)
+const clip = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+const dayUTC = () => new Date().toISOString().slice(0, 10);     // _day() сервера (Render = UTC)
+// транзакция Firebase через REST: ETag + if-match, повтор при гонке (как ref.transaction)
+async function fbTxn(env, path, fn) {
+  const url = env.FIREBASE_DB_URL.replace(/\/+$/, '') + path + '.json';
+  for (let i = 0; i < 25; i++) {                 // как firebase-admin: до 25 попыток при гонке
+    if (i) await new Promise((r) => setTimeout(r, 15 + Math.random() * 60 * Math.min(i, 6)));
+    const tok = await fbToken(env);
+    const g = await fetch(url, { headers: { Authorization: 'Bearer ' + tok, 'X-Firebase-ETag': 'true' } });
+    if (!g.ok) throw new Error('txn get ' + g.status);
+    const etag = g.headers.get('ETag'); const cur = await g.json();
+    const next = fn(cur && typeof cur === 'object' ? cur : null);
+    const w = await fetch(url, { method: 'PUT', headers: { Authorization: 'Bearer ' + tok, 'if-match': etag, 'Content-Type': 'application/json' }, body: JSON.stringify(next) });
+    if (w.ok) return next;
+    if (w.status !== 412) throw new Error('txn put ' + w.status);
+  }
+  throw new Error('txn contention');
+}
+async function apiEv(env, req, d) {
+  const install_id = clip(d.install_id, 64), event = clip(d.event, 32);
+  if (!install_id || !EVENTS.includes(event)) return [400, { ok: false }];
+  const now = Date.now() / 1000; const lst = (_evRate.get(install_id) || []).filter((t) => now - t < 60);
+  if (lst.length >= 60) { _evRate.set(install_id, lst); return [200, { ok: true, throttled: true }]; }
+  lst.push(now); _evRate.set(install_id, lst);
+  let edition = clip(d.edition, 8).toLowerCase() || '?'; if (!EDITIONS.includes(edition)) edition = '?';
+  const row = { install_id, event, app_version: clip(d.app_version, 16) || '?', edition, ts: clip(d.ts, 32) || pyNow(), srv_ts: now,
+    ip: clip(req.headers.get('cf-connecting-ip'), 45), ua: clip(req.headers.get('User-Agent'), 120) };
+  if (event === 'generate_failed') row.reason = clip(d.reason, 160);
+  try {
+    const day = dayUTC();
+    await fb(env, 'POST', `/events/${day}`, row);                 // push — тот же журнал дня
+    await fbTxn(env, `/events_index/${encodeURIComponent(install_id)}`, (cur) => {
+      cur = cur || {};
+      cur.edition = edition; cur.app_version = row.app_version; cur.last_ts = row.srv_ts;
+      if (cur.first_ts == null) cur.first_ts = row.srv_ts;
+      if (cur.first_day == null) cur.first_day = day;
+      cur[event] = (parseInt(cur[event] || 0) || 0) + 1;
+      return cur;
+    });
+  } catch (e) { return [200, { ok: true, stored: false }]; }
+  return [200, { ok: true }];
+}
+async function pingRender(env, d) {
+  let product = String(d.product || 'mini').trim().toLowerCase(); if (!PRODUCTS.includes(product)) product = 'other';
+  try {
+    await fbTxn(env, '/videorils_render_stats', (cur) => {
+      cur = cur || {};
+      cur.total = (parseInt(cur.total || 0) || 0) + 1;
+      const by = cur.by_product || {}; by[product] = (parseInt(by[product] || 0) || 0) + 1; cur.by_product = by;
+      cur.last_at = pyNow();
+      return cur;
+    });
+  } catch (e) { return null; }                    // не вышло — запрос уйдёт на Render, как раньше
+  return [200, { ok: true }];
+}
+
 const cors = (origin) => !origin ? {} : ({ 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' });
 
@@ -318,6 +379,13 @@ export default {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
       const body = await cachedGet(env, ctx, url);
       return new Response(JSON.stringify(body || {}), { status: body ? 200 : 502, headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
+    }
+    if ((url.pathname === '/api/ev' || url.pathname === '/ping-render') && req.method === 'POST' && fbOn(env)) {
+      let d = {}; try { d = await req.clone().json(); } catch (e) { }
+      let r = null;
+      try { r = url.pathname === '/api/ev' ? await apiEv(env, req, d || {}) : await pingRender(env, d || {}); } catch (e) { r = null; }
+      if (r) return new Response(JSON.stringify(r[1]), { status: r[0], headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
+      // r === null -> ниже обычная пересылка на Render
     }
     if (url.pathname === '/check') {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
