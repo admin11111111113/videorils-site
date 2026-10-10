@@ -32,11 +32,11 @@ fbq('track', 'PageView');
 // новые кнопки скачивания подхватятся сами. Переход по ссылке НЕ трогаем:
 // никакого preventDefault — fbq уходит асинхронно и загрузку не задерживает.
 document.addEventListener('click', function(e){
-  var a = e.target && e.target.closest ? e.target.closest('a[href*="Setup.exe"]') : null;
+  var a = e.target && e.target.closest ? e.target.closest('a[href*="Setup.exe"], a.ms-store-btn') : null;
   if(!a) return;
   var href = (a.getAttribute('href')||'').toLowerCase();
-  var what = href.indexOf('lite') >= 0 ? 'lite'
-           : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown');
+  var what = a.getAttribute('data-store') || (href.indexOf('lite') >= 0 ? 'lite'
+           : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown'));
   var price = what === 'lite' ? 197 : (what === 'mini' ? 97 : 0);
   try{ fbq('trackCustom', 'Download', {content_name: what}); }catch(err){}
   // TikTok — то же событие с ценой тарифа, чтобы в кабинете была видна не только
@@ -740,6 +740,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 .final-cta-txt{font-size:clamp(17px,2.6vw,22px);font-weight:800;color:var(--txt);margin-bottom:16px;line-height:1.35}
 .final-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
 </style>
+<style>.ms-store-btn{display:inline-block;line-height:0;border-radius:10px;transition:transform .15s,box-shadow .15s}.ms-store-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}.ms-store-btn img{display:block;height:auto;max-width:100%}</style>
 </head>
 <body>
 
@@ -1069,7 +1070,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 
     <div class="install rv">
       <div style="max-width:720px;margin:0 auto 18px;padding:14px 18px;border:1px solid rgba(255,138,61,.4);border-radius:14px;background:rgba(255,138,61,.08);font-size:14px;font-weight:700;line-height:1.5;color:var(--txt);text-align:center">Есть бесплатный триал и промокоды — можно опробовать бесплатную версию приложения. Ищи их в группе <a href="https://t.me/nadin_ai_blog" target="_blank" style="color:var(--ok)">Telegram</a> и в боте <a href="https://t.me/rombyai_bot" target="_blank" style="color:var(--ok)">@rombyai_bot</a>. Приложение пока только для Windows, но скоро и для Android. ⚠️ Если скачивание не открывается — включите VPN (у части провайдеров РФ проблемы с доступом). Для бесплатных ключей внутри программы (Pixabay, Gemini) тоже иногда нужен VPN — ограничение самих сервисов, не Видеорилс.</div>
-      <div class="install-title">Как установить (3 шага)</div>
+      <div class="install-title">Как установить</div>
+      <div style="text-align:center;font-size:15px;line-height:1.6;margin:0 0 12px"><b>Проще всего — через Microsoft Store:</b> нажми «Скачайте из Microsoft Store» → «Получить». Программа поставится сама, без предупреждений Windows, и будет обновляться автоматически.</div>
+      <div style="text-align:center;font-size:13px;color:var(--mut,#9aa0aa);margin:0 0 6px">Или через установщик с GitHub / Telegram:</div>
       <ol>
         <li><b>Запусти</b> скачанный установщик (Мини или Лайт).</li>
         <li>Нажми <b>«Далее»</b> — программа установится, ярлык появится на рабочем столе и в Пуске.</li>
@@ -1083,7 +1086,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <h3 style="text-align:center;margin:0 0 8px">Видеорилс <b>Мини</b></h3>
         <div class="feat-price" style="margin:0;text-align:center"><span style="display:inline-block;text-decoration:line-through;color:var(--pink);font-weight:800;margin-right:10px;font-size:22px;transform:rotate(-9deg)">5999₽</span>1999₽ навсегда</div>
         <div style="margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:10px">
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-v1.2.170/VideoRilsMiniSetup.exe" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">↓ Скачать (GitHub)</a>
+          <a href="https://apps.microsoft.com/detail/9MWJ4QBJ14KL?mode=direct" target="_blank" rel="noopener" class="ms-store-btn" data-store="mini" aria-label="Скачайте из Microsoft Store"><img src="/images/ms-store-ru.svg" alt="Скачайте из Microsoft Store" width="220" height="80" loading="lazy"></a>
+          <div style="text-align:center;font-size:12.5px;color:var(--mut,#9aa0aa);margin:-4px 0 4px">Без предупреждений Windows · обновления сами</div>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-v1.2.170/VideoRilsMiniSetup.exe" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">↓ Скачать установщик (GitHub)</a>
           <div style="text-align:center;font-size:13px;font-weight:800;color:var(--txt)">Зеркало для скачивания с РФ</div>
           <a href="https://t.me/nadin_ai_blog/44" target="_blank" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">📲 Скачать с Telegram</a>
         </div>
@@ -1092,7 +1097,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <h3 style="text-align:center;margin:0 0 8px">Видеорилс <b>Лайт</b></h3>
         <div class="feat-price" style="margin:0;text-align:center"><span style="display:inline-block;text-decoration:line-through;color:#b98cff;font-weight:800;margin-right:10px;font-size:22px;transform:rotate(-9deg)">11999₽</span>3999₽ навсегда</div>
         <div style="margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:10px">
-          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.259/VideoRilsLiteSetup.exe" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">↓ Скачать (GitHub)</a>
+          <a href="https://apps.microsoft.com/detail/9NS8ZQ0KQ280?mode=direct" target="_blank" rel="noopener" class="ms-store-btn" data-store="lite" aria-label="Скачайте из Microsoft Store"><img src="/images/ms-store-ru.svg" alt="Скачайте из Microsoft Store" width="220" height="80" loading="lazy"></a>
+          <div style="text-align:center;font-size:12.5px;color:var(--mut,#9aa0aa);margin:-4px 0 4px">Без предупреждений Windows · обновления сами</div>
+          <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-v1.0.259/VideoRilsLiteSetup.exe" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">↓ Скачать установщик (GitHub)</a>
           <div style="text-align:center;font-size:13px;font-weight:800;color:var(--txt)">Зеркало для скачивания с РФ</div>
           <a href="https://t.me/nadin_ai_blog/45" target="_blank" class="btn" style="background:rgba(61,255,138,.16);border:1px solid var(--ok);color:var(--ok)">📲 Скачать с Telegram</a>
         </div>
