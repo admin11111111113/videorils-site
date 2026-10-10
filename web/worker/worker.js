@@ -407,11 +407,19 @@ export default {
     }
     if (url.pathname !== '/edge') return await proxy(req, url, origin);
     if (req.headers.get('Upgrade') !== 'websocket') return new Response('ok', { status: 200 });
-    const up = await fetch(UPSTREAM + url.search, {
-      headers: { Upgrade: 'websocket', 'User-Agent': EDGE_UA, Origin: 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold', Pragma: 'no-cache', 'Cache-Control': 'no-cache' },
-    });
-    const ws = up.webSocket;
-    if (!ws) return new Response('upstream ' + up.status, { status: 502 });
+    // Microsoft иногда отказывает прямо при подключении — повторяем сами (3 раза по ~0.3с), чтобы
+    // страница не ловила «ошибку соединения» и не уходила в долгие паузы
+    let up = null, ws = null;
+    for (let i = 0; i < 3 && !ws; i++) {
+      if (i) await new Promise((r) => setTimeout(r, 300));
+      try {
+        up = await fetch(UPSTREAM + url.search, {
+          headers: { Upgrade: 'websocket', 'User-Agent': EDGE_UA, Origin: 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold', Pragma: 'no-cache', 'Cache-Control': 'no-cache' },
+        });
+        ws = up.webSocket;
+      } catch (e) { ws = null; }
+    }
+    if (!ws) return new Response('upstream ' + (up ? up.status : 'error'), { status: 502 });
     ws.accept();
     const [client, server] = Object.values(new WebSocketPair());
     server.accept();

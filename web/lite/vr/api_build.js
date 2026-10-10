@@ -463,7 +463,26 @@ function downloadBlob(b, name) { const u = URL.createObjectURL(b); const a = doc
 P.open_reel = function () { if (this.last_reel && vfs.exists(this.last_reel)) { window.open(vfs.objectUrl(this.last_reel), '_blank'); return true; } return false; };
 P.open_video = P.open_reel;
 // «Галерея» = папка output -> в браузере это «Скачать ролик»
-P.open_folder = function () { if (this.last_reel && vfs.exists(this.last_reel)) { downloadBlob(vfs.read(this.last_reel), path.basename(this.last_reel)); return true; } return false; };
+// серия на экране (карусель) -> скачиваем ТОТ ролик, что показан сейчас (раньше — всегда последний собранный)
+P._batch_shown_path = function () {
+  try {
+    if (typeof phoneBatchActive !== 'undefined' && phoneBatchActive && phoneBatchReels && phoneBatchReels.length) {
+      const rl = phoneBatchReels[phoneBatchIdx] || {}; const i = rl.idx != null ? rl.idx : phoneBatchIdx;
+      const r = (this._batch_results || [])[i]; if (r && r.path && vfs.exists(r.path)) return r.path;
+    }
+  } catch (e) { }
+  return '';
+};
+// «📦 Скачать серию»: все ролики серии по очереди, каждый своим файлом (на телефоне — сразу в Загрузки/галерею)
+P.download_series = async function () {
+  const items = (this._batch_results || []).map((r) => r && r.path).filter((p) => p && vfs.exists(p));
+  if (!items.length) return { ok: false, msg: this._t('file_not_selected') };
+  for (let i = 0; i < items.length; i++) { downloadBlob(vfs.read(items[i]), path.basename(items[i])); await new Promise((r) => setTimeout(r, 900)); }
+  return { ok: true, n: items.length };
+};
+P.open_folder = function () {
+  const shown = this._batch_shown_path(); if (shown) { downloadBlob(vfs.read(shown), path.basename(shown)); return true; }
+  if (this.last_reel && vfs.exists(this.last_reel)) { downloadBlob(vfs.read(this.last_reel), path.basename(this.last_reel)); return true; } return false; };
 P.clear_reel_preview = function () { this._reel_master_path = ''; this.last_reel = ''; return { ok: true }; };
 // готовый ролик в плеер — ПРЯМОЙ blob-ссылкой из памяти: без SW и хранилища браузера
 // (у части браузеров видео через SW не грузилось — плеер 0:00). Прошлую ссылку освобождаем.

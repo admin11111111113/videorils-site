@@ -296,7 +296,8 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
       } catch (e) {
         const empty = (String(e.message || '').toLowerCase().includes('no audio') || e.name === 'NoAudioReceived');
         if (empty && !PREV) _edge_limit_hit();
-        const back = PREV ? 0.4 : 2 ** (attempt + 1);
+        // «ошибка соединения» (не лимит) — повтор через 1с; долгие паузы 2/4/8с — только для «пусто» (лимит)
+        const back = PREV ? 0.4 : (empty ? 2 ** (attempt + 1) : 1);
         log(`  ⚠ Edge-TTS ${tag} попытка ${attempt + 1}/${N}: ` + (empty ? 'пусто (лимит частоты Microsoft)' : String(e.message || e).slice(0, 60)) + (attempt < N - 1 ? ` — пауза ${back}с` : ' — жду лимит'));
         if (attempt < N - 1) await sleep(back);
       }

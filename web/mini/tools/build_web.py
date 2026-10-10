@@ -9,6 +9,8 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # телефон -> вид «как на ПК» (3 колонки)
+    ('<meta name="viewport" content="width=device-width, initial-scale=1">', '<meta name="viewport" content="width=device-width, initial-scale=1" id="vrVp"><script>/* телефон -> вид «как на ПК» (3 колонки, как в приложении); планшеты/ПК не трогаем */(function(){try{var c=matchMedia("(pointer:coarse)").matches,w=Math.min(screen.width,screen.height);if(c&&w<900){document.getElementById("vrVp").setAttribute("content","width=1280");document.documentElement.classList.add("vrPhone");}}catch(e){}})();</script>'),
     # веб: слева без «Посмотреть рилс» и «Извлечь звук» (ролик и так играет справа)
     ("""        <button class="btn gc" onclick="api('open_reel')" data-i18n="open_reel">▶️ Посмотреть рилс</button>
         <button class="btn ghost" onclick="extractAudio(this)" data-i18n="extract_audio" data-i18n-title="title_extract_audio">🎵 Извлечь звук</button>
@@ -68,6 +70,20 @@ MOBILE_CSS = """<style id="vrWebMobile">
 @media (max-width: 1100px){
   .reelColRight{display:block!important;position:static!important;grid-column:1/-1}
   .reelColRight .sub-frame.reel{max-width:360px!important}
+  /* левая колонка НЕ прилипает и не режется по высоте экрана: иначе при прокрутке она стояла
+     на месте и закрывала превью/готовое видео (телефон в «Версии для ПК», планшет) */
+  #reelColLeft,#cmColLeft,#amColLeft,.reelColLeft,.cmColLeft,.amColLeft{position:static!important;max-height:none!important;top:auto!important}
+  .reelLeftScroll,.cmLeftScroll,.amLeftScroll{max-height:none!important;overflow:visible!important}
+  #reelColRight,#cmColRight,#amColRight{position:static!important;max-height:none!important;overflow:visible!important}
+  /* экран «С чего начнём?»: карточка нормальных пропорций, а не во весь (высокий) экран; кнопка крупная */
+  .home2col{min-height:0!important}
+  .homeright .pcard{min-height:0!important;height:auto!important;aspect-ratio:4/5;max-height:640px}
+  .pcard .gobtn{padding:16px 34px!important;font-size:18px!important;border-radius:14px!important;min-width:min(78%,320px)}
+}
+/* 2 колонки (761–1100): превью/готовое видео — ПОД СЦЕНАМИ (2-я колонка), левая — на всю высоту */
+@media (min-width: 761px) and (max-width: 1100px){
+  .reelColLeft,.cmColLeft,.amColLeft{grid-row:1 / span 2}
+  .reelColRight,#cmColRight,#amColRight{grid-column:2!important;grid-row:2}
 }
 @media (max-width: 760px){
   html,body{overflow-x:hidden}
@@ -80,7 +96,21 @@ MOBILE_CSS = """<style id="vrWebMobile">
   .slider-wrap > span[style*="min-width:120px"]{min-width:0!important}   /* подпись слайдера не выталкивает значение за экран */
   #btnLangReel{white-space:normal!important}
 }
+/* телефон: без «стеклянных» эффектов — иначе при быстрой прокрутке белые вспышки (не успевает рисовать) */
+html.vrPhone *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+/* телефон в «виде ПК» очень высокий: карточки «С чего начнём?» — нормальных пропорций, кнопка крупная */
+html.vrPhone .home2col{min-height:0!important}
+html.vrPhone .homeright .pcard{min-height:0!important;height:auto!important;aspect-ratio:4/5;max-height:760px}
+html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;border-radius:14px!important;min-width:min(70%,340px)}
 </style>
+<script>/* касания -> мышь для перетаскивания (субтитр, заголовок, логотип, уголки размера): там только mousedown */
+(function(){ if(!('ontouchstart' in window))return; var act=null;
+  function fire(type,t,target){ var ev=new MouseEvent(type,{bubbles:true,cancelable:true,clientX:t.clientX,clientY:t.clientY,screenX:t.screenX,screenY:t.screenY,button:0,buttons:type==='mouseup'?0:1}); (target||document).dispatchEvent(ev); }
+  document.addEventListener('touchstart',function(e){ var el=e.target.closest&&e.target.closest('[onmousedown]'); if(!el||e.touches.length!==1)return; act=el; e.preventDefault(); fire('mousedown',e.touches[0],el); },{passive:false,capture:true});
+  document.addEventListener('touchmove',function(e){ if(!act)return; e.preventDefault(); fire('mousemove',e.touches[0],document); },{passive:false,capture:true});
+  function end(e){ if(!act)return; fire('mouseup',e.changedTouches[0],document); act=null; }
+  document.addEventListener('touchend',end,{capture:true}); document.addEventListener('touchcancel',end,{capture:true});
+})();</script>
 """
 s = s[:i] + MOBILE_CSS + SHIM + s[i:]
 s = s.replace("<title>", "<title>Веб · ", 1)

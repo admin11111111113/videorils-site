@@ -2,12 +2,16 @@
 // считала прямо в странице: та замирала на секунды, и Chrome предлагал «закрыть страницу».
 // Здесь: загрузка модели (кэш браузера — качается 1 раз), автоопределение языка, распознавание.
 const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/+esm';
-const MODEL = 'onnx-community/whisper-small_timestamped';
+// Телефон: модель small (~250 МБ) слишком тяжёлая — долго и Android закрывает вкладку из-за памяти.
+// На телефонах — whisper-base (~77 МБ, ~3× быстрее, чуть хуже качество), на процессоре. ПК — small, как в приложении.
+const PHONE = /Android|iPhone|iPad|iPod|Mobile/i.test((self.navigator && navigator.userAgent) || '') || !!(self.navigator && navigator.userAgentData && navigator.userAgentData.mobile);
+const MODEL = PHONE ? 'onnx-community/whisper-base_timestamped' : 'onnx-community/whisper-small_timestamped';
 let T = null, asr = null;
 
 // Видеокарта (WebGPU) — в разы быстрее процессора. Берём её, только если она умеет fp16
 // (тогда модель fp16/q4f16 ~320 МБ); иначе — как раньше, процессор (wasm, q8 ~250 МБ).
 async function pickDevice() {
+  if (PHONE) return { device: 'wasm', dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' } };
   try {
     if (self.navigator && navigator.gpu) {
       const ad = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
@@ -36,7 +40,7 @@ async function load() {
     // видеокарта не поднялась — молча на процессор
     asr = await T.pipeline('automatic-speech-recognition', MODEL, opts({ device: 'wasm', dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' } })); DEVICE = 'wasm';
   }
-  self.postMessage({ type: 'device', device: DEVICE });
+  self.postMessage({ type: 'device', device: DEVICE, phone: PHONE });
   return asr;
 }
 
