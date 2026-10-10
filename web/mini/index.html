@@ -1483,7 +1483,7 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
         <div style="font-weight:800;color:var(--mint)"><span data-i18n="licst_active">Лицензия активна</span> · <span id="licModalStatusType">—</span></div>
         <div id="licModalStatusSub" class="hint" style="margin:4px 0 0"></div>
         <div id="licKeyRow" style="display:none;margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap"><code id="licKeyFull" style="user-select:all;font-weight:800;letter-spacing:.5px;font-size:14px"></code><button class="btn ghost" style="padding:5px 12px;font-size:12.5px" onclick="copyLicKey(this)">📋 Скопировать ключ</button></div>
-        <div class="hint" id="licKeyHint" style="display:none;margin:4px 0 0">Сохраните ключ — с ним лицензия восстанавливается в любом браузере на этом ПК.</div>
+        <div class="hint" id="licKeyHint" style="display:none;margin:4px 0 0">Сохраните ключ — с ним лицензия восстанавливается в браузере на этом устройстве.</div>
         <!-- апгрейд/продление живёт в отдельном окне статуса — уводим туда кнопкой -->
         <button class="btn ghost" id="licColUpgBtn" style="width:100%;margin-top:10px;display:none"
                 onclick="showLicenseStatus()" data-i18n="licst_upg_btn">Сменить тариф / апгрейд</button>
@@ -1791,6 +1791,7 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
           <span style="display:flex;align-items:center;gap:8px"><code id="licstKey" style="user-select:all;font-weight:800;letter-spacing:.5px">—</code>
           <button class="btn ghost" style="padding:4px 10px;font-size:12px" onclick="copyLicKey(this,'licstKey')">📋 Скопировать</button></span></div>
       </div>
+      <div class="hint" id="licstKeyHint" style="margin:-4px 2px 12px">Сохраните ключ — с ним лицензия восстанавливается в браузере на этом устройстве.</div>
       <div id="licPlanCardsLbl" class="hint" style="margin:0 0 8px 2px" data-i18n="licst_upg_lbl">Сменить тариф / апгрейд:</div>
       <div id="licPlanCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px"></div>
 
