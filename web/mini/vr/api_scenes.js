@@ -300,7 +300,31 @@ P.scene_upload_file = function (idx) {
     const f = files[0]; const ext = path.splitext(f.name)[1].toLowerCase();
     if (![...MEDIA_IMG, ...MEDIA_VID].includes(ext)) return { ok: false, msg: this._t('file_not_selected') };
     const p = `input/scene_${idx}_${Date.now()}${ext}`; vfs.write(p, f);
-    try { await makeThumb(p, `temp/scene_${idx}_thumb.jpg`, 240); } catch (e) { }
+    try { await makeThumb(p, `temp/scene_${idx}_thumb.jpg`, 240); }
+    catch (e) {
+      // браузер не смог прочитать файл — не принимаем молча (иначе ролик потом не соберётся)
+      vfs.remove(p);
+      if (MEDIA_VID.includes(ext)) {
+        // видео: сами переводим в обычный MP4 (H.264) — и принимаем уже его
+        const ios = ext === '.mov' || ext === '.hevc' || /iphone|ipad/i.test(navigator.userAgent);
+        call_js('toast', (ios ? 'Видео с iPhone в формате, который браузер не открывает' : 'Браузер не открывает этот формат видео') + ' — перевожу в обычный MP4. Это займёт до 1–2 минут, не закрывайте страницу…');
+        try {
+          const { toCompatibleMp4 } = await import('./convert.js');
+          let shown = 0;
+          const mp4 = await toCompatibleMp4(f, (fr) => { const pc = Math.floor(fr * 100); if (pc >= shown + 25) { shown = pc - pc % 25; call_js('toast', `Перевожу видео… ${shown}%`); } });
+          const p2 = `input/scene_${idx}_${Date.now()}.mp4`; vfs.write(p2, mp4);
+          await makeThumb(p2, `temp/scene_${idx}_thumb.jpg`, 240);
+          Object.assign(this.reel_scenes[idx], { clip: p2, preview: '', locked: true });
+          this._thumb_tick++;
+          if (ios) setTimeout(() => call_js('toast', 'Готово — видео переведено. Совет: чтобы в следующий раз без ожидания, на iPhone включите Настройки → Камера → Форматы → «Наиболее совместимый».'), 2500);
+          return { ok: true, name: f.name, converted: true, thumb: `temp/scene_${idx}_thumb.jpg?t=${this._thumb_tick}` };
+        } catch (ce) { log(`  ⚠ перевод видео не удался: ${String(ce.message || ce).slice(0, 80)}`); }
+        return { ok: false, msg: ios
+          ? 'Не получилось открыть и перевести это видео. Видео с iPhone: Настройки → Камера → Форматы → «Наиболее совместимый» и выключите «HDR-видео», затем снимите заново. Или откройте сайт в Safari на iPhone.'
+          : 'Не получается открыть это видео в браузере. Попробуйте файл MP4 (H.264) или другой ролик.' };
+      }
+      return { ok: false, msg: 'Не получается открыть эту картинку. Попробуйте JPG или PNG.' };
+    }
     Object.assign(this.reel_scenes[idx], { clip: p, preview: '', locked: true });
     this._thumb_tick++;
     return { ok: true, name: f.name, thumb: `temp/scene_${idx}_thumb.jpg?t=${this._thumb_tick}` };
