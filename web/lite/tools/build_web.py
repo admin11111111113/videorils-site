@@ -9,6 +9,14 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # веб: слева без «Посмотреть рилс» (ролик и так играет справа)
+    ("""        <button class="btn gc" onclick="watchReelBig()" data-i18n="open_reel">▶️ Посмотреть рилс</button>
+""", ""),
+    # веб: в 3-й колонке вместо «Смотреть крупно» — «Извлечь звук» (если отдельной кнопки нет)
+    ("""      fs.textContent=t('reel_fullscreen'); fs.onclick=()=>{ const vv=$(vidId); const u=(vv&&vv.src)||r.url; if(u)showClipModal('video',u,false); };
+      box.appendChild(fs);""",
+     """      fs.className='btn ghost'; fs.textContent=t('extract_audio'); fs.onclick=()=>extractAudio(fs);
+      if(colId==='reelColRight'&&!$('reelColExtract'))box.appendChild(fs);"""),
     # музыка: понятно и для ПК, и для телефона (в вебе файл можно выбрать с любого устройства, папку — только на ПК)
     ("music_choosefile:['🎵 Выбрать файл музыки с ПК','🎵 Choose a music file from PC']",
      "music_choosefile:['🎵 Выбрать музыку с ПК или телефона','🎵 Choose music from PC or phone']"),

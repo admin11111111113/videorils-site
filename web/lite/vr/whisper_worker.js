@@ -5,20 +5,38 @@ const TJS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/+esm';
 const MODEL = 'onnx-community/whisper-small_timestamped';
 let T = null, asr = null;
 
+// Видеокарта (WebGPU) — в разы быстрее процессора. Берём её, только если она умеет fp16
+// (тогда модель fp16/q4f16 ~320 МБ); иначе — как раньше, процессор (wasm, q8 ~250 МБ).
+async function pickDevice() {
+  try {
+    if (self.navigator && navigator.gpu) {
+      const ad = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+      if (ad && ad.features && ad.features.has('shader-f16')) return { device: 'webgpu', dtype: { encoder_model: 'fp16', decoder_model_merged: 'q4f16' } };
+    }
+  } catch (e) { }
+  return { device: 'wasm', dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' } };
+}
+let DEVICE = 'wasm';
 async function load() {
   if (asr) return asr;
   T = await import(TJS);
   const files = {};
-  asr = await T.pipeline('automatic-speech-recognition', MODEL, {
-    dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' }, device: 'wasm',
-    progress_callback: (p) => {
+  const cfg = await pickDevice();
+  const opts = (c) => ({ dtype: c.dtype, device: c.device, progress_callback: prog });
+  const prog = (p) => {
       if (p && p.status === 'progress' && p.total) {
         files[p.file] = [p.loaded, p.total];
         const L = Object.values(files).reduce((a, x) => a + x[0], 0), S = Object.values(files).reduce((a, x) => a + x[1], 0);
         self.postMessage({ type: 'progress', frac: S ? L / S : 0 });
       }
-    },
-  });
+    };
+  try { asr = await T.pipeline('automatic-speech-recognition', MODEL, opts(cfg)); DEVICE = cfg.device; }
+  catch (e) {
+    if (cfg.device !== 'webgpu') throw e;
+    // видеокарта не поднялась — молча на процессор
+    asr = await T.pipeline('automatic-speech-recognition', MODEL, opts({ device: 'wasm', dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' } })); DEVICE = 'wasm';
+  }
+  self.postMessage({ type: 'device', device: DEVICE });
   return asr;
 }
 

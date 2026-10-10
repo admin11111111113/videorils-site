@@ -20,6 +20,9 @@ P._has_stock = async function () { return !!((await this._active_pixabay_key()) 
 P.build_reel = async function (claude_answer, style_index) {
   this.track('generate_started');
   if (!this._has_access()) return { ok: false, code: 'no_license', msg: this._t('lic_need') };
+  // браузер без сборки видео (старый Safari/iOS < 16.4 и т.п.) — понятное сообщение, а не «Can't find variable»
+  { const miss = ['VideoEncoder', 'AudioEncoder', 'OffscreenCanvas', 'AudioBuffer'].filter((k) => typeof globalThis[k] === 'undefined');
+    if (miss.length) return { ok: false, code: 'browser_unsupported', msg: 'Этот браузер не умеет собирать видео. Откройте сайт в Chrome или Edge на компьютере, в Chrome на Android или обновите iPhone до iOS 17+ (Safari).' }; }
   if (this.busy) return { ok: false, msg: this._t('already_processing') };
   if (this.reel_source === 'foreign' && !this.foreign_segments.length) return { ok: false, code: 'foreign_no_text', msg: this._t('foreign_no_text') };
   if ((claude_answer || '').trim()) this.parse_to_scenes(claude_answer);

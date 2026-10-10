@@ -1838,7 +1838,6 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
       <div class="spacer"></div>
       <div class="log" id="rLog" style="display:none"><span class="cursor">▋</span></div>
       <div class="row" id="rDoneRow" style="display:none;margin-top:14px">
-        <button class="btn gc" onclick="watchReelBig()" data-i18n="open_reel">▶️ Посмотреть рилс</button>
         <!-- «Извлечь звук» переехала в ПРАВУЮ колонку под галерею (reelColExtract) — единый порядок -->
       </div>
       <div id="publishBox" style="display:none;margin-top:14px">
@@ -10510,8 +10509,8 @@ function showReelInPreview(colId, boxId){
       // «Смотреть крупно» — открывает готовый ролик в БОЛЬШОМ встроенном плеере (showClipModal),
       // а НЕ во внешнем проигрывателе Windows. loop=false — готовое видео не автоповторяется.
       const fs=document.createElement('button'); fs.className='btn gc'; fs.style.cssText='width:100%;margin-top:12px';
-      fs.textContent=t('reel_fullscreen'); fs.onclick=()=>{ const vv=$(vidId); const u=(vv&&vv.src)||r.url; if(u)showClipModal('video',u,false); };
-      box.appendChild(fs);
+      fs.className='btn ghost'; fs.textContent=t('extract_audio'); fs.onclick=()=>extractAudio(fs);
+      if(colId==='reelColRight'&&!$('reelColExtract'))box.appendChild(fs);
       // «Сохранить в галерею» на ВЫБРАННОЙ скорости (реальная ffmpeg-обработка только тут).
       if(colId==='reelColRight'){
         const sv=document.createElement('button'); sv.className='btn pp'; sv.id='reelSaveSpeedBtn';

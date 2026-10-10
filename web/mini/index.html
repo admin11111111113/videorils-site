@@ -1267,8 +1267,6 @@ body.reel3col .wrap{max-width:min(96vw,1560px)}
       <div class="spacer"></div>
       <div class="log" id="rLog" style="display:none"><span class="cursor">▋</span></div>
       <div class="row" id="rDoneRow" style="display:none;margin-top:14px">
-        <button class="btn gc" onclick="api('open_reel')" data-i18n="open_reel">▶️ Посмотреть рилс</button>
-        <button class="btn ghost" onclick="extractAudio(this)" data-i18n="extract_audio" data-i18n-title="title_extract_audio">🎵 Извлечь звук</button>
       </div>
       <div id="publishBox" style="display:none;margin-top:14px">
         <div class="voicebox">
@@ -6209,8 +6207,8 @@ function showReelInPreview(){
       // а НЕ во внешнем проигрывателе Windows (os.startfile тормозил/не тот плеер). Узкая рамка
       // телефона = только превью; полноценные контролы (звук/перемотка) — в крупном плеере.
       // loop=false и здесь — готовое видео не должно автоповторяться.
-      const fs=document.createElement('button'); fs.className='btn gc'; fs.style.cssText='width:100%;margin-top:12px';
-      fs.textContent=t('reel_fullscreen'); fs.onclick=()=>{ const vv=$('reelResultVideo'); const u=(vv&&vv.src)||r.url; if(u)showClipModal('video',u,false); };
+      const fs=document.createElement('button'); fs.className='btn ghost'; fs.style.cssText='width:100%;margin-top:12px';
+      fs.textContent=t('extract_audio'); fs.title=t('title_extract_audio'); fs.onclick=()=>extractAudio(fs);
       box.appendChild(fs);
       // видео — НАД Галереей (1:1 с Лайтом: Видео → Открыть в плеере на ПК → Галерея →
       // «Для публикации»). Якорь — кнопка Галереи; фолбэк на publishBox, если её нет.

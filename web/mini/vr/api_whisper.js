@@ -15,6 +15,7 @@ function _worker() {
   _wk = new Worker(new URL('./whisper_worker.js', import.meta.url), { type: 'module' });
   _wk.onmessage = (e) => { const d = e.data || {};
     if (d.type === 'progress') { try { _prog && _prog(d.frac); } catch (x) { } return; }
+    if (d.type === 'device') { log(d.device === 'webgpu' ? '  ⚡ распознавание на видеокарте (WebGPU)' : '  🖥 распознавание на процессоре'); return; }
     const w = _wait.get(d.id); if (!w) return; _wait.delete(d.id); d.ok ? w.res(d.result) : w.rej(new Error(d.error || 'whisper error')); };
   _wk.onerror = (e) => { for (const w of _wait.values()) w.rej(new Error(e.message || 'whisper worker error')); _wait.clear(); _wk = null; _asr = null; };
   return _wk;
@@ -108,6 +109,7 @@ P._transcribe_worker = async function (scope = 'video') {
     if (scope === 'reel') this.reel_segments = result; else if (scope === 'foreign') this.foreign_segments = result; else this.segments = result;
     bar(100, 'Готово'); log(`✔ Распознано фраз: ${result.length}`);
     call_js('transcribeDone', result.length, scope);
+    if (scope === 'foreign' && result.length) call_js('toast', 'Речь распознана — теперь нажмите «Получить результат»');
   } catch (e) {
     log(`✖ Ошибка распознавания: ${e.message || e}`);
     call_js('transcribeLoading', false); call_js('transcribeDone', -1, scope, String(e.message || e).slice(0, 160));

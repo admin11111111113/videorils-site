@@ -9,6 +9,15 @@ SHIM = """<script type="module" src="./vr/app.js"></script>
 """
 # --- точечные правки интерфейса для веба (минимум, всё остальное — как в программе) ---
 UI_PATCHES = [
+    # веб: слева без «Посмотреть рилс» и «Извлечь звук» (ролик и так играет справа)
+    ("""        <button class="btn gc" onclick="api('open_reel')" data-i18n="open_reel">▶️ Посмотреть рилс</button>
+        <button class="btn ghost" onclick="extractAudio(this)" data-i18n="extract_audio" data-i18n-title="title_extract_audio">🎵 Извлечь звук</button>
+""", ""),
+    # веб: в 3-й колонке вместо «Смотреть крупно» — «Извлечь звук»
+    ("""      const fs=document.createElement('button'); fs.className='btn gc'; fs.style.cssText='width:100%;margin-top:12px';
+      fs.textContent=t('reel_fullscreen'); fs.onclick=()=>{ const vv=$('reelResultVideo'); const u=(vv&&vv.src)||r.url; if(u)showClipModal('video',u,false); };""",
+     """      const fs=document.createElement('button'); fs.className='btn ghost'; fs.style.cssText='width:100%;margin-top:12px';
+      fs.textContent=t('extract_audio'); fs.title=t('title_extract_audio'); fs.onclick=()=>extractAudio(fs);"""),
     # музыка: понятно и для ПК, и для телефона (в вебе файл можно выбрать с любого устройства, папку — только на ПК)
     ("music_choosefile:['🎵 Выбрать файл музыки с ПК','🎵 Choose a music file from PC']",
      "music_choosefile:['🎵 Выбрать музыку с ПК или телефона','🎵 Choose music from PC or phone']"),
