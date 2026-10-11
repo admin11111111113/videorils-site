@@ -7056,6 +7056,19 @@ setTimeout(()=>{ if(styles.length===0){
 showView('home');
 </script>
 <style id="vrWebMobile">
+/* телефон: суфлёр крупно — фразу читают вслух с телефона */
+html.vrPhone #karaokeOv{align-items:center!important}
+html.vrPhone #karaokeOv .modal{max-width:none!important;width:94vw!important}
+html.vrPhone #karaokeOv .modal-head .mt{font-size:30px!important}
+html.vrPhone #karaokeOv .modal-x{font-size:36px!important;padding:6px 14px!important}
+html.vrPhone #karaokeOv #karStage{min-height:42vh!important;gap:28px!important}
+html.vrPhone #karaokeOv .kar-cur{font-size:64px!important;line-height:1.25!important}
+html.vrPhone #karaokeOv .kar-next{font-size:30px!important}
+html.vrPhone #karaokeOv #karPos,html.vrPhone #karaokeOv #karTimer,html.vrPhone #karaokeOv #karSpeedVal{font-size:26px!important}
+html.vrPhone #karaokeOv .btn{font-size:30px!important;padding:20px 40px!important}
+html.vrPhone #karaokeOv .hint,html.vrPhone #karaokeOv [data-i18n=kar_speed]{font-size:22px!important}
+html.vrPhone #karaokeOv input[type=range]{height:40px}
+html.vrPhone .kar-count{font-size:220px!important}
 .vrResultClose{position:absolute;top:8px;right:8px;z-index:5;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(10,8,20,.72);color:#fff;font-size:17px;font-weight:900;cursor:pointer;line-height:1}
 .vrResultClose:hover{background:rgba(220,38,38,.85)}
 html.vrPhone .vrResultClose{width:60px;height:60px;font-size:30px;top:12px;right:12px}
