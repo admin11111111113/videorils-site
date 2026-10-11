@@ -7336,13 +7336,12 @@ html.vrPhone .vrStockOpt{font-size:20px}
 .vrGroq{margin:6px 0 10px;padding:10px 12px;border:1px solid var(--line,#2a2540);border-radius:12px}
 .vrGroq .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .vrGroq .km{display:flex;justify-content:space-between;font-size:12px;margin-top:4px}
-html.vrPhone .vrShared label{font-size:24px}
 .vrAiPick{position:relative;display:inline-block}
 .vrAiPick>button{padding:7px 14px;border-radius:999px;border:1px solid rgba(168,85,247,.55);background:rgba(168,85,247,.16);color:inherit;font-weight:800;cursor:pointer}
 .vrAiMenu{position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#17132a;border:1px solid rgba(168,85,247,.45);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .vrAiMenu button{display:block;width:100%;text-align:left;padding:9px 12px;border:none;background:transparent;color:inherit;border-radius:8px;font-weight:700;cursor:pointer}
 .vrAiMenu button:hover,.vrAiMenu button.on{background:rgba(168,85,247,.22)}
-html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrAiMenu{min-width:340px}html.vrPhone .vrAiMenu button{font-size:26px;padding:16px 18px}html.vrPhone .vrShared .hint,html.vrPhone .vrGroq{font-size:20px}
+html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrAiMenu{min-width:340px}html.vrPhone .vrAiMenu button{font-size:26px;padding:16px 18px}
 #keyGuideModal .modal-body>div:has(#kgMediaBadge),.trial-step:has(#licTrialPxKey){display:none!important}
 </style>
 <script id="vrCredits">
@@ -7404,15 +7403,24 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     });
   }
   function groqBox(){
-    const gem=document.getElementById('gemAccBody'); if(!gem||document.getElementById('vrGroqBox')||!canApi())return;
-    const b=document.createElement('div'); b.className='vrGroq'; b.id='vrGroqBox';
-    b.innerHTML='<b>⚡ Groq — бесплатный ИИ для текста</b><div class="hint" style="font-size:12px;margin-top:4px">Необязательно: с галочкой «Наши ключи» работает наш ИИ. Свой ключ Groq — когда галочка снята.</div><div id="vrGroqList"></div><div class="row2"><input type="password" id="vrGroqKey" class="fld" style="flex:1;min-width:160px" placeholder="gsk_… ключ Groq" autocomplete="off"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div>';
-    gem.parentNode.insertBefore(b,gem.nextSibling);
-    const list=b.querySelector('#vrGroqList'), msg=b.querySelector('#vrGroqMsg');
-    const paint=function(r){ list.innerHTML=''; ((r&&r.keys)||[]).forEach(function(k,i){ const row=document.createElement('div'); row.className='km'; row.innerHTML='<span>🔑 '+esc(k.mask)+'</span>'; const x=document.createElement('button'); x.className='btn ghost'; x.textContent='✕'; x.onclick=function(){ api('remove_groq_key',i).then(function(r2){ paint(r2); refreshAll(); }); }; row.appendChild(x); list.appendChild(row); }); };
+    const gem=document.getElementById('gemAccBody'); if(!gem||document.getElementById('groqAccHead')||!canApi())return;
+    const head=document.createElement('button'); head.className='acc-head kacc-head'; head.id='groqAccHead'; head.type='button';
+    head.innerHTML='<span class="acc-title"><span class="kmi">⚡</span> <b>Groq</b> <span class="keydot" id="groqDot">🔴</span></span><span class="arrow" id="groqArrow">▼</span>';
+    head.onclick=function(){ toggleAcc('groq'); };
+    const body=document.createElement('div'); body.className='acc-body'; body.id='groqAccBody';
+    body.innerHTML='<div class="acc-inner"><div class="hint" style="margin-bottom:6px">Groq · бесплатный AI для текста <span id="groqCount" style="font-size:11px"></span></div><div class="hint" style="font-size:12px;margin-bottom:6px">Необязательно: с галочкой «Наши ключи» работает наш ИИ. Свой ключ Groq — когда галочка снята.</div><div id="vrGroqList" class="keylist"></div><div class="hint" style="margin:8px 0 4px">➕ Добавить ключ:</div><input type="password" id="vrGroqKey" class="fld" style="width:100%" placeholder="gsk_… ключ Groq" autocomplete="off"><div class="krow-btns"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div></div>';
+    gem.parentNode.insertBefore(head,gem.nextSibling); head.parentNode.insertBefore(body,head.nextSibling);
+    const list=body.querySelector('#vrGroqList'), msg=body.querySelector('#vrGroqMsg');
+    const paint=function(r){ const ks=(r&&r.keys)||[]; list.innerHTML='';
+      { const dt=document.getElementById('groqDot'); const tr=(typeof t==='function')?t:function(k){return k;}; dt.textContent=ks.length?tr('key_set'):tr('key_not_set'); dt.style.color=ks.length?'var(--green)':'var(--pink)'; }
+      document.getElementById('groqCount').textContent=ks.length?('('+ks.length+'/'+((r&&r.max)||5)+')'):'';
+      ks.forEach(function(k,i){ const row=document.createElement('div'); row.className='km'; row.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:4px';
+        row.innerHTML='<span>🔑 '+esc(k.mask)+'</span>'; const x=document.createElement('button'); x.className='btn ghost'; x.textContent='✕';
+        x.onclick=function(){ api('remove_groq_key',i).then(function(r2){ paint(r2); refreshAll(); }); }; row.appendChild(x); list.appendChild(row); }); };
     api('get_groq_keys').then(paint);
-    b.querySelector('#vrGroqSave').onclick=function(){ const inp=b.querySelector('#vrGroqKey'); msg.textContent='Проверяю…'; api('add_groq_key',inp.value).then(function(r){ msg.textContent=(r&&r.msg)||''; msg.style.color=(r&&r.ok)?'var(--green)':'var(--pink)'; if(r&&r.ok)inp.value=''; paint(r); refreshAll(); }); };
-    b.querySelector('#vrGroqWhere').onclick=function(){ api('open_groq_signup'); };
+    body.querySelector('#vrGroqSave').onclick=function(){ const inp=body.querySelector('#vrGroqKey'); msg.textContent='Проверяю…';
+      api('add_groq_key',inp.value).then(function(r){ msg.textContent=(r&&r.msg)||''; msg.style.color=(r&&r.ok)?'var(--green)':'var(--pink)'; if(r&&r.ok)inp.value=''; paint(r); refreshAll(); }); };
+    body.querySelector('#vrGroqWhere').onclick=function(){ api('open_groq_signup'); };
   }
   // выбор ИИ: одна кнопка -> список Gemini / Groq / Claude (Claude — если вставлен его ключ)
   function aiDropdown(tabsEl){

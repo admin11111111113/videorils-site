@@ -160,12 +160,25 @@ P._expand_units_for_speech = function (text) {
   out = re.sub('\\s*/\\s*', ' ', out);
   return out;
 };
+const NUM_SUFFIX = { k: 'ка', fps: 'фпс', hz: 'герц', khz: 'килогерц', mhz: 'мегагерц', ghz: 'гигагерц', gb: 'гигабайт', mb: 'мегабайт', tb: 'терабайт', kb: 'килобайт', mp: 'мегапикселей', g: 'джи', p: 'пи', x: 'икс', w: 'ватт', mah: 'миллиампер-час', mm: 'миллиметров', ms: 'миллисекунд', kg: 'килограмм', km: 'километров' };
+const EN_SUFFIX = { k: 'K', fps: 'FPS', hz: 'hertz', khz: 'kilohertz', mhz: 'megahertz', ghz: 'gigahertz', gb: 'gigabytes', mb: 'megabytes', tb: 'terabytes', kb: 'kilobytes', mp: 'megapixels', mah: 'milliamp hours', w: 'watts', mm: 'millimeters', ms: 'milliseconds', kg: 'kilograms', km: 'kilometers', x: 'x', p: 'p', g: 'G' };
+// английский ролик: 4K → «4 K», 60fps → «60 FPS», 120Hz → «120 hertz», 2K-monitor → «2 K monitor» ($, % голос читает сам)
+P._en_for_speech = function (text) {
+  if (!text) return text;
+  return String(text).replace(/\b(\d+(?:[.,]\d+)?)([A-Za-z]{1,4})\b(-?)/g, (m0, n, l, h) => { const w = EN_SUFFIX[l.toLowerCase()]; return w ? `${n} ${w}${h ? ' ' : ''}` : m0; });
+};
 P._latin_for_speech = function (text) {
   if (!text || !/[A-Za-z]/.test(text)) return text;
   const LS = C['Api._LATIN_SPEECH'], LL = C['Api._LAT_LETTER'];
   return re.sub('[A-Za-z0-9]*[A-Za-z][A-Za-z0-9\\-]*', (m) => {
     const tok = m.group(0); const low = tok.toLowerCase();
     if (low in LS) return LS[low];
+    // число + буквы, как говорят по-русски: 4K → «4 ка», 60fps → «60 фпс», 120Hz → «120 герц», 2K-монитор → «2 ка монитор»
+    { const nm = /^(\d+(?:[.,]\d+)?)([A-Za-z]{1,4})(-?)$/.exec(tok);
+      if (nm) { const lw = nm[2].toLowerCase(), sp = NUM_SUFFIX[lw] ?? (lw in LS ? LS[lw] : [...lw].map(c => LL[c] ?? c).join('-')); return nm[1] + ' ' + sp + (nm[3] ? ' ' : ''); } }
+    // буквы + число (X5, A7): буквы произносим, число оставляем — «экс 5»
+    { const lm = /^([A-Za-z]{1,3})(\d+)(-?)$/.exec(tok);
+      if (lm && !(lm[1].toLowerCase() in LS)) return [...lm[1].toLowerCase()].map(c => LL[c] ?? c).join('-') + ' ' + lm[2] + (lm[3] ? ' ' : ''); }
     const core = tok.replace(/[^A-Za-z]/g, '');
     const isup = /[A-Z]/.test(tok) && !/[a-z]/.test(tok);
     if (isup && /^[A-Za-z]+$/.test(core) && core.length >= 1 && core.length <= 5) return [...core.toLowerCase()].map(c => LL[c] ?? c).join('-');
@@ -250,7 +263,7 @@ P._synth_one = async function (text, out, emotion = null, mark = true, label = '
   if (keep_stress && Api._is_mixed_stress(text || '')) return await this._synth_manual_stress(text, out, emotion, mark, label);
   let use_eleven = ((this.tts_engine === 'eleven' || this._build_eleven_override) && !this._force_edge && this.eleven_key && this.eleven_voice);
   let pre = keep_stress ? text : Api._strip_stress(text);
-  pre = this._expand_units_for_speech(pre);
+  pre = this.video_lang === 'en' ? this._en_for_speech(pre) : this._expand_units_for_speech(pre);
   pre = this._fix_foreign_words(pre);
   if (this.video_lang !== 'en') pre = this._latin_for_speech(pre);
   const clean = Api._sanitize_tts(pre);
