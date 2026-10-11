@@ -38,6 +38,8 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   function link(u,t){return /^https:\/\//.test(u||'')?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(t)+'</a>':esc(t);}
   function credit(c){ if(!c)return ''; return (c.author?link(c.author_url,c.author)+' / ':'')+link(c.page,c.source); }
   function canApi(){ return typeof api==='function'&&(typeof ready!=='function'||ready()); }
+  function isEn(){ return typeof uiLang!=='undefined'&&uiLang==='en'; }
+  function L(ru,en){ return isEn()?en:ru; }
   function sceneCredit(th,i,again){
     const card=th&&th.closest&&th.closest('.sbscene');
     if(!card){ if(!again&&th)setTimeout(function(){sceneCredit(th,i,1);},0); return; }   // карточка ещё собирается
@@ -46,7 +48,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     let cr=document.getElementById('sbcr'+i);
     if(!cr||!main.contains(cr)){ if(cr)cr.remove(); cr=document.createElement('div'); cr.id='sbcr'+i; cr.className='vrCredit'; main.appendChild(cr); }
     cr.innerHTML=''; if(!canApi())return;
-    api('scene_credit',i).then(function(c){ cr.innerHTML=c?('🎞 Видео: '+credit(c)):''; }).catch(function(){});
+    api('scene_credit',i).then(function(c){ cr.innerHTML=c?('🎞 '+L('Видео','Video')+': '+credit(c)):''; }).catch(function(){});
   }
   function wrap(name,after){
     const f=window[name]; if(typeof f!=='function'||f.__vrc)return;
@@ -59,7 +61,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       const g=document.getElementById('swapPickGrid'); if(!g||!g.parentNode)return;
       let d=g.parentNode.querySelector('.vrSwapCredit');
       if(!d){ d=document.createElement('div'); d.className='vrSwapCredit'; g.parentNode.insertBefore(d,g.nextSibling); }
-      d.innerHTML='Кадры: '+link('https://www.pexels.com','Pexels')+' · '+link('https://pixabay.com','Pixabay')+' · '+link('https://commons.wikimedia.org','Wikimedia Commons');
+      d.innerHTML=L('Кадры','Footage')+': '+link('https://www.pexels.com','Pexels')+' · '+link('https://pixabay.com','Pixabay')+' · '+link('https://commons.wikimedia.org','Wikimedia Commons');
     });
   }
   // галочка «Наши ключи» (общие клипы + ИИ, с лимитом в час) + блок ключей Groq
@@ -67,20 +69,20 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   function trialMode(st){ const on=!!(st&&st.on&&st.ready); document.documentElement.classList.toggle('vrSharedOn',on);
     document.querySelectorAll('[data-i18n="lic_trial_desc"]').forEach(function(el){
       if(el.dataset.vrOrig==null)el.dataset.vrOrig=el.textContent;
-      if(on) el.textContent='1 бесплатное видео — все ключи уже подключены, просто нажми кнопку.';
-      else el.textContent=el.dataset.vrOrig+((st&&st.ready)?(' Или поставь галочку «Наши ключи» на главной и пользуйся нашими ключами — '+limitText(st)+'.'):''); }); }
-  function limitText(st){ return 'без лимита, при нагрузке — короткая очередь'; }
+      if(on) el.textContent=L('1 бесплатное видео — все ключи уже подключены, просто нажми кнопку.','1 free video — all keys are already connected, just tap the button.');
+      else el.textContent=el.dataset.vrOrig+((st&&st.ready)?L(' Или поставь галочку «Наши ключи» на главной и пользуйся нашими ключами — '+limitText(st)+'.',' Or tick “Our keys” on the home screen and use our keys — '+limitText(st)+'.'):''); }); }
+  function limitText(st){ return L('без лимита, при нагрузке — короткая очередь','no limit, a short queue at peak times'); }
   function refreshAll(){ try{ if(typeof loadKeysStatus==='function')loadKeysStatus(); }catch(e){}
     try{ api('get_reel_ai').then(function(r){ if(!r)return; window.__vrFreeIsGroq=!!r.free_groq; if(typeof renderReelAi==='function')renderReelAi(r.has_claude,r.has_gemini); }); }catch(e){} }
   function sharedBox(){
     const panel=document.querySelector('.kmpanel'); if(!panel||panel.querySelector('.vrShared')||!canApi())return;
     api('get_shared_state').then(function(st){
       if(!st||!st.ready||panel.querySelector('.vrShared'))return;
-      const b=document.createElement('div'); b.className='vrShared';
-      b.innerHTML='<label><input type="checkbox" id="vrSharedChk"> Наши ключи — клипы и ИИ уже подключены</label><div class="hint" id="vrSharedHint"></div>';
+      const b=document.createElement('div'); b.className='vrShared'; b.dataset.lang=isEn()?'en':'ru';
+      b.innerHTML='<label><input type="checkbox" id="vrSharedChk"> '+L('Наши ключи — клипы и ИИ уже подключены','Our keys — clips and AI are already connected')+'</label><div class="hint" id="vrSharedHint"></div>';
       const h3=panel.querySelector('h3'); panel.insertBefore(b,h3?h3.nextSibling:panel.firstChild);
       const chk=b.querySelector('#vrSharedChk'), hint=b.querySelector('#vrSharedHint');
-      const paint=function(st){ window.__vrShared=st; trialMode(st); chk.checked=!!st.on; hint.textContent=st.on?('С галочкой работают наши ключи (Pexels, Pixabay, Groq, Gemini) — '+limitText(st)+'. Сними её — будут работать только твои ключи ниже, без очереди.'):('Работают только твои ключи, без очереди. Поставь галочку, чтобы пользоваться нашими ('+limitText(st)+').'); };
+      const paint=function(st){ window.__vrShared=st; trialMode(st); chk.checked=!!st.on; hint.textContent=st.on?L('С галочкой работают наши ключи (Pexels, Pixabay, Groq, Gemini) — '+limitText(st)+'. Сними её — будут работать только твои ключи ниже, без очереди.','With the tick on, our keys are used (Pexels, Pixabay, Groq, Gemini) — '+limitText(st)+'. Untick it to use only your own keys below, with no queue.'):L('Работают только твои ключи, без очереди. Поставь галочку, чтобы пользоваться нашими ('+limitText(st)+').','Only your own keys are used, no queue. Tick it to use ours ('+limitText(st)+').'); };
       paint(st);
       chk.onchange=function(){ api('set_use_shared',chk.checked).then(function(s2){ paint(s2); stockOpt(true); refreshAll(); }); };
     }).catch(function(){});
@@ -89,27 +91,27 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     ['px2AccBody','pxbayAccBody'].forEach(function(id){
       const body=document.getElementById(id); const inner=body&&(body.querySelector('.acc-inner')||body); if(!inner)return;
       let d=inner.querySelector('.vrStockOpt'); if(d&&!force)return;
-      if(!d){ d=document.createElement('div'); d.className='vrStockOpt'; inner.insertBefore(d,inner.firstChild); }
-      d.textContent='✅ Необязательно: с галочкой «Наши ключи» клипы идут через наш ключ. Свой ключ работает, когда галочка снята.';
+      if(!d){ d=document.createElement('div'); d.className='vrStockOpt'; d.dataset.lang=isEn()?'en':'ru'; inner.insertBefore(d,inner.firstChild); }
+      d.textContent=L('✅ Необязательно: с галочкой «Наши ключи» клипы идут через наш ключ. Свой ключ работает, когда галочка снята.','✅ Optional: with “Our keys” ticked, clips come through our key. Your own key is used when the tick is off.');
     });
   }
   function groqBox(){
     const gem=document.getElementById('gemAccBody'); if(!gem||document.getElementById('groqAccHead')||!canApi())return;
-    const head=document.createElement('button'); head.className='acc-head kacc-head'; head.id='groqAccHead'; head.type='button';
+    const head=document.createElement('button'); head.className='acc-head kacc-head'; head.id='groqAccHead'; head.type='button'; head.dataset.lang=isEn()?'en':'ru';
     head.innerHTML='<span class="acc-title"><span class="kmi">⚡</span> <b>Groq</b> <span class="keydot" id="groqDot">🔴</span></span><span class="arrow" id="groqArrow">▼</span>';
     head.onclick=function(){ toggleAcc('groq'); };
-    const body=document.createElement('div'); body.className='acc-body'; body.id='groqAccBody';
-    body.innerHTML='<div class="acc-inner"><div class="hint" style="margin-bottom:6px">Groq · бесплатный AI для текста <span id="groqCount" style="font-size:11px"></span></div><div class="hint" style="font-size:12px;margin-bottom:6px">Необязательно: с галочкой «Наши ключи» работает наш ИИ. Свой ключ Groq — когда галочка снята.</div><div id="vrGroqList" class="keylist"></div><div class="hint" style="margin:8px 0 4px">➕ Добавить ключ:</div><input type="password" id="vrGroqKey" class="fld" style="width:100%" placeholder="gsk_… ключ Groq" autocomplete="off"><div class="krow-btns"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div></div>';
+    const body=document.createElement('div'); body.className='acc-body'; body.id='groqAccBody'; body.dataset.lang=isEn()?'en':'ru';
+    body.innerHTML='<div class="acc-inner"><div class="hint" style="margin-bottom:6px">'+L('Groq · бесплатный AI для текста','Groq · free AI for text')+' <span id="groqCount" style="font-size:11px"></span></div><div class="hint" style="font-size:12px;margin-bottom:6px">'+L('Необязательно: с галочкой «Наши ключи» работает наш ИИ. Свой ключ Groq — когда галочка снята.','Optional: with “Our keys” ticked, our AI is used. Your own Groq key — when the tick is off.')+'</div><div id="vrGroqList" class="keylist"></div><div class="hint" style="margin:8px 0 4px">➕ '+L('Добавить ключ:','Add a key:')+'</div><input type="password" id="vrGroqKey" class="fld" style="width:100%" placeholder="gsk_… '+L('ключ Groq','Groq key')+'" autocomplete="off"><div class="krow-btns"><button class="btn gc" id="vrGroqSave">💾 '+L('Сохранить','Save')+'</button><button class="btn ghost" id="vrGroqWhere">🌐 '+L('Где взять','Get a key')+'</button></div><div class="kmsg" id="vrGroqMsg"></div></div>';
     gem.parentNode.insertBefore(head,gem.nextSibling); head.parentNode.insertBefore(body,head.nextSibling);
     const list=body.querySelector('#vrGroqList'), msg=body.querySelector('#vrGroqMsg');
     const paint=function(r){ const ks=(r&&r.keys)||[]; list.innerHTML='';
-      { const dt=document.getElementById('groqDot'); const tr=(typeof t==='function')?t:function(k){return k;}; dt.textContent=ks.length?tr('key_set'):tr('key_not_set'); dt.style.color=ks.length?'var(--green)':'var(--pink)'; }
+      { const dt=document.getElementById('groqDot'); const tr=(typeof t==='function')?t:function(k){return k;}; dt.dataset.n=ks.length; dt.textContent=ks.length?tr('key_set'):tr('key_not_set'); dt.style.color=ks.length?'var(--green)':'var(--pink)'; }
       document.getElementById('groqCount').textContent=ks.length?('('+ks.length+'/'+((r&&r.max)||5)+')'):'';
       ks.forEach(function(k,i){ const row=document.createElement('div'); row.className='km'; row.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-top:4px';
         row.innerHTML='<span>🔑 '+esc(k.mask)+'</span>'; const x=document.createElement('button'); x.className='btn ghost'; x.textContent='✕';
         x.onclick=function(){ api('remove_groq_key',i).then(function(r2){ paint(r2); refreshAll(); }); }; row.appendChild(x); list.appendChild(row); }); };
     api('get_groq_keys').then(paint);
-    body.querySelector('#vrGroqSave').onclick=function(){ const inp=body.querySelector('#vrGroqKey'); msg.textContent='Проверяю…';
+    body.querySelector('#vrGroqSave').onclick=function(){ const inp=body.querySelector('#vrGroqKey'); msg.textContent=L('Проверяю…','Checking…');
       api('add_groq_key',inp.value).then(function(r){ msg.textContent=(r&&r.msg)||''; msg.style.color=(r&&r.ok)?'var(--green)':'var(--pink)'; if(r&&r.ok)inp.value=''; paint(r); refreshAll(); }); };
     body.querySelector('#vrGroqWhere').onclick=function(){ api('open_groq_signup'); };
   }
@@ -123,7 +125,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     if(!box){ box=document.createElement('div'); box.className='vrAiPick'; box.dataset.for=tabsEl.id; tabsEl.parentNode.insertBefore(box,tabsEl.nextSibling); }
     const cur=tabs.find(function(b){ return b.classList.contains('on'); })||tabs[0];
     box.innerHTML='';
-    const btn=document.createElement('button'); btn.type='button'; btn.textContent='Выбери ИИ: '+cur.textContent+' ▾'; box.appendChild(btn);
+    const btn=document.createElement('button'); btn.type='button'; btn.textContent=L('Выбери ИИ','Choose AI')+': '+cur.textContent+' ▾'; box.appendChild(btn);
     btn.onclick=function(e){ e.stopPropagation(); let m=box.querySelector('.vrAiMenu'); if(m){ m.remove(); return; }
       m=document.createElement('div'); m.className='vrAiMenu';
       tabs.forEach(function(t){ const it=document.createElement('button'); it.type='button'; it.textContent=t.textContent; if(t===cur)it.className='on';
@@ -134,7 +136,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   // сообщения интерфейса «ключ не задан» -> полная подсказка, когда галочка снята
   const KEYMSG=['ai_no_key','gem_no_key','stock_key_needed_mine','need_media_key','cm_need_media_key','cm_msg_need_media_key','m1_no_key','m2_no_key','kg_missing','trial_need_px','trial_need_gem'];
   function wrapT(){ if(typeof window.t!=='function'||window.t.__vrk)return; const t0=window.t;
-    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return 'Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).'; return t0.apply(this,arguments); };
+    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return L('Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).','No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, '+limitText(st)+'. Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'); return t0.apply(this,arguments); };
     nt.__vrk=1; window.t=nt; }
   // Очередь на наших ключах: «Получить результат», клип-микс, серия — сначала место в очереди
   // (4 старта в минуту на всех), при ожидании — обратный отсчёт, на нуле запуск сам.
@@ -147,7 +149,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   function qWait(q){ return new Promise(function(res){
     if(!q||!q.wait){ res(true); return; }
     const box=document.createElement('div'); box.className='vrQueue';
-    box.innerHTML='<span>⏳ Очередь на наших ключах — старт через</span><span class="t"></span><button type="button">Отмена</button>';
+    box.innerHTML='<span>⏳ '+L('Очередь на наших ключах — старт через','Queue on our keys — starting in')+'</span><span class="t"></span><button type="button">'+L('Отмена','Cancel')+'</button>';
     document.body.appendChild(box); const tEl=box.querySelector('.t'); const end=Date.now()+q.wait*1000;
     const tick=function(){ const left=Math.max(0,Math.ceil((end-Date.now())/1000)); tEl.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
       if(left<=0){ clearInterval(iv); box.remove(); res(true); } };
@@ -158,129 +160,131 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       if(!kind||!st||!st.on||!st.ready) return a0.apply(this,args);
       let n=1; if(kind==='n'){ try{ n=method==='build_batch_from_preview'?5:String(args[1]||'').split('\n').filter(function(x){return x.trim();}).length||1; }catch(e){} }
       const self=this;
-      return qJoin(n).then(qWait).then(function(go){ return go?a0.apply(self,args):{ok:false,msg:'Отменено — очередь'}; }); };
+      return qJoin(n).then(qWait).then(function(go){ return go?a0.apply(self,args):{ok:false,msg:L('Отменено — очередь','Cancelled — queue')}; }); };
     na.__vrq=1; window.api=na; }
-  // Правила веб-версии: только то, что реально есть в браузере (старые разделы из программ для ПК скрываем)
+  // Правила веб-версии на двух языках (язык интерфейса): только то, что реально есть в браузере
   function rulesWeb(){
-    const body=document.querySelector('#rulesModal .modal-body'); if(!body||document.getElementById('vrRulesWeb'))return;
+    const body=document.querySelector('#rulesModal .modal-body'); if(!body)return;
+    const en=(typeof uiLang!=='undefined'&&uiLang==='en'), L=function(r,e){ return en?e:r; };
+    const old=document.getElementById('vrRulesWeb'); if(old){ if(old.dataset.lang===(en?'en':'ru'))return; old.remove(); }
     const lite=!!document.querySelector('[data-i18n="rules_batch_h"]');
     const sec=function(cls,h,items){ return '<div class="rsec '+cls+'"><h4>'+h+'</h4><ul style="margin:6px 0 0 18px;padding:0">'+items.map(function(x){return '<li style="margin:4px 0">'+x+'</li>';}).join('')+'</ul></div>'; };
     const S=[];
-    S.push(sec('c1','📱 ЧТО ДЕЛАЕТ ВИДЕОРИЛС',[
-      'Делает вертикальные ролики 9:16 для TikTok, Reels и Shorts прямо в браузере телефона или компьютера: пишет сценарий, подбирает видео, озвучивает, ставит субтитры и собирает готовый ролик.',
-      'Устанавливать ничего не нужно. Готовый ролик — кнопка «⬇ Скачать ролик».',
-      lite?'Ролики до 120 секунд.':'Ролики до 40 секунд (лучше 20–40).'
+    S.push(sec('c1',L('📱 ЧТО ДЕЛАЕТ ВИДЕОРИЛС','📱 WHAT VIDEORILS DOES'),[
+      L('Делает вертикальные ролики 9:16 для TikTok, Reels и Shorts прямо в браузере телефона или компьютера: пишет сценарий, подбирает видео, озвучивает, ставит субтитры и собирает готовый ролик.','Makes vertical 9:16 videos for TikTok, Reels and Shorts right in your phone or computer browser: writes the script, picks footage, voices it, adds subtitles and assembles the finished reel.'),
+      L('Устанавливать ничего не нужно. Готовый ролик — кнопка «⬇ Скачать ролик».','Nothing to install. The finished reel — the “⬇ Download reel” button.'),
+      lite?L('Ролики до 120 секунд.','Reels up to 120 seconds.'):L('Ролики до 40 секунд (лучше 20–40).','Reels up to 40 seconds (20–40 works best).')
     ]));
-    S.push(sec('c3','⚡ БЫСТРЫЙ СТАРТ',[
-      'Впиши тему или свою историю (нет идей — «💡 Идеи дня»).',
-      'Выбери тип ролика или оставь «🤖 Авто», выбери длину.',
-      '«🚀 Получить результат» — ИИ напишет сценарий и подберёт клипы под каждую фразу.',
-      'Проверь сцены, при желании поменяй голос, стиль субтитров, музыку.',
-      '«Озвучить и собрать рилс» → «⬇ Скачать ролик».'
+    S.push(sec('c3',L('⚡ БЫСТРЫЙ СТАРТ','⚡ QUICK START'),[
+      L('Впиши тему или свою историю (нет идей — «💡 Идеи дня»).','Type a topic or your own story (no ideas — “💡 Ideas of the day”).'),
+      L('Выбери тип ролика или оставь «🤖 Авто», выбери длину.','Pick a reel type or leave “🤖 Auto”, choose the length.'),
+      L('«🚀 Получить результат» — ИИ напишет сценарий и подберёт клипы под каждую фразу.','“🚀 Get result” — the AI writes the script and picks clips for every line.'),
+      L('Проверь сцены, при желании поменяй голос, стиль субтитров, музыку.','Check the scenes; change the voice, subtitle style or music if you like.'),
+      L('«Озвучить и собрать рилс» → «⬇ Скачать ролик».','“🎙️ Voice & build reel” → “⬇ Download reel”.')
     ]));
-    S.push(sec('c1','🔑 КЛЮЧИ: «НАШИ» ИЛИ СВОИ',[
-      '<b>Галочка «Наши ключи»</b> (главная → «Ключи») стоит сама. С ней клипы и ИИ уже работают — ничего получать и вставлять не нужно.',
-      '<b>Свои ключи — по желанию.</b> Сними галочку и вставь свои бесплатные ключи Pexels, Pixabay и ИИ (Gemini или Groq) — тогда работают только они и без очереди. '+(lite?'До 5 ключей на сервис — сменяют друг друга сами.':'По 1 ключу на сервис.'),
-      'Ключи хранятся только в твоём браузере, в зашифрованном виде.',
-      'Нет ни своих ключей, ни галочки — приложение подскажет: включи галочку или вставь свои ключи.'
+    S.push(sec('c1',L('🔑 КЛЮЧИ: «НАШИ» ИЛИ СВОИ','🔑 KEYS: “OURS” OR YOUR OWN'),[
+      L('<b>Галочка «Наши ключи»</b> (главная → «Ключи») стоит сама. С ней клипы и ИИ уже работают — ничего получать и вставлять не нужно.','<b>The “Our keys” tick</b> (home → “Keys”) is on by default. With it, clips and AI already work — nothing to get or paste.'),
+      L('<b>Свои ключи — по желанию.</b> Сними галочку и вставь свои бесплатные ключи Pexels, Pixabay и ИИ (Gemini или Groq) — тогда работают только они и без очереди. ','<b>Your own keys are optional.</b> Untick it and paste your own free Pexels, Pixabay and AI (Gemini or Groq) keys — then only they are used, with no queue. ')+(lite?L('До 5 ключей на сервис — сменяют друг друга сами.','Up to 5 keys per service — they rotate automatically.'):L('По 1 ключу на сервис.','1 key per service.')),
+      L('Ключи хранятся только в твоём браузере, в зашифрованном виде.','Keys are stored only in your browser, encrypted.'),
+      L('Нет ни своих ключей, ни галочки — приложение подскажет: включи галочку или вставь свои ключи.','No own keys and no tick — the app will tell you: turn the tick on or paste your keys.')
     ]));
-    S.push(sec('c3','⏳ ОЧЕРЕДЬ НА НАШИХ КЛЮЧАХ',[
-      'На наших ключах одновременно стартуют до 4 человек в минуту.',
-      'Если места заняты — внизу появится «⏳ старт через 0:45». Ничего нажимать не нужно: на нуле всё запустится само. Передумал — «Отмена».',
-      'Очередь бывает на «Получить результат»'+(lite?', клип-миксе (1 место) и «Пакете» (по месту на каждый ролик; запускается целиком, когда освободятся места под все ролики)':'')+'. Сборка ролика идёт без очереди.',
-      'Со своими ключами (галочка снята) очереди нет.'
+    S.push(sec('c3',L('⏳ ОЧЕРЕДЬ НА НАШИХ КЛЮЧАХ','⏳ QUEUE ON OUR KEYS'),[
+      L('На наших ключах одновременно стартуют до 4 человек в минуту.','On our keys up to 4 people start per minute.'),
+      L('Если места заняты — внизу появится «⏳ старт через 0:45». Ничего нажимать не нужно: на нуле всё запустится само. Передумал — «Отмена».','If all slots are taken, you’ll see “⏳ start in 0:45” at the bottom. No need to tap anything: at zero it starts by itself. Changed your mind — “Cancel”.'),
+      L('Очередь бывает на «Получить результат»','The queue applies to “Get result”')+(lite?L(', клип-миксе (1 место) и «Пакете» (по месту на каждый ролик; запускается целиком, когда освободятся места под все ролики)',', clip-mix (1 slot) and “Batch” (a slot per reel; it starts as a whole when there are slots for all reels)'):'')+L('. Сборка ролика идёт без очереди.','. Building the reel has no queue.'),
+      L('Со своими ключами (галочка снята) очереди нет.','With your own keys (tick off) there is no queue.')
     ]));
-    S.push(sec('c1','🤖 «ВЫБЕРИ ИИ»',[
-      'Кнопка рядом с «AI:». Нажми и выбери, кто пишет текст: <b>Gemini</b>, <b>Groq</b> или <b>Claude</b> (Claude появится, если вставлен его ключ).',
-      'Если выбранный ИИ занят или упёрся в лимит — текст допишет другой, ролик не встанет.',
-      'ИИ может ошибаться в фактах — проверяй перед публикацией.'
+    S.push(sec('c1',L('🤖 «ВЫБЕРИ ИИ»','🤖 “CHOOSE AI”'),[
+      L('Кнопка рядом с «AI:». Нажми и выбери, кто пишет текст: <b>Gemini</b>, <b>Groq</b> или <b>Claude</b> (Claude появится, если вставлен его ключ).','The button next to “AI:”. Tap it and choose who writes the text: <b>Gemini</b>, <b>Groq</b> or <b>Claude</b> (Claude appears if you added its key).'),
+      L('Если выбранный ИИ занят или упёрся в лимит — текст допишет другой, ролик не встанет.','If the chosen AI is busy or hits a limit, another one finishes the text — your reel won’t get stuck.'),
+      L('ИИ может ошибаться в фактах — проверяй перед публикацией.','AI can get facts wrong — check before posting.')
     ]));
-    S.push(sec('c3','🎞 СЦЕНЫ: КЛИПЫ ПОД КОНТРОЛЕМ',[
-      '▶ — посмотреть клип. «Другой клип» — выбрать замену из Pexels, Pixabay или Wikimedia.',
-      '«Свой файл» — поставить своё фото или видео из галереи (для конкретных товаров, марок, мест — так точнее).',
-      '«Обрезать» — выбрать нужный момент клипа. «Перегенерить» — переписать текст сцены.',
-      'Значок ⚠ на сцене — подобран похожий, атмосферный кадр: прямого клипа по теме в стоке нет. Не нравится — замени.',
-      'Под каждой сценой подписан автор клипа, под готовым роликом — список всех авторов (так требуют Pexels и Pixabay).'
+    S.push(sec('c3',L('🎞 СЦЕНЫ: КЛИПЫ ПОД КОНТРОЛЕМ','🎞 SCENES: CLIPS UNDER CONTROL'),[
+      L('▶ — посмотреть клип. «Другой клип» — выбрать замену из Pexels, Pixabay или Wikimedia.','▶ — watch the clip. “Another clip” — pick a replacement from Pexels, Pixabay or Wikimedia.'),
+      L('«Свой файл» — поставить своё фото или видео из галереи (для конкретных товаров, марок, мест — так точнее).','“My file” — use your own photo or video from the gallery (more precise for specific products, brands, places).'),
+      L('«Обрезать» — выбрать нужный момент клипа. «Перегенерить» — переписать текст сцены.','“Trim” — choose the right moment of the clip. “Regenerate” — rewrite the scene text.'),
+      L('Значок ⚠ на сцене — подобран похожий, атмосферный кадр: прямого клипа по теме в стоке нет. Не нравится — замени.','A ⚠ on a scene means a similar, atmospheric shot was picked: there is no exact stock clip for it. Don’t like it — replace it.'),
+      L('Под каждой сценой подписан автор клипа, под готовым роликом — список всех авторов (так требуют Pexels и Pixabay).','Each scene shows the clip author, and the finished reel lists all authors (required by Pexels and Pixabay).')
     ]));
-    S.push(sec('c1','🎙 ОЗВУЧКА',[
-      '<b>Бесплатный голос</b> (Edge) — уже включён, без ключа и без лимита.',
-      '<b>Piper</b> — запасной бесплатный голос, звучит чуть проще.',
-      '<b>Мой голос</b> — запиши себя с микрофона по суфлёру (крупный текст), субтитры лягут по твоей речи.',
-      '<b>ElevenLabs</b> — премиум-голос, только со своим ключом ElevenLabs.',
-      'Сокращения читаются по-человечески: 4K — «4 ка», 60fps — «60 фпс», 1080p — «1080 пи», 120Hz — «120 герц». В субтитрах остаётся как написано.'
+    S.push(sec('c1',L('🎙 ОЗВУЧКА','🎙 VOICE-OVER'),[
+      L('<b>Бесплатный голос</b> (Edge) — уже включён, без ключа и без лимита.','<b>Free voice</b> (Edge) — already on, no key, no limit.'),
+      L('<b>Piper</b> — запасной бесплатный голос, звучит чуть проще.','<b>Piper</b> — a backup free voice (Russian), sounds a bit simpler.'),
+      L('<b>Мой голос</b> — запиши себя с микрофона по суфлёру (крупный текст), субтитры лягут по твоей речи.','<b>My voice</b> — record yourself with a teleprompter (large text); subtitles follow your speech.'),
+      L('<b>ElevenLabs</b> — премиум-голос, только со своим ключом ElevenLabs.','<b>ElevenLabs</b> — premium voice, only with your own ElevenLabs key.'),
+      L('Сокращения читаются по-человечески: 4K — «4 ка», 60fps — «60 фпс», 1080p — «1080 пи», 120Hz — «120 герц». В субтитрах остаётся как написано.','Abbreviations are read naturally: 4K — “4 K”, 60fps — “60 FPS”, 120Hz — “120 hertz”. Subtitles keep the text as written.')
     ]));
-    S.push(sec('c3','🗣 УДАРЕНИЯ (если голос читает слово неправильно)',[
-      'Нажми на гласную в слове прямо в тексте сцены — ударение встанет на неё. Так же можно и в хуке.',
-      '«▶ Прослушать» — проверить, как звучит фраза, до сборки.',
-      'Кнопка «Читается неправильно?» под словом отправляет нам только само слово (без личных данных) — мы добавляем правильное ударение в общий словарь, и дальше оно читается правильно у всех.',
-      '«Мои замены произношения» — свой список: как писать слово для голоса (например, бренд или имя). Работает только для озвучки, в субтитрах остаётся как написано.',
-      'Точнее всего ударения ставят бесплатный голос Edge и «Мой голос».'
+    S.push(sec('c3',L('🗣 УДАРЕНИЯ (если голос читает слово неправильно)','🗣 PRONUNCIATION (if a word is read wrong)'),[
+      L('Нажми на гласную в слове прямо в тексте сцены — ударение встанет на неё. Так же можно и в хуке.','In Russian reels: tap a vowel in a word right in the scene text to put the stress on it. Works in the hook too.'),
+      L('«▶ Прослушать» — проверить, как звучит фраза, до сборки.','“▶ Listen” — hear how a line sounds before building.'),
+      L('Кнопка «Читается неправильно?» под словом отправляет нам только само слово (без личных данных) — мы добавляем правильное ударение в общий словарь, и дальше оно читается правильно у всех.','The “Read wrong?” button under a word sends us only the word itself (no personal data) — we add the correct stress to a shared dictionary, and it’s read correctly for everyone.'),
+      L('«Мои замены произношения» — свой список: как писать слово для голоса (например, бренд или имя). Работает только для озвучки, в субтитрах остаётся как написано.','“My pronunciation replacements” — your own list of how the voice should say a word (a brand or a name). Voice-over only; subtitles keep the text as written.'),
+      L('Точнее всего ударения ставят бесплатный голос Edge и «Мой голос».','The free Edge voice and “My voice” handle stress best.')
     ]));
-    S.push(sec('c3','🇬🇧 РОЛИК НА АНГЛИЙСКОМ',[
-      'Галочка «Рилс на английском» меняет язык самого ролика: сценарий пишется по-английски, голос сам берётся английский (Aria, Jenny, Guy, Christopher; ElevenLabs со своим ключом тоже читает по-английски), субтитры — английские.',
-      'Тему можно написать по-русски — ИИ сам напишет английский сценарий.',
-      'Это язык ролика, а не кнопок: язык интерфейса переключается отдельно (RU/EN вверху). Можно оставить кнопки русскими, а ролики делать английскими.',
-      'Голос Piper для английского недоступен — используется Edge или ElevenLabs.'
+    S.push(sec('c3',L('🇬🇧 РОЛИК НА АНГЛИЙСКОМ','🇬🇧 REELS IN ENGLISH'),[
+      L('Галочка «Рилс на английском» меняет язык самого ролика: сценарий пишется по-английски, голос сам берётся английский (Aria, Jenny, Guy, Christopher; ElevenLabs со своим ключом тоже читает по-английски), субтитры — английские.','The “Reel in English” tick switches the language of the reel itself: the script is written in English, an English voice is used (Aria, Jenny, Guy, Christopher; ElevenLabs with your key reads English too), and subtitles are in English.'),
+      L('Тему можно написать по-русски — ИИ сам напишет английский сценарий.','You can write the topic in any language — the AI writes the English script.'),
+      L('Это язык ролика, а не кнопок. Язык кнопок зависит от того, откуда открыть: с videorils.com — русский, с videorils.com/en — английский.','This is the reel language, not the button language. The interface language depends on where you open it: videorils.com/en — English, videorils.com — Russian.'),
+      L('Голос Piper для английского недоступен — используется Edge или ElevenLabs.','The Piper voice isn’t available for English — Edge or ElevenLabs is used.')
     ]));
-    S.push(sec('c1','🎬 «ИЗ ВИДЕО»',[
-      'Загрузи видео — приложение распознает речь (язык определит само).',
-      '«Близко к оригиналу» — тот же смысл своими словами. «От себя» — свежий сценарий на тему исходника.',
-      lite?'<b>Зарубежное видео → ролик на русском:</b> загрузи, например, английское видео — речь распознается сама, ИИ перескажет по-русски. Выбери «🎬 Кадры из этого видео» — ролик соберётся на кадрах исходника с русской озвучкой и субтитрами. Чужие субтитры можно затереть плашкой и отметить зону, где они были.':'<b>Зарубежное видео:</b> загрузи, например, английское видео — речь распознается сама, ИИ перескажет по-русски. Видеоряд подберётся из стоков (ролик на кадрах самого исходника — в версии Лайт).',
-      'Нужен ролик на английском — поставь галочку «Рилс на английском».',
-      'Бери только то видео, на которое у тебя есть права.'
+    S.push(sec('c1',L('🎬 «ИЗ ВИДЕО»','🎬 “FROM A VIDEO”'),[
+      L('Загрузи видео — приложение распознает речь (язык определит само).','Upload a video — the app transcribes the speech (it detects the language itself).'),
+      L('«Близко к оригиналу» — тот же смысл своими словами. «От себя» — свежий сценарий на тему исходника.','“Close to original” — the same meaning in new words. “My own” — a fresh script on the original’s topic.'),
+      lite?L('<b>Зарубежное видео → ролик на русском:</b> загрузи, например, английское видео — речь распознается сама, ИИ перескажет по-русски. Выбери «🎬 Кадры из этого видео» — ролик соберётся на кадрах исходника с русской озвучкой и субтитрами. Чужие субтитры можно затереть плашкой и отметить зону, где они были.','<b>Foreign video → your reel:</b> upload a video in another language — the speech is transcribed and the AI retells it. Choose “🎬 Frames from this video” — the reel is built on the original footage with your voice-over and subtitles. The old subtitles can be covered with a bar in the zone you mark.'):L('<b>Зарубежное видео:</b> загрузи, например, английское видео — речь распознается сама, ИИ перескажет по-русски. Видеоряд подберётся из стоков (ролик на кадрах самого исходника — в версии Лайт).','<b>Foreign video:</b> upload a video in another language — the speech is transcribed and the AI retells it. Footage is picked from stock (a reel on the original footage is in Lite).'),
+      L('Нужен ролик на английском — поставь галочку «Рилс на английском».','Want the reel in English — tick “Reel in English”.'),
+      L('Бери только то видео, на которое у тебя есть права.','Only use videos you have the rights to.')
     ]));
     if(lite){
-      S.push(sec('c3','📦 «ПАКЕТ» — НЕСКОЛЬКО РОЛИКОВ ЗА РАЗ',[
-        'Впиши до 5 тем — приложение соберёт ролики по очереди. «Превью пакета» — посмотреть и поправить сценарии и клипы до сборки.',
-        'На наших ключах занимает по месту в очереди на каждый ролик.'
+      S.push(sec('c3',L('📦 «ПАКЕТ» — НЕСКОЛЬКО РОЛИКОВ ЗА РАЗ','📦 “BATCH” — SEVERAL REELS AT ONCE'),[
+        L('Впиши до 5 тем — приложение соберёт ролики по очереди. «Превью пакета» — посмотреть и поправить сценарии и клипы до сборки.','Enter up to 5 topics — the app builds the reels one after another. “Batch preview” — review and edit scripts and clips before building.'),
+        L('На наших ключах занимает по месту в очереди на каждый ролик.','On our keys it takes a queue slot per reel.')
       ]));
-      S.push(sec('c1','🎵 КЛИП-МИКС — НАРЕЗКА ПОД МУЗЫКУ',[
-        'Впиши тему — приложение подберёт 15–30 разных кадров и нарежет их в ритм музыки. «Превью кадров» — увидеть и заменить кадры до сборки.',
-        'Можно добавить короткий хук голосом и заголовок темы на кадрах.'
+      S.push(sec('c1',L('🎵 КЛИП-МИКС — НАРЕЗКА ПОД МУЗЫКУ','🎵 CLIP-MIX — A CUT TO MUSIC'),[
+        L('Впиши тему — приложение подберёт 15–30 разных кадров и нарежет их в ритм музыки. «Превью кадров» — увидеть и заменить кадры до сборки.','Type a topic — the app picks 15–30 different shots and cuts them to the beat. “Shot preview” — see and replace shots before building.'),
+        L('Можно добавить короткий хук голосом и заголовок темы на кадрах.','You can add a short voiced hook and a topic title on the shots.')
       ]));
-      S.push(sec('c3','✨ ЕЩЁ В ЛАЙТ',[
-        '<b>Обложка-хук</b> — цепляющий первый кадр с крупным заголовком, «Перегенерировать» — другой вариант.',
-        '<b>Анимированные субтитры</b> — подсветка слов в такт голосу.',
-        '<b>Логотип</b> канала на ролике.',
-        '<b>Автомонтаж</b> — загрузи своё готовое видео: субтитры по речи, зум, эмодзи, иконки соцсетей, вставки.'
+      S.push(sec('c3',L('✨ ЕЩЁ В ЛАЙТ','✨ MORE IN LITE'),[
+        L('<b>Обложка-хук</b> — цепляющий первый кадр с крупным заголовком, «Перегенерировать» — другой вариант.','<b>Hook cover</b> — a catchy first frame with a big title; “Regenerate” for another version.'),
+        L('<b>Анимированные субтитры</b> — подсветка слов в такт голосу.','<b>Animated subtitles</b> — words light up in time with the voice.'),
+        L('<b>Логотип</b> канала на ролике.','<b>Your channel logo</b> on the reel.'),
+        L('<b>Автомонтаж</b> — загрузи своё готовое видео: субтитры по речи, зум, эмодзи, иконки соцсетей, вставки.','<b>Auto-editing</b> — upload your own video: subtitles from speech, zoom, emoji, social icons, cutaways.')
       ]));
     }
-    S.push(sec('c1','📢 ФИНАЛЬНЫЙ КАДР — ПРИЗЫВ + QR',[
-      'Последняя сцена — призыв («подпишись», «продолжение в профиле») и QR-код на твой Телеграм или сайт. Не нужен — выключи галочку.',
-      'Фон — градиент, последний кадр ролика или своё фото.'
+    S.push(sec('c1',L('📢 ФИНАЛЬНЫЙ КАДР — ПРИЗЫВ + QR','📢 FINAL FRAME — CALL TO ACTION + QR'),[
+      L('Последняя сцена — призыв («подпишись», «продолжение в профиле») и QR-код на твой Телеграм или сайт. Не нужен — выключи галочку.','The last scene is a call to action (“follow”, “more in my profile”) and a QR code to your Telegram or website. Don’t need it — untick it.'),
+      L('Фон — градиент, последний кадр ролика или своё фото.','Background — a gradient, the last frame of the reel or your own photo.')
     ]));
-    S.push(sec('c1','⚖ МИНИ ИЛИ ЛАЙТ',[
-      '<b>Мини</b> — просто и быстро: тема → готовый ролик до 40 секунд. Сценарий, клипы, озвучка, субтитры, финальный кадр с QR, «Из видео» (видеоряд из стоков), «Мой голос», ролики на английском. По 1 своему ключу на сервис.',
-      '<b>Лайт</b> — всё, что в Мини, плюс: ролики до 120 секунд, «Пакет» (до 5 роликов за раз), клип-микс под музыку, «Из видео» на кадрах исходника (зарубежное видео → ролик на русском), обложка-хук, анимированные субтитры, логотип канала, автомонтаж своего видео, до 5 своих ключей на сервис.',
-      'Это разные продукты: ключ Мини работает только в Мини, ключ Лайт — только в Лайт.'
+    S.push(sec('c1',L('⚖ МИНИ ИЛИ ЛАЙТ','⚖ MINI OR LITE'),[
+      L('<b>Мини</b> — просто и быстро: тема → готовый ролик до 40 секунд. Сценарий, клипы, озвучка, субтитры, финальный кадр с QR, «Из видео» (видеоряд из стоков), «Мой голос», ролики на английском. По 1 своему ключу на сервис.','<b>Mini</b> — simple and fast: topic → finished reel up to 40 seconds. Script, clips, voice-over, subtitles, QR final frame, “From a video” (stock footage), “My voice”, reels in English. 1 own key per service.'),
+      L('<b>Лайт</b> — всё, что в Мини, плюс: ролики до 120 секунд, «Пакет» (до 5 роликов за раз), клип-микс под музыку, «Из видео» на кадрах исходника (зарубежное видео → ролик на русском), обложка-хук, анимированные субтитры, логотип канала, автомонтаж своего видео, до 5 своих ключей на сервис.','<b>Lite</b> — everything in Mini plus: reels up to 120 seconds, “Batch” (up to 5 reels at once), clip-mix to music, “From a video” on the original footage, hook cover, animated subtitles, channel logo, auto-editing of your own video, up to 5 own keys per service.'),
+      L('Это разные продукты: ключ Мини работает только в Мини, ключ Лайт — только в Лайт.','These are separate products: a Mini key works only in Mini, a Lite key only in Lite.')
     ]));
-    S.push(sec('c3','💳 ОПЛАТА',[
-      'Окно «Лицензия» → выбери срок: 7, 30 или 365 дней → «Оплатить». Откроется страница оплаты картой (в рублях).',
-      'После оплаты приложение само получит лицензионный ключ и вставит его — вводить ничего не нужно. Обычно это занимает до минуты.',
-      'Подписка — разовая оплата за выбранный срок, автоматических списаний нет. Закончилась — продлеваешь, когда захочешь, тем же способом.',
-      '<b>Таймер</b> вверху рядом с «Правилами» показывает, сколько осталось («⏳ 6 д 23:59:12»). Заранее он желтеет и появляется напоминание: за 2 дня до конца недели, за 3 дня до конца месяца, за 7 дней до конца года. В последние сутки таймер красный. Нажми на таймер — откроется продление.',
-      'Когда срок закончится — появится окно «Подписка закончилась» с кнопкой «Продлить». Уже сделанные ролики остаются у тебя.',
-      'Ключ привязывается к этому браузеру. Если что-то пошло не так с оплатой — напиши на supportvideorils@gmail.com.'
+    S.push(sec('c3',L('💳 ОПЛАТА','💳 PAYMENT'),[
+      L('Окно «Лицензия» → выбери срок: 7, 30 или 365 дней → «Оплатить». Откроется страница оплаты картой (в рублях).','“License” window → choose the period: 7, 30 or 365 days → “Pay”. Prices are in US dollars at our rate; you pay in <b>USDT (TRC-20)</b>: scan the QR or copy the wallet address and send the exact amount shown.'),
+      L('После оплаты приложение само получит лицензионный ключ и вставит его — вводить ничего не нужно. Обычно это занимает до минуты.','After payment the app gets your license key and inserts it automatically — nothing to type. It usually takes a few minutes after the network confirms the transfer.'),
+      L('Подписка — разовая оплата за выбранный срок, автоматических списаний нет. Закончилась — продлеваешь, когда захочешь, тем же способом.','A subscription is a one-time payment for the chosen period, no auto-renewal. When it ends, renew whenever you like the same way.'),
+      L('<b>Таймер</b> вверху рядом с «Правилами» показывает, сколько осталось («⏳ 6 д 23:59:12»). Заранее он желтеет и появляется напоминание: за 2 дня до конца недели, за 3 дня до конца месяца, за 7 дней до конца года. В последние сутки таймер красный. Нажми на таймер — откроется продление.','<b>A timer</b> at the top next to “Rules” shows the time left (“⏳ 6 d 23:59:12”). It turns yellow and a reminder appears 2 days before the end of a week, 3 days before a month, 7 days before a year. In the last day it turns red. Tap the timer to renew.'),
+      L('Когда срок закончится — появится окно «Подписка закончилась» с кнопкой «Продлить». Уже сделанные ролики остаются у тебя.','When it ends, a “Your subscription has ended” window with a “Renew” button appears. Reels you made stay with you.'),
+      L('Ключ привязывается к этому браузеру. Если что-то пошло не так с оплатой — напиши на supportvideorils@gmail.com.','The key is tied to this browser. If something goes wrong with payment — write to supportvideorils@gmail.com.')
     ]));
-    S.push(sec('c3','🎁 БЕСПЛАТНЫЙ РОЛИК И ПОДПИСКА',[
-      'Без лицензии можно сделать <b>1 ролик бесплатно</b>. С галочкой «Наши ключи» нужна только кнопка «Бесплатный триал».',
-      'Дальше — подписка на 7, 30 или 365 дней в окне «Лицензия». После оплаты ключ вставляется сам.',
-      'Подробнее — в разделе «Оплата» выше.'
+    S.push(sec('c3',L('🎁 БЕСПЛАТНЫЙ РОЛИК И ПОДПИСКА','🎁 FREE REEL AND SUBSCRIPTION'),[
+      L('Без лицензии можно сделать <b>1 ролик бесплатно</b>. С галочкой «Наши ключи» нужна только кнопка «Бесплатный триал».','Without a license you can make <b>1 reel for free</b>. With the “Our keys” tick on, just tap the free trial button.'),
+      L('Дальше — подписка на 7, 30 или 365 дней в окне «Лицензия». После оплаты ключ вставляется сам.','After that — a subscription for 7, 30 or 365 days in the “License” window. The key is inserted automatically after payment.'),
+      L('Подробнее — в разделе «Оплата» выше.','More in the “Payment” section above.')
     ]));
-    S.push(sec('c1','🎯 КАК ПОЛУЧИТЬ ХОРОШИЙ РОЛИК',[
-      'Тема — конкретная и цепляющая. Лучше всего заходят истории, факты и топы, польза и лайфхаки, мотивация.',
-      'Пиши снимаемые образы (предмет, место, действие) — так клипы точнее.',
-      'Не копируй чужие видео один в один — платформы режут неоригинальное.',
-      'Перед публикацией посмотри готовый ролик. Подпись и хэштеги к посту уже готовы — скопируй.'
+    S.push(sec('c1',L('🎯 КАК ПОЛУЧИТЬ ХОРОШИЙ РОЛИК','🎯 HOW TO GET A GOOD REEL'),[
+      L('Тема — конкретная и цепляющая. Лучше всего заходят истории, факты и топы, польза и лайфхаки, мотивация.','A specific, catchy topic. Stories, facts and top lists, tips and life hacks, motivation work best.'),
+      L('Пиши снимаемые образы (предмет, место, действие) — так клипы точнее.','Describe filmable things (an object, a place, an action) — clips match better.'),
+      L('Не копируй чужие видео один в один — платформы режут неоригинальное.','Don’t copy other videos one to one — platforms penalise unoriginal content.'),
+      L('Перед публикацией посмотри готовый ролик. Подпись и хэштеги к посту уже готовы — скопируй.','Watch the finished reel before posting. The caption and hashtags are ready — just copy them.')
     ]));
-    S.push(sec('c3','🩹 ЕСЛИ ЧТО-ТО НЕ ТАК',[
-      'Клип не грузится — «Другой клип» или «Свой файл».',
-      'Ролик долго собирается — не сворачивай браузер и держи экран включённым.',
-      'ИИ не отвечает — подожди минуту или выбери другой ИИ в «Выбери ИИ».',
-      'Не помогло — напиши на supportvideorils@gmail.com.'
+    S.push(sec('c3',L('🩹 ЕСЛИ ЧТО-ТО НЕ ТАК','🩹 IF SOMETHING GOES WRONG'),[
+      L('Клип не грузится — «Другой клип» или «Свой файл».','A clip won’t load — “Another clip” or “My file”.'),
+      L('Ролик долго собирается — не сворачивай браузер и держи экран включённым.','The reel builds slowly — don’t minimise the browser and keep the screen on.'),
+      L('ИИ не отвечает — подожди минуту или выбери другой ИИ в «Выбери ИИ».','The AI doesn’t respond — wait a minute or pick another AI in “Choose AI”.'),
+      L('Не помогло — напиши на supportvideorils@gmail.com.','Still stuck — write to supportvideorils@gmail.com.')
     ]));
-    [...body.children].forEach(function(el){ el.style.display='none'; });
-    const d=document.createElement('div'); d.id='vrRulesWeb'; d.innerHTML=S.join('');
+    [...body.children].forEach(function(el){ if(el.id!=='vrRulesWeb')el.style.display='none'; });
+    const d=document.createElement('div'); d.id='vrRulesWeb'; d.dataset.lang=en?'en':'ru'; d.innerHTML=S.join('');
     body.insertBefore(d, body.firstChild);
   }
   // Ошибки у людей -> сервер (админка «Ошибки» + бот с причиной и решением). Одинаковое — 1 раз за сессию,
@@ -307,7 +311,28 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     w('aiFail',function(r){ repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
     w('edgeLimitAsk',function(){ repErr('tts_limit','бесплатный голос притормозил (Microsoft)','voice'); });
   }
-  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
+  function langSync(){
+    try{
+      const q=new URLSearchParams(location.search).get('lang');
+      if((q==='en'||q==='ru')&&typeof setUiLang==='function'&&typeof uiLang!=='undefined'&&uiLang!==q&&canApi()) setUiLang(q);
+      if(typeof uiLang==='undefined')return;
+      const en=(uiLang==='en'); _buildVariant=en?'en':'ru';
+      // английский интерфейс = английская версия: ролик всегда на английском, тумблер «Рилс на английском» не нужен
+      ['btnLangReel','btnLangBatch'].forEach(function(id){ const b=document.getElementById(id); if(b)b.style.display=en?'none':''; });
+      const cb=document.getElementById('cbLangReel'); let was=''; try{ was=localStorage.getItem('vr_web_lang')||''; }catch(e){}
+      if(canApi()&&typeof onContentLang==='function'&&cb){
+        if(en&&!cb.checked) onContentLang(true);
+        else if(!en&&was==='en'&&cb.checked) onContentLang(false);   // вернулись на русскую версию
+      }
+      const de=document.documentElement;
+      let stale=0; document.querySelectorAll('.vrShared,#groqAccHead,#groqAccBody,.vrStockOpt').forEach(function(e){ if(e.dataset.lang!==uiLang){ e.remove(); stale=1; } });
+      if((stale||(de.dataset.vrUi&&de.dataset.vrUi!==uiLang))&&canApi()){ try{ if(typeof loadKeysStatus==='function')loadKeysStatus(); }catch(e){} }
+      { const dt=document.getElementById('groqDot'); if(dt&&dt.dataset.n!=null&&typeof t==='function') dt.textContent=(+dt.dataset.n)?t('key_set'):t('key_not_set'); }
+      de.dataset.vrUi=uiLang; try{ if(typeof subVisSync==='function')subVisSync(); }catch(e){}
+      if(canApi()) try{ localStorage.setItem('vr_web_lang',uiLang); }catch(e){}
+    }catch(e){}
+  }
+  function boot(){ langSync(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); window.addEventListener('pywebviewready',function(){ boot(); setTimeout(boot,300); }); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
@@ -319,7 +344,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     api('get_reel_credits').then(function(r){
       const l=(r&&r.credits)||[]; if(!l.length)return;
       const src=[...new Set(l.map(function(c){return c.source;}))].join(' · ');
-      d.innerHTML='🎞 <b>Кадры ('+esc(src)+'):</b> '+l.map(credit).join(', ');
+      d.innerHTML='🎞 <b>'+L('Кадры','Footage')+' ('+esc(src)+'):</b> '+l.map(credit).join(', ');
     }).catch(function(){});
   };
 })();

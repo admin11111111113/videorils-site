@@ -16,6 +16,7 @@
 })();
 </script>
 <!-- Meta Pixel Code -->
+<!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -32,11 +33,11 @@ fbq('track', 'PageView');
 // новые кнопки скачивания подхватятся сами. Переход по ссылке НЕ трогаем:
 // никакого preventDefault — fbq уходит асинхронно и загрузку не задерживает.
 document.addEventListener('click', function(e){
-  var a = e.target && e.target.closest ? e.target.closest('a[href*="Setup.exe"]') : null;
+  var a = e.target && e.target.closest ? e.target.closest('a[href*="Setup.exe"], a.ms-store-btn') : null;
   if(!a) return;
   var href = (a.getAttribute('href')||'').toLowerCase();
-  var what = href.indexOf('lite') >= 0 ? 'lite'
-           : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown');
+  var what = a.getAttribute('data-store') || (href.indexOf('lite') >= 0 ? 'lite'
+           : (href.indexOf('mini') >= 0 ? 'mini' : 'unknown'));
   var price = what === 'lite' ? 197 : (what === 'mini' ? 97 : 0);
   try{ fbq('trackCustom', 'Download', {content_name: what}); }catch(err){}
   // TikTok — то же событие с ценой тарифа, чтобы в кабинете была видна не только
@@ -77,12 +78,13 @@ src="https://www.facebook.com/tr?id=965148686538305&ev=PageView&noscript=1"
 <!-- TikTok Pixel Code End -->
 
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VideoRils — AI app turns text into ready reels · download</title>
-<meta name="description" content="VideoRils — turns text into reels for TikTok, Instagram Reels and YouTube Shorts in a minute: AI script, voice-over, subtitles. Lifetime license.">
-<meta name="keywords" content="videorils, video rils, ai reel maker, text to video, ai video generator, reels from text, ai tiktok video maker, faceless video app">
-<meta property="og:title" content="VideoRils — AI app turns text into ready reels · download">
-<meta property="og:description" content="VideoRils — desktop app that turns text into ready reels for TikTok, Instagram Reels and YouTube Shorts in a minute. Download for PC, lifetime license.">
+<meta name="yandex-verification" content="80a8b3636569ba62" />
+<meta name="viewport" content="width=device-width, initial-scale=1" id="vrVp"><script>/* телефон -> вид «как на ПК»; планшеты/ПК не трогаем */(function(){try{var c=matchMedia("(pointer:coarse)").matches,w=Math.min(screen.width,screen.height);if(c&&w<900){document.getElementById("vrVp").setAttribute("content","width=1280");document.documentElement.classList.add("vrPhone");}}catch(e){}})();</script>
+<title>VideoRils — reels from text right in your browser and on your phone</title>
+<meta name="description" content="VideoRils — reels from text for TikTok, Instagram Reels and YouTube Shorts in a minute: AI script, voice-over, subtitles. Works right in your browser, on phone and PC.">
+<meta name="keywords" content="videorils, video rils, reels from text, text to video, ai reel maker, ai video generator online, make reels on phone, reels app, tiktok video maker, youtube shorts maker, instagram reels maker, ai voice over, auto subtitles, faceless video, video in browser">
+<meta property="og:title" content="VideoRils — reels from text right in your browser and on your phone">
+<meta property="og:description" content="VideoRils makes reels from text for TikTok, Instagram Reels and YouTube Shorts in a minute. Works right in your browser — on phone and computer.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://videorils.com/en/">
 <meta property="og:image" content="https://videorils.com/og-image.png">
@@ -90,7 +92,7 @@ src="https://www.facebook.com/tr?id=965148686538305&ev=PageView&noscript=1"
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="VideoRils — reels from text in a minute">
-<meta name="twitter:description" content="Paste your text — get a ready 9:16 reel with voice-over and subtitles.">
+<meta name="twitter:description" content="Paste text — get a finished 9:16 reel with voice-over and subtitles.">
 <meta name="twitter:image" content="https://videorils.com/og-image.png">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
@@ -101,7 +103,7 @@ src="https://www.facebook.com/tr?id=965148686538305&ev=PageView&noscript=1"
 <link rel="alternate" hreflang="en" href="https://videorils.com/en/">
 <link rel="alternate" hreflang="x-default" href="https://videorils.com/">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"VideoRils","alternateName":["VideoRils","Video Rils","video rils"],"operatingSystem":"Windows 10, Windows 11","applicationCategory":"MultimediaApplication","inLanguage":"en","url":"https://videorils.com/en/","image":"https://videorils.com/og-image.png","description":"A complete-cycle desktop app: AI writes the script, voices it, picks the footage and adds subtitles — a ready vertical reel in 1 click, no editing. For TikTok, Instagram Reels and YouTube Shorts.","offers":{"@type":"Offer","price":"97","priceCurrency":"USD","category":"Lifetime license"},"featureList":["AI script from text","English voice-over","Automatic footage matching","Auto subtitles","Vertical 9:16 format","Lifetime license, no subscription"]}
+{"@context":"https://schema.org","@type":"WebApplication","browserRequirements":"A modern browser: Chrome, Edge, Safari, Firefox","name":"VideoRils","alternateName":["VideoRils","Video Rils","video rils"],"operatingSystem":"Android, iOS, Windows, macOS (browser)","applicationCategory":"MultimediaApplication","inLanguage":"en","url":"https://videorils.com/en/","image":"https://videorils.com/og-image.png","description":"An all-in-one online service right in your browser: AI writes the script, voices it, picks footage and adds subtitles — a finished vertical reel in one click, no editing. For TikTok, Instagram Reels and YouTube Shorts.","featureList":["AI script from text","Voice-over in English or Russian","Automatic footage","Automatic subtitles","Vertical 9:16 format","Works in the browser, nothing to install"]}
 </script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
@@ -561,7 +563,7 @@ h2{font-size:clamp(28px,4.4vw,46px);font-weight:850;line-height:1.1}
 .tpick:not(.on):hover{border-color:rgba(255,61,138,.4);color:var(--txt)}
 .cmp-card.lite .tpick:not(.on):hover{border-color:rgba(123,47,255,.45)}
 .tpick.on{color:#fff;border-color:transparent}
-.tpick.on::after{content:"✓ open";font-weight:800}
+.tpick.on::after{content:"✓ открыто";font-weight:800}
 .tpick.on[data-tariff="mini"]{background:linear-gradient(135deg,#FF3D8A,#7B2FFF);box-shadow:0 12px 32px rgba(255,61,138,.5),0 0 0 1px rgba(255,61,138,.35)}
 .tpick.on[data-tariff="lite"]{background:linear-gradient(135deg,#7B2FFF,#b98cff);box-shadow:0 12px 32px rgba(123,47,255,.5),0 0 0 1px rgba(123,47,255,.35)}
 .tariff-panel{margin-top:26px;position:relative}
@@ -739,6 +741,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 .final-cta-txt{font-size:clamp(17px,2.6vw,22px);font-weight:800;color:var(--txt);margin-bottom:16px;line-height:1.35}
 .final-cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
 </style>
+<style>.ms-store-btn{display:inline-block;line-height:0;border-radius:10px;transition:transform .15s,box-shadow .15s}.ms-store-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35)}.ms-store-btn img{display:block;height:auto;max-width:100%}</style>
 </head>
 <body>
 
@@ -758,8 +761,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <nav class="nav-cta">
       <a href="#how" class="link">How it works</a>
       <a href="#results" class="link">Examples</a>
-      <a href="#price" class="link">Pricing</a>
-      <a href="#price" class="btn primary">Download</a>
+      <a href="/web/en/" class="btn primary">Start creating</a>
       <a href="/" class="link" title="Русская версия" onclick="try{localStorage.setItem('vr_lang','ru')}catch(e){}">RU</a>
     </nav>
   </div>
@@ -771,17 +773,22 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="hero-top">
       <span class="eyebrow"><span class="dot"></span>Live demo · right now</span>
       <h1 id="heroH1">
-        <span class="w" style="--i:0">The</span> <span class="w" style="--i:1">only</span>
-        <span class="w" style="--i:2">app</span> <span class="w" style="--i:3">that</span>
-        <span class="w" style="--i:4">makes</span> <span class="w hl" style="--i:5">reels for you</span>
+        <span class="w" style="--i:0">The only</span> <span class="w" style="--i:1">service</span>
+        <span class="w" style="--i:2">that</span> <span class="w" style="--i:3">makes</span>
+        <span class="w" style="--i:4">reels</span> <span class="w hl" style="--i:5">for you</span>
       </h1>
-      <p class="hero-sub">From idea to publish</p>
-      <p class="hero-sub2">No editing, no microphone, no stock footage — it's all built in.</p>
+      <p class="hero-sub">From idea to posting</p>
+      <p class="hero-sub2">No editing, no microphone, no stock hunting — everything right in your browser, even on your phone.</p>
     </div>
 
+    <div class="hero-cta" style="margin:26px auto 34px">
+      <span class="glowcta"><a href="/web/en/" class="btn primary lg shine">Start creating</a></span>
+      <p class="hero-note">Right in your browser — on phone and PC · nothing to install · your first reel is free</p>
+      <p class="free-ai"><b>🆓 Runs on free AI</b> — or plug in premium keys, your choice</p>
+    </div>
     <div class="sim-grid">
       <!-- панель программы -->
-      <div class="simpanel" role="img" aria-label="Demo: VideoRils making a reel — script, voice-over, footage, subtitles">
+      <div class="simpanel" role="img" aria-label="Demo: VideoRils makes a reel — script, voice-over, footage, subtitles">
         <div class="sp-top">
           <span class="sp-d r"></span><span class="sp-d y"></span><span class="sp-d g"></span>
           <span class="sp-name">VideoRils — new reel</span>
@@ -821,34 +828,29 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 
     <!-- 4 шага «как это работает» — подсвечиваются синхронно со стадиями симуляции выше -->
     <ol class="hiw-steps" id="hiwSteps" aria-label="How it works">
-      <li class="hiw-step" data-n="1"><span class="hiw-n">1</span><div class="hiw-b"><b class="hiw-t">Write a topic</b><span class="hiw-d">Your own story or a topic in one line. The AI breaks it into scenes and writes a hook-driven script.</span></div></li>
-      <li class="hiw-step" data-n="2"><span class="hiw-n">2</span><div class="hiw-b"><b class="hiw-t">AI voices it</b><span class="hiw-d">The text is read by a natural English voice — free or premium. You can fine-tune pronunciation or use your own voice.</span></div></li>
-      <li class="hiw-step" data-n="3"><span class="hiw-n">3</span><div class="hiw-b"><b class="hiw-t">Picks footage and subtitles</b><span class="hiw-d">For every scene the app finds a matching clip, overlays big word-by-word "bouncing" subtitles, and adds a final QR call-to-action frame.</span></div></li>
-      <li class="hiw-step" data-n="4"><span class="hiw-n">4</span><div class="hiw-b"><b class="hiw-t">Ready reel — post it</b><span class="hiw-d">The output is a vertical 9:16 mp4 plus a caption and hashtags for the post. Just upload it to TikTok, Reels or Shorts.</span></div></li>
+      <li class="hiw-step" data-n="1"><span class="hiw-n">1</span><div class="hiw-b"><b class="hiw-t">Type a topic</b><span class="hiw-d">Your own story or a one-line topic. The AI splits it into scenes and writes a catchy script with a hook at the start.</span></div></li>
+      <li class="hiw-step" data-n="2"><span class="hiw-n">2</span><div class="hiw-b"><b class="hiw-t">The AI voices it</b><span class="hiw-d">The text is read in a natural voice — free or premium, in English or Russian. You can fix pronunciation by hand or record your own voice.</span></div></li>
+      <li class="hiw-step" data-n="3"><span class="hiw-n">3</span><div class="hiw-b"><b class="hiw-t">Picks footage and subtitles</b><span class="hiw-d">For every scene VideoRils finds a clip, adds big word-by-word animated subtitles and a final call-to-action frame with a QR code.</span></div></li>
+      <li class="hiw-step" data-n="4"><span class="hiw-n">4</span><div class="hiw-b"><b class="hiw-t">Your reel is ready — post it</b><span class="hiw-d">You get a vertical 9:16 mp4 plus a caption and hashtags for the post. Just upload it to TikTok, Reels or Shorts.</span></div></li>
     </ol>
 
-    <div class="hero-cta">
-      <span class="glowcta"><a href="#price" class="btn primary lg shine">Make your first video for free</a></span>
-      <p class="hero-note">Download the free version · Windows · no subscription, no watermark</p>
-      <p class="free-ai"><b>🆓 Works with free AI</b> — or plug in premium keys, your choice</p>
-    </div>
 
-    <p class="hero-seo">The app writes the script itself, voices it, picks matching footage for every scene, adds big subtitles and assembles a vertical 9:16 video for TikTok, Instagram Reels and YouTube Shorts. No editing, no stock footage, no microphone — from idea to finished video in a couple of minutes, right on your PC.</p>
+    <p class="hero-seo">VideoRils writes the script, voices it, picks footage for every scene, adds big subtitles and assembles a vertical 9:16 video for TikTok, Instagram Reels and YouTube Shorts (and any vertical platform). No editing, no stock hunting, no microphone — from idea to finished video in a couple of minutes, right in your phone or computer browser. People spell it differently — “VideoRils”, “Video Rils” or “video reels” — it is the same text-to-reel service that opens right in your browser, with nothing to install.</p>
   </div>
 </section>
 
 <!-- ============ БЛОК 2 · СТРОКА ДОВЕРИЯ ============ -->
 <div class="marq" aria-hidden="true">
   <div class="marq-track">
-    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>Facebook Reels</span><i class="md"></i><span>Snapchat Spotlight</span><i class="md"></i>
-    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>Facebook Reels</span><i class="md"></i><span>Snapchat Spotlight</span><i class="md"></i>
+    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>VK Clips</span><i class="md"></i><span>Dzen</span><i class="md"></i><span>Likee</span><i class="md"></i>
+    <span>TikTok</span><i class="md"></i><span>Instagram Reels</span><i class="md"></i><span>YouTube Shorts</span><i class="md"></i><span>VK Clips</span><i class="md"></i><span>Dzen</span><i class="md"></i><span>Likee</span><i class="md"></i>
   </div>
 </div>
 <div class="wrap">
   <div class="stats stg" id="stats">
-    <div class="stat"><div class="n">~<span data-count="60" data-suffix="">0</span> sec</div><div class="l">video from text to done</div></div>
-    <div class="stat"><div class="n">0 min</div><div class="l">manual editing</div></div>
-    <div class="stat"><div class="n">Your PC</div><div class="l">works offline on Windows</div></div>
+    <div class="stat"><div class="n">~<span data-count="60" data-suffix="">0</span> sec</div><div class="l">from text to finished video</div></div>
+    <div class="stat"><div class="n">0 min</div><div class="l">of manual editing</div></div>
+    <div class="stat"><div class="n">Phone</div><div class="l">works right in the browser</div></div>
     <!-- реальный счётчик генераций: скрыт до накопления солидной цифры; тянется из /stats (total_renders) -->
     <div class="stat" id="rendersStat" style="display:none"><div class="n"><span id="rendersN">0</span></div><div class="l">reels created</div></div>
   </div>
@@ -860,23 +862,23 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="sec-head rv">
       <div class="sec-eyebrow">only in VideoRils</div>
       <h2>What only VideoRils can do</h2>
-      <p class="sec-sub">Not just "text to video." Three things you'd normally hire an editor or a paid service for — built in here, running on your own PC.</p>
+      <p class="sec-sub">Not just “text to video”. Three things people usually pay an editor or a paid service for — built in here and working right in the browser, even on a phone.</p>
     </div>
     <div class="pain-grid stg">
       <div class="pain-card">
         <div class="pain-ico">🎬</div>
-        <h3>Someone else's video — your reel<span class="ltag">Lite</span></h3>
-        <p>Upload a viral clip in another language — the app keeps the footage, <b style="color:var(--txt)">wipes the original subtitles</b> and lays down your own English voice-over and subtitles. No filming, no editing.</p>
+        <h3>Someone’s video — your reel<span class="ltag">Lite</span></h3>
+        <p>Upload a viral video in another language — VideoRils keeps the footage, <b style="color:var(--txt)">covers the old subtitles</b> and adds your own voice-over and subtitles. No filming, no editing.</p>
       </div>
       <div class="pain-card">
         <div class="pain-ico">⚡</div>
-        <h3>Clip-Mix / Montage<span class="ltag">Lite</span></h3>
-        <p>Give it a topic — the app assembles a fast-cut montage from 15–30 different clips set to music, like the trending "compilation" reels on Reels and TikTok. You can preview and swap clips before the final render.</p>
+        <h3>Clip-mix<span class="ltag">Lite</span></h3>
+        <p>Give it a topic — VideoRils builds a fast-paced cut of 15–30 different shots to music, like trending edits on Reels and TikTok. You see every shot and can swap it right before the final build.</p>
       </div>
       <div class="pain-card">
         <div class="pain-ico">🆓</div>
         <h3>Runs on free AI</h3>
-        <p>No paid AI subscription needed: script, voice-over and clip selection all run on free API keys. Want premium quality — plug in your own keys. Your choice.</p>
+        <p>No paid AI subscription needed: the script, voice-over and clip picking run on free keys that are already connected. Want premium quality — plug in your own keys. Your choice.</p>
       </div>
     </div>
   </div>
@@ -886,8 +888,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 <section class="pad" id="bridge" style="padding-bottom:6px">
   <div class="wrap">
     <div class="bridge rv">
-      <h2 class="grad-txt">Your first reel — free</h2>
-      <p>Give it a topic — and VideoRils' AI assembles a vertical video with voice-over and subtitles in a couple of minutes on your Windows PC. Below: how it works, what you get, and what it costs.</p>
+      <h2 class="grad-txt">Your first reel is free</h2>
+      <p>Give it a topic — and the VideoRils AI assembles a vertical video with voice-over and subtitles in a couple of minutes, right in your phone or computer browser. Below: how it works and what you get.</p>
     </div>
   </div>
 </section>
@@ -897,27 +899,27 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">sound familiar?</div>
-      <h2>You've got the idea. Not the hours to edit.</h2>
-      <p class="sec-sub">It's not a talent problem — it's a time problem. The app takes over all the busywork.</p>
+      <h2>You have the idea. No energy for editing.</h2>
+      <p class="sec-sub">It’s not talent you lack — it’s hours. VideoRils takes all the routine off your hands.</p>
     </div>
     <div class="pain-grid stg">
       <div class="pain-card">
         <div class="pain-ico">⏳</div>
         <h3>Editing eats 3 hours</h3>
-        <p>Finding clips, cutting, syncing, music, subtitles by hand — and your evening is gone for one video.</p>
+        <p>Finding clips, cutting, music, subtitles by hand — and the whole evening is gone for one video.</p>
       </div>
       <div class="pain-card">
         <div class="pain-ico">🙈</div>
         <h3>Camera-shy</h3>
-        <p>Don't want to show your face or hear your own voice? Voice-over and footage — no filming, no mic.</p>
+        <p>Don’t want to show your face or hear your voice? Voice-over and footage — no filming, no microphone.</p>
       </div>
       <div class="pain-card">
         <div class="pain-ico">💭</div>
         <h3>Out of ideas</h3>
-        <p>Not sure what to post about? Built-in "ideas of the day" and AI scripts suggest a topic and write the text.</p>
+        <p>Don’t know what to post? Built-in “ideas of the day” and AI scripts suggest a topic and write the text.</p>
       </div>
     </div>
-    <p class="pain-punch rv">While you're wondering "is this hard" — someone just posted their third reel today.<br>The only difference is the tool.</p>
+    <p class="pain-punch rv">While you wonder “is it hard?” — someone has already posted their third reel today.<br>The only difference is the tool.</p>
   </div>
 </section>
 
@@ -928,25 +930,25 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">examples</div>
-      <h2>Made by the app</h2>
-      <p class="sec-sub">Reels assembled automatically by the app — different topics, styles and subtitles. They play muted; tap 🔊 on a reel to listen.</p>
+      <h2>Made with VideoRils</h2>
+      <p class="sec-sub">Reels assembled by VideoRils automatically — different topics, styles and subtitles. They play muted; tap 🔊 on a reel to listen.</p>
     </div>
     <div class="car-wrap rv">
-      <button class="car-arrow prev" id="carPrev" type="button" aria-label="Previous">‹</button>
+      <button class="car-arrow prev" id="carPrev" type="button" aria-label="Back">‹</button>
       <div class="carousel" id="carousel">
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_07.webp" loading="lazy" alt="Reel example 7"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_07.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_02.webp" loading="lazy" alt="Reel example 2"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_02.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_11.webp" loading="lazy" alt="Reel example 11"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_11.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_04.webp" loading="lazy" alt="Reel example 4"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_04.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_13.webp" loading="lazy" alt="Reel example 13"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_13.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_09.webp" loading="lazy" alt="Reel example 9"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_09.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_01.webp" loading="lazy" alt="Reel example 1"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_01.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_06.webp" loading="lazy" alt="Reel example 6"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_06.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_10.webp" loading="lazy" alt="Reel example 10"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_10.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_03.webp" loading="lazy" alt="Reel example 3"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_03.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_12.webp" loading="lazy" alt="Reel example 12"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_12.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_05.webp" loading="lazy" alt="Reel example 5"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_05.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
-      <figure class="gcard" data-g><img class="gposter" src="../media/gallery/gallery_08.webp" loading="lazy" alt="Reel example 8"><video class="gvid" preload="none" muted loop playsinline data-src="../media/gallery/gallery_08.mp4"></video><button class="gplay" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Unmute">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_07.webp" loading="lazy" alt="Reel example 7"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_07.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_02.webp" loading="lazy" alt="Reel example 2"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_02.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_11.webp" loading="lazy" alt="Reel example 11"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_11.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_04.webp" loading="lazy" alt="Reel example 4"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_04.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_13.webp" loading="lazy" alt="Reel example 13"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_13.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_09.webp" loading="lazy" alt="Reel example 9"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_09.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_01.webp" loading="lazy" alt="Reel example 1"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_01.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_06.webp" loading="lazy" alt="Reel example 6"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_06.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_10.webp" loading="lazy" alt="Reel example 10"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_10.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_03.webp" loading="lazy" alt="Reel example 3"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_03.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_12.webp" loading="lazy" alt="Reel example 12"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_12.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_05.webp" loading="lazy" alt="Reel example 5"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_05.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
+      <figure class="gcard" data-g><img class="gposter" src="media/gallery/gallery_08.webp" loading="lazy" alt="Reel example 8"><video class="gvid" preload="none" muted loop playsinline data-src="media/gallery/gallery_08.mp4"></video><button class="gplay" aria-label="Watch"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button class="gsound" aria-label="Turn sound on">🔇</button></figure>
       </div>
       <button class="car-arrow next" id="carNext" type="button" aria-label="Next">›</button>
     </div>
@@ -958,8 +960,8 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">comparison</div>
-      <h2>See for yourself — facts, not talk</h2>
-      <p class="sec-sub">The rest of the market splits the work into parts and charges for it every month. VideoRils hands you a finished reel — and only once.</p>
+      <h2>Compare for yourself — facts, not words</h2>
+      <p class="sec-sub">The market splits the job into pieces: editing, voice-over and subtitles in different services. VideoRils hands you the whole finished reel.</p>
     </div>
     <div class="cmpx-wrap stg">
       <table class="cmpx">
@@ -968,30 +970,30 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             <th class="cmpx-param"></th>
             <th>Video editors<span>CapCut, InShot…</span></th>
             <th>Online AI tools<span>text-to-video</span></th>
-            <th>Clip cutters<span>for long videos</span></th>
+            <th>Clippers<span>for long videos</span></th>
             <th class="cmpx-us">VIDEORILS</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <th class="cmpx-param">Result</th>
-            <td class="bad">empty timeline</td>
-            <td class="bad">5–20 sec clip</td>
-            <td class="bad">cuts up your video</td>
-            <td class="cmpx-us">FINISHED REEL</td>
+            <td class="bad">an empty timeline</td>
+            <td class="bad">a 5–20 sec clip</td>
+            <td class="bad">cut your own video</td>
+            <td class="cmpx-us">A FINISHED REEL</td>
           </tr>
           <tr>
             <th class="cmpx-param">Time per reel</th>
             <td class="bad">1–2 hours</td>
-            <td class="bad">5–20 min in queue</td>
+            <td class="bad">5–20 min queue</td>
             <td class="bad">—</td>
             <td class="cmpx-us">~60 sec</td>
           </tr>
           <tr>
             <th class="cmpx-param">Editing skills</th>
-            <td class="bad">needed</td>
-            <td class="bad">needed</td>
-            <td class="bad">needed</td>
+            <td class="bad">required</td>
+            <td class="bad">required</td>
+            <td class="bad">required</td>
             <td class="cmpx-us">NOT NEEDED</td>
           </tr>
           <tr>
@@ -999,26 +1001,19 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             <td class="no">✕</td>
             <td class="bad">hit or miss</td>
             <td class="no">✕</td>
-            <td class="cmpx-us">✓ natural, tunable</td>
+            <td class="cmpx-us">✓ correct pronunciation</td>
           </tr>
           <tr>
             <th class="cmpx-param">Subtitles</th>
-            <td class="bad">DIY</td>
+            <td class="bad">by hand</td>
             <td class="no">✕</td>
             <td class="no">✕</td>
             <td class="cmpx-us">✓ automatic</td>
           </tr>
-          <tr>
-            <th class="cmpx-param">Price</th>
-            <td class="bad">free, but you pay in time</td>
-            <td class="bad">$10–25/mo</td>
-            <td class="bad">$15–30/mo</td>
-            <td class="cmpx-us price">$97 LIFETIME</td>
-          </tr>
         </tbody>
       </table>
     </div>
-    <p class="vs-foot rv">The only tool of its kind that runs the whole pipeline end to end.</p>
+    <p class="vs-foot rv">A one-of-a-kind all-in-one service.</p>
   </div>
 </section>
 
@@ -1028,205 +1023,66 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     <div class="sec-head rv">
       <div class="sec-eyebrow">two products</div>
       <h2>Mini or Lite?</h2>
-      <p class="sec-sub">Mini — to get started: one reel at a time. Lite (Maxi) — for a steady flow: batches, longer reels, Clip-Mix. Pick one — pricing opens below.</p>
+      <p class="sec-sub">Mini — to get started: one reel at a time. Lite — for a steady flow: batches, long videos, clip-mix.</p>
     </div>
-    <p class="price-epigraph rv">A tool should <span class="grad">belong to you</span> — like a hammer, not a rental.</p>
     <div class="cmp2 stg">
       <div class="cmp-card">
-        <div class="cmp-tag">To get started</div>
+        <div class="cmp-tag">To start</div>
         <h3>VideoRils <b>Mini</b></h3>
         <ul class="feat-rows">
-          <li><span class="ok">✓</span><span class="t">Type a topic — get a reel<small>the AI handles it: script, voice-over, clips, subtitles</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Retell someone else's video<small>drop in a clip — it transcribes and rewrites it</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Voice-over without a mic<small>free voices, premium, or your own voice</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Pronunciation under your control<small>click to fix a mispronounced word</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Big "bouncing" subtitles<small>readable even muted, pick from several styles</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Final QR call-to-action frame<small>viewer scans it — lands on your channel</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Idea of the day<small>out of ideas — pick a ready trending topic</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Reels in English or Russian<small>one checkbox — script and voice-over in either language</small></span></li>
-          <li><span class="ok">✓</span><span class="t">Caption and hashtags for the post<small>copy — publish</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Type a topic — get a reel<small>The AI does it all: script, voice-over, clips, subtitles</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Retell other videos<small>drop in a video — it transcribes and rewrites it</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Voice-over without a mic<small>free voices, premium or your own voice</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Pronunciation under control<small>fix a mispronounced word in one tap</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Big animated subtitles<small>readable even with sound off, styles to choose from</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Final frame with a QR code<small>viewers scan it — and land on your channel</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Ideas of the day<small>no ideas — pick a ready trending topic</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Reels in English and Russian<small>one tick — script and voice-over in English for an international audience</small></span></li>
+          <li><span class="ok">✓</span><span class="t">Caption and hashtags for the post<small>copy — post</small></span></li>
         </ul>
-        <div class="feat-sep">Format: 1 reel per run · up to 40 sec. Enough for daily posting to 1 channel</div>
-        <div class="feat-price">$15/mo · $79/yr · <b>$97 lifetime</b></div>
-        <button type="button" class="btn lg tpick" data-tariff="mini" aria-pressed="true" style="width:100%">Mini pricing</button>
+        <div class="feat-sep">Format: 1 reel per run · up to 40 sec. Enough for daily posting to one channel</div>
       </div>
       <div class="cmp-card lite">
         <div class="cmp-tag lite">For a steady flow</div>
-        <h3>VideoRils <b>Lite</b><span class="maxi">Maxi</span></h3>
-        <div class="lite-sub">Everything in Mini, down to the last feature, plus more power</div>
-        <div class="all-in"><b>✓ EVERYTHING from Mini is already in here:</b> AI scripts · voice-over · subtitles · pronunciation control · idea of the day · video retelling · QR frame</div>
-        <div class="feat-more-h">And on top — what Mini doesn't have:</div>
+        <h3>VideoRils <b>Lite</b><span class="maxi">Lite</span></h3>
+        <div class="lite-sub">Everything in Mini + more power</div>
+        <div class="all-in"><b>✓ EVERYTHING from Mini is included:</b> AI scripts · voice-over · subtitles · pronunciation · ideas of the day · video retelling · QR frame</div>
+        <div class="feat-more-h">Plus what Mini doesn’t have:</div>
         <ul class="feat-rows plus">
-          <li><span class="pl">＋</span><span class="t">Batches of 5 reels per run<small>hit go in the evening — a week of content is ready</small></span></li>
-          <li><span class="pl">＋</span><span class="t">Reels up to 2 minutes<small>reviews, roundups, stories — not just shorts</small></span></li>
-          <li><span class="pl">＋</span><span class="t">Up to 5 keys per service<small>generate a lot without hitting rate limits</small></span></li>
-          <li><span class="pl">＋</span><span class="t">Clip-Mix / Montage<small>a fast-cut montage from 15-30 different clips set to music; preview clips before the final render — see and swap them before it's done</small></span></li>
-          <li><span class="pl">＋</span><span class="t">Foreign video, your language<small>take someone else's clip in another language, wipe their subtitles, lay down your own voice-over and subtitles</small></span></li>
-          <li><span class="pl">＋</span><span class="t">Subtitle zone editor<small>draw the zone right on the 9:16 layout — the caption bar and your subtitles land exactly there</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Batches of 5 reels per run<small>one click in the evening — a week of content is ready</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Videos up to 2 minutes<small>reviews, compilations, stories — not just shorts</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Up to 5 keys per service<small>make a lot — without hitting limits</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Clip-mix<small>a fast-paced cut of 15–30 different shots to music; shot preview before the build — see and edit clips before the final</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Foreign video in your language<small>take a video in another language, cover its subtitles, add your own voice-over and subtitles</small></span></li>
+          <li><span class="pl">＋</span><span class="t">Subtitle zone editor<small>draw the zone right on the 9:16 preview — a cover bar and your subtitles land exactly there</small></span></li>
         </ul>
-        <div class="feat-sep">Format: up to 5 reels per run · up to 120 sec. For daily content creators</div>
-        <div class="feat-price">$29/mo · $149/yr · <b>$197 lifetime</b></div>
-        <button type="button" class="btn lg tpick" data-tariff="lite" aria-pressed="false" style="width:100%">Lite pricing</button>
-      </div>
-    </div>
-    <div class="cmp-foot rv">
-      <p>Both versions: Windows · one-time or monthly payment · auto-updates</p>
-    </div>
-
-    <!-- панель тарифов: раскрывается ПОД карточками, переключается на месте (без прыжка) -->
-    <div class="tariff-panel" id="tariffPanel">
-      <div class="tgroup active" data-tg="mini">
-        <div class="pg-head"><h3>VideoRils <b>Mini</b> pricing</h3><span>to get started · 1 reel at a time, up to 40 sec</span></div>
-        <div class="tiers">
-          <div class="tier">
-            <div class="pn">MONTHLY</div>
-            <div class="price"><span class="now">$15</span><span class="cur">USDT</span></div>
-            <div class="sub">Try it without a big commitment</div>
-            <ul>
-              <li>AI script from your text</li>
-              <li>Voice-over: free or premium</li>
-              <li>Footage + big subtitles</li>
-              <li>1 reel at a time, up to 40 seconds</li>
-            </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.167/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
-            <div class="dlnote">Windows · plan selected in the app</div>
-          </div>
-          <div class="tier best">
-            <span class="badge-hot">🔥 Launch price</span>
-            <div class="pn">LIFETIME</div>
-            <div class="price"><span class="old">$300</span><span class="now">$97</span><span class="cur">USDT</span></div>
-            <div class="sub">Pay once — use it with no time limit</div>
-            <div class="prog" data-prog="mini">
-              <div class="prog-bar"><i data-fill="3"></i></div>
-              <div class="prog-lbl" data-slots>3 of 100 taken at launch price</div>
-            </div>
-            <ul>
-              <li>Everything in the Monthly plan</li>
-              <li>Lifetime license, no subscription</li>
-              <li>All Mini updates included</li>
-              <li>No watermark</li>
-            </ul>
-            <span class="glowcta" style="display:block"><a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.167/VideoRilsMiniENSetup.exe" class="btn primary lg shine" style="width:100%">↓ Download VideoRils Mini</a></span>
-            <div class="dlnote">Windows · $97 payment — inside the app</div>
-          </div>
-          <div class="tier">
-            <div class="pn">YEARLY</div>
-            <div class="price"><span class="now">$79</span><span class="cur">USDT</span></div>
-            <div class="sub">A full year of access at a discount</div>
-            <ul>
-              <li>Everything in the Monthly plan</li>
-              <li>Updates for a full year</li>
-              <li>Priority support</li>
-              <li>Cheaper than paying monthly</li>
-            </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/mini-en-v1.2.167/VideoRilsMiniENSetup.exe" class="btn ghost lg" style="width:100%">↓ Download VideoRils Mini</a>
-            <div class="dlnote">Windows · plan selected in the app</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tgroup" data-tg="lite">
-        <div class="pg-head"><h3>VideoRils <b>Lite</b> pricing</h3><span>for a steady flow · batches up to 5, up to 120 sec, Clip-Mix</span></div>
-        <div class="tiers">
-          <div class="tier">
-            <div class="pn">MONTHLY</div>
-            <div class="price"><span class="now">$29</span><span class="cur">USDT</span></div>
-            <div class="sub">A steady content flow without a big commitment</div>
-            <ul>
-              <li>Everything in VideoRils Mini</li>
-              <li>Batches of up to 5 reels per run</li>
-              <li>Clip-Mix / Montage</li>
-              <li>Reels up to 120 seconds</li>
-            </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.256/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
-            <div class="dlnote">Windows · plan selected in the app</div>
-          </div>
-          <div class="tier best">
-            <span class="badge-hot">★ Maximum</span>
-            <div class="pn">LIFETIME</div>
-            <div class="price"><span class="old">$390</span><span class="now">$197</span><span class="cur">USDT</span></div>
-            <div class="sub">All of Lite, forever — batches, Clip-Mix</div>
-            <div class="prog" data-prog="lite">
-              <div class="prog-bar"><i data-fill="0"></i></div>
-              <div class="prog-lbl" data-slots>0 of 100 taken at launch price</div>
-            </div>
-            <ul>
-              <li>Everything in the Lite Monthly plan</li>
-              <li>Lifetime license, no subscription</li>
-              <li>Up to 5 keys per service</li>
-              <li>All Lite updates included</li>
-              <li>Started on a subscription? Pay the difference — what you paid counts toward it</li>
-            </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.256/VideoRilsLiteENSetup.exe" class="btn lite lg shine" style="width:100%">↓ Download VideoRils Lite</a>
-            <div class="dlnote">Windows · $197 payment — inside the app</div>
-          </div>
-          <div class="tier">
-            <div class="pn">YEARLY</div>
-            <div class="price"><span class="now">$149</span><span class="cur">USDT</span></div>
-            <div class="sub">A full year of Lite at a discount</div>
-            <ul>
-              <li>Everything in the Lite Monthly plan</li>
-              <li>Updates for a full year</li>
-              <li>Priority support</li>
-              <li>Cheaper than paying monthly</li>
-            </ul>
-            <a href="https://github.com/admin11111111113/videorils-site/releases/download/lite-en-v1.0.256/VideoRilsLiteENSetup.exe" class="btn lite lg" style="width:100%">↓ Download VideoRils Lite</a>
-            <div class="dlnote">Windows · plan selected in the app</div>
-          </div>
-        </div>
+        <div class="feat-sep">Format: up to 5 reels per run · up to 120 sec. For people who post every day</div>
       </div>
     </div>
 
-    <div class="install rv">
-      <div class="install-title">How to install (3 steps)</div>
-      <ol>
-        <li><b>Run</b> the downloaded installer (Mini or Lite).</li>
-        <li>Click <b>"Next"</b> — the app installs, a shortcut appears on the Desktop and in the Start menu.</li>
-        <li>If Windows shows "Windows protected your PC" — click <b>"More info" → "Run anyway"</b> (the app isn't signed with a paid certificate, that's expected).</li>
-      </ol>
-      <div class="install-note">Next: a free 1-video trial, or activate a license key inside the app.</div>
-      <!-- Оплата тарифов — в USDT (крипта). Нет крипты? Кнопка «Купить крипту на Bybit».
-           Ссылка и показ управляются из АДМИНКИ (сервер /key-links: bybit_buy_usdt + bybit_show);
-           дефолт — партнёрская ссылка. То же, что читает приложение. -->
-      <div id="bybitSite" style="display:none;text-align:center;margin-top:18px">
-        <div class="install-note" style="margin-bottom:9px">Plans are paid in USDT. No crypto?</div>
-        <a id="bybitSiteLink" href="https://partner.bybit.com/b/163717" target="_blank" rel="nofollow noopener sponsored" class="btn primary" style="display:inline-block">💳 Buy crypto on Bybit →</a>
-      </div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:26px">
+      <span class="glowcta"><a href="/web/mini/?lang=en" class="btn primary lg shine">Start creating in Mini</a></span>
+      <a href="/web/lite/?lang=en" class="btn lg" style="background:rgba(123,47,255,.18);border:1px solid #9b6bff;color:#fff">Start creating in Lite</a>
     </div>
   </div>
 </section>
-<script>
-(function(){
-  var DEF="https://partner.bybit.com/b/163717";   // фолбэк, если сервер недоступен (админка переопределяет)
-  function show(url){ var a=document.getElementById('bybitSiteLink'); if(a&&url)a.href=url;
-    var b=document.getElementById('bybitSite'); if(b)b.style.display=''; }
-  fetch("https://videorils-tts.videorils.workers.dev/key-links",{cache:"no-store"})
-    .then(function(r){return r.json();})
-    .then(function(d){ d=d||{};
-      if((''+(d.bybit_show||'1')).trim()==='0') return;        // тумблер «Показывать» из админки
-      show((''+(d.bybit_buy_usdt||'')).trim() || DEF);          // ссылка из админки / дефолт
-    })
-    .catch(function(){ show(DEF); });                          // сервер недоступен -> дефолтная кнопка
-})();
-</script>
 
 <!-- ============ БЛОК 8 · FAQ ============ -->
 <section class="pad" id="faq">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="sec-eyebrow">questions</div>
-      <h2>The short version</h2>
+      <h2>Quick answers</h2>
     </div>
     <div class="faq stg">
-      <details class="qa"><summary>I don't know how to edit video — can I still use this?<span class="plus">+</span></summary><p>Yes, no editing needed at all. You type in a topic — the app writes the script, voices it, picks matching footage and adds subtitles. The output is a ready vertical mp4; you'll never open a timeline.</p></details>
-      <details class="qa"><summary>How do I try it for free?<span class="plus">+</span></summary><p>Download the app and launch it — a free trial is built in: make a reel with free voices and your own free AI key (getting one takes a couple of minutes, no card required). Like it? Get a license.</p></details>
-      <details class="qa"><summary>Why does Windows show "SmartScreen"?<span class="plus">+</span></summary><p>The app isn't signed with a paid certificate, so SmartScreen shows "Windows protected your PC." That's expected: click "More info" → "Run anyway." You're downloading the file directly from GitHub Releases.</p></details>
-      <details class="qa"><summary>Do I have to pay for AI?<span class="plus">+</span></summary><p>No — you can run entirely on free services. The script is written by Gemini (free key), voice-over by Edge-TTS and Piper (no keys, no cost), footage via a trial media key. Premium is optional, on your own keys: ElevenLabs realistic voices and Claude scripts. The VideoRils license is paid separately from AI usage — it's payment for the app itself, not for AI.</p></details>
-      <details class="qa"><summary>How do I get a free Pexels key for clips?<span class="plus">+</span></summary><p>Pexels is a free source of video/photos for reels. The key is issued free in a couple of minutes: go to <a href="https://www.pexels.com/api/" target="_blank" rel="noopener nofollow">pexels.com/api</a>, sign up and paste your API key into the app's settings (the "Keys" section → Pexels). A short video walkthrough:</p><video controls preload="metadata" playsinline style="width:100%;max-width:440px;border-radius:12px;margin-top:10px;display:block" src="../media/pexels_api_key_guide.mp4"></video></details>
-      <details class="qa"><summary>How do I pay and get a key?<span class="plus">+</span></summary><p>Payment is in USDT (TRC-20). After the transfer, the server automatically verifies the payment and issues the license key straight into the app — nothing to forward manually.</p></details>
-      <details class="qa"><summary>Lifetime license or subscription?<span class="plus">+</span></summary><p>Both are available: $15/month, $79/year, or $97 lifetime. The lifetime license is a one-time payment tied to one computer — no recurring charges.</p></details>
-      <details class="qa"><summary>What language does it make reels in?<span class="plus">+</span></summary><p>This build's default is English — voice-over, subtitles and AI scripts in English. Russian is also fully supported with one checkbox. The interface itself switches RU / EN.</p></details>
-      <details class="qa"><summary>Who's responsible for the content you upload?<span class="plus">+</span></summary><p>VideoRils is a processing tool. The user uploads and publishes the videos and text, and is responsible for that content. Only upload material you have the rights to. The app does not download video from any platform — it only works with the file you selected yourself.</p></details>
+      <details class="qa"><summary>I can’t edit video — can I do it?<span class="plus">+</span></summary><p>Yes, no editing at all. You type a topic — VideoRils writes the script, voices it, picks the footage and adds subtitles. You get a finished vertical mp4 and never open a timeline.</p></details>
+      <details class="qa"><summary>How do I try it for free?<span class="plus">+</span></summary><p>Tap “Start creating” — VideoRils opens right in your browser, on phone or computer. Your first reel is free: our keys are already connected, nothing to sign up for and no card needed. Like it — get a subscription.</p></details>
+      <details class="qa"><summary>Do I have to pay for AI?<span class="plus">+</span></summary><p>No. Our free AI (Groq and Gemini), free voices and stock footage are already connected — nothing to set up. Premium is optional, with your own keys: lifelike ElevenLabs voices and Claude scripts. The VideoRils subscription pays for VideoRils itself, not for AI.</p></details>
+      <details class="qa"><summary>Where does the footage come from?<span class="plus">+</span></summary><p>VideoRils picks clips and photos for every line from the free libraries <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a> and <a href="https://pixabay.com" target="_blank" rel="noopener">Pixabay</a> — nothing to connect, it already works. Footage authors are credited under the scenes and under the finished reel. You can replace any scene with your own photo or video from the gallery.</p></details>
+      <details class="qa"><summary>How do I pay and get a key?<span class="plus">+</span></summary><p>Pay by card right on the site. Prices are shown in US dollars at our exchange rate. After payment the key arrives and is inserted automatically — nothing to copy by hand.</p></details>
+      <details class="qa"><summary>How does billing work?<span class="plus">+</span></summary><p>A subscription for a period — 7 days, 30 days or a year. No auto-renewal: pay for the period, use it, renew yourself if you want. The key arrives and is inserted automatically, and a couple of days before the end VideoRils reminds you to renew.</p></details>
+      <details class="qa"><summary>What languages does it support?<span class="plus">+</span></summary><p>Reels in English or Russian: tick “Reel in English” and the script, voice and subtitles are in English. The interface switches between EN and RU.</p></details>
+      <details class="qa"><summary>Who is responsible for uploaded content?<span class="plus">+</span></summary><p>VideoRils is a processing tool. Users upload and publish videos and texts and are responsible for that content. Only upload what you have the rights to. VideoRils does not download videos from platforms — it only works with a file you choose yourself.</p></details>
     </div>
   </div>
 </section>
@@ -1235,11 +1091,11 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 <section class="pad" id="final">
   <div class="wrap">
     <div class="final-cta rv">
-      <p class="final-cta-txt">Ready to try it? Your first reel is free — no subscription, no watermark.</p>
+      <p class="final-cta-txt">Ready to try? Your first reel is free — no card, no watermark.</p>
       <div class="final-cta-btns">
-        <span class="glowcta"><a href="#price" class="btn primary lg shine">Download VideoRils</a></span>
+        <span class="glowcta"><a href="/web/en/" class="btn primary lg shine">Start creating</a></span>
       </div>
-      <p class="hero-note">Windows · one-time or monthly payment · auto-updates</p>
+      <p class="hero-note">Right in your browser — on phone and PC, nothing to install</p>
     </div>
   </div>
 </section>
@@ -1251,10 +1107,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         <b>Product</b>
         <a href="#how">How it works</a>
         <a href="#results">Examples</a>
-        <a href="#price">Pricing · Download</a>
+        <a href="/web/en/">Start creating</a>
         <a href="#faq">FAQ</a>
       </div>
-      <!-- Гайды: RU-only статьи, для EN-страницы не переведены — колонка не дублируется. -->
       <div class="fcol">
         <b>Legal</b>
         <a href="/en/legal/">Terms &amp; Privacy</a>
@@ -1280,7 +1135,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
   "use strict";
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   var $ = function(id){return document.getElementById(id);};
-  function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+  function fmt(n){ return Math.round(n).toLocaleString('ru-RU'); }
 
   /* ===== count-up ===== */
   function countUp(el){
@@ -1317,21 +1172,21 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     // 4 темы: у КАЖДОЙ свои строки сценария (реальные фразы из ролика), свои 4 стоп-кадра
     // на этап «видеоряд», свои прыгающие субтитры и СВОЁ hero-видео, играющее в финале цикла.
     var THEMES=[
-      {topic:"Want to make reels fast and for free?", video:"../media/hero_new_video_720x1280.mp4",
-       frames:["../media/hero_new_video_poster.webp","../media/hero_new_video_poster.webp","../media/hero_new_video_poster.webp","../media/hero_new_video_poster.webp"],
-       lines:["Want to make reels fast and for free?","I write the script, voice it and pick the footage myself — all you need is a topic."],
+      {topic:"Want to make reels fast and free?", video:"media/hero_new_video_720x1280.mp4",
+       frames:["media/hero_new_video_poster.webp","media/hero_new_video_poster.webp","media/hero_new_video_poster.webp","media/hero_new_video_poster.webp"],
+       lines:["Want to make reels fast and free?","I write the script, voice it and pick the footage — all you need is a topic."],
        subs:["FAST","FREE"]},
-      {topic:"Weight loss without dieting", video:"../media/hero_pohudenie.mp4",
-       frames:["../media/hero_pohudenie_1.webp","../media/hero_pohudenie_2.webp","../media/hero_pohudenie_3.webp","../media/hero_pohudenie_4.webp"],
-       lines:["Minus 3 kg a month — without a single diet","Just a 300-calorie daily deficit and the fat comes off on its own","Protein at every meal: eggs, cottage cheese, chicken — full for 4-5 hours","Cut liquid calories: a glass of juice is 5 spoons of sugar","10,000 steps a day burns 300 kcal with zero workouts"],
-       subs:["DEFICIT","300 KCAL","ZERO","WORKOUTS"]},
-      {topic:"Making money on marketplaces", video:"../media/hero_marketplace.mp4",
-       frames:["../media/hero_marketplace_1.webp","../media/hero_marketplace_2.webp","../media/hero_marketplace_3.webp","../media/hero_marketplace_4.webp"],
-       lines:["This mistake costs marketplace beginners $2,000","Going all-in on your last cash into a hyped product is a fast track to a loss","Start with a product under $5 wholesale — the risk is minimal","Don't watch a competitor's sales, watch their inventory — that's where the truth is","First batch: 30 units, not a truckload. Testing beats ambition"],
-       subs:["$5","FROM ZERO","ONLINE","+30"]},
-      {topic:"Dinner in 15 minutes", video:"../media/hero_recept.mp4",
-       frames:["../media/hero_recept_1.webp","../media/hero_recept_2.webp","../media/hero_recept_3.webp","../media/hero_recept_4.webp"],
-       lines:["A 15-minute dinner from three ingredients — remember this","Cube the chicken breast — onto a hot pan, 5 minutes","Add frozen veggies — another 5 minutes","A spoon of soy sauce, garlic — give it a minute to set","Result: dinner for two for under five dollars"],
+      {topic:"Weight loss without diets", video:"media/hero_pohudenie.mp4",
+       frames:["media/hero_pohudenie_1.webp","media/hero_pohudenie_2.webp","media/hero_pohudenie_3.webp","media/hero_pohudenie_4.webp"],
+       lines:["Minus 3 kg a month — without a single diet","A deficit of just 300 calories a day — and the fat goes away","Protein at every meal: eggs, cottage cheese, chicken — full for 4–5 hours","Cut liquid calories: a glass of juice is 5 spoons of sugar","10,000 steps a day burn 300 calories without workouts"],
+       subs:["DEFICIT","300 KCAL","NO","WORKOUTS"]},
+      {topic:"Making money on marketplaces", video:"media/hero_marketplace.mp4",
+       frames:["media/hero_marketplace_1.webp","media/hero_marketplace_2.webp","media/hero_marketplace_3.webp","media/hero_marketplace_4.webp"],
+       lines:["This marketplace mistake costs beginners thousands","Betting your last money on a hyped product is a road to losses","Start with a cheap product to buy in — minimal risk","Watch competitors’ stock, not their sales — that’s where the truth is","First batch — 30 units, not a truckload. Testing beats ambition"],
+       subs:["500 ₽","FROM ZERO","ONLINE","+30"]},
+      {topic:"Dinner in 15 minutes", video:"media/hero_recept.mp4",
+       frames:["media/hero_recept_1.webp","media/hero_recept_2.webp","media/hero_recept_3.webp","media/hero_recept_4.webp"],
+       lines:["Dinner in 15 minutes from three ingredients — remember this","Diced chicken breast on a hot pan, 5 minutes","Add frozen vegetables — another 5 minutes","A spoon of soy sauce, garlic — give it a minute","Result: dinner for two for under five dollars"],
        subs:["3","INGREDIENTS","15","MINUTES"]}
     ];
     var curFrames=THEMES[0].frames, curVideo="";
@@ -1392,7 +1247,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
       typeTopic(t.topic,function(){
         step('script','act');statusEl.textContent='✍ AI is writing the script…';setEmpty('writing the script…');
         showLines(t.lines,function(){
-          step('script','done');step('voice','act');statusEl.textContent='🎙 Voicing the text…';setEmpty('voicing…');wave.hidden=false;
+          step('script','done');step('voice','act');statusEl.textContent='🎙 Voicing the text…';setEmpty('voice-over…');wave.hidden=false;
           hlStep(2);                                                    // шаг «ИИ озвучивает» — Озвучка
           T(function(){
             wave.hidden=true;step('voice','done');step('clips','act');statusEl.textContent='🎬 Picking footage…';
@@ -1407,7 +1262,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
             T(function(){
               step('clips','done');step('subs','act');statusEl.textContent='💬 Adding subtitles…';
               T(function(){
-                step('subs','done');statusEl.textContent='✅ Reel done in 47 seconds';doneB.classList.add('on');
+                step('subs','done');statusEl.textContent='✅ Reel assembled in 47 seconds';doneB.classList.add('on');
                 hlStep(4);                                              // шаг «Готовый рилс» — Готово (видео играет)
                 T(cycle,D.done);       // «Готово» + докрутка ролика до конца
               },D.subs);               // «Субтитры» (видео продолжает играть)
@@ -1496,27 +1351,9 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     updArrows();
   }
 
-  /* ===== ТАРИФЫ: переключение панели на месте (без прыжка), якорь #price-lite → Лайт ===== */
-  (function(){
-    var picks=Array.prototype.slice.call(document.querySelectorAll('.tpick'));
-    var groups=Array.prototype.slice.call(document.querySelectorAll('.tgroup'));
-    if(!groups.length) return;
-    function show(which){
-      groups.forEach(function(g){ g.classList.toggle('active', g.getAttribute('data-tg')===which); });
-      picks.forEach(function(b){ var on=b.getAttribute('data-tariff')===which;
-        b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
-      if(window.__fillProg) window.__fillProg(which);
-    }
-    picks.forEach(function(b){ b.addEventListener('click',function(e){ e.preventDefault();
-      show(b.getAttribute('data-tariff')); }); });
-    show(location.hash==='#price-lite'?'lite':'mini');
-    window.addEventListener('hashchange',function(){
-      if(location.hash==='#price-lite') show('lite'); else if(location.hash==='#price'||location.hash==='#price-mini') show('mini'); });
-  })();
-
-  /* ===== ОДИН общий IntersectionObserver: reveal + триггеры + видимость hero/результатов ===== */
+/* ===== ОДИН общий IntersectionObserver: reveal + триггеры + видимость hero/результатов ===== */
   var progDone={};
-  // Заполняет плашку дефицита «занято X/100» для КАЖДОГО продукта из его /stats
+  // Заполняет плашку дефицита «taken X/100» для КАЖДОГО продукта из его /stats
   // (Мини — /stats, Лайт — /stats?product=lite). which — заполнить только этот продукт
   // (при переключении тарифов); без аргумента — оба. Один запрос на продукт (progDone).
   function fillProg(which){
@@ -1535,7 +1372,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
         var rem=(d.remaining_in_stage!=null)?d.remaining_in_stage:(d.remaining!=null?d.remaining:null);
         if(rem!==null){ var taken=Math.max(0,100-rem);
           if(i) i.style.transform='scaleX('+taken/100+')';
-          if(lbl) lbl.textContent=taken+' of 100 taken at launch price'; }
+          if(lbl) lbl.textContent='taken '+taken+' of 100 at the launch price'; }
       }).catch(function(){});
     });
   }
@@ -1586,7 +1423,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 
   /* ===== скрытый счётчик реальных генераций (тянем из /stats, включим позже) ===== */
   fetch("https://videorils-tts.videorils.workers.dev/stats").then(function(r){return r.json();}).then(function(d){
-    var n=$('rendersN'); if(n && d && d.total_renders!=null){ n.textContent=(d.total_renders||0).toLocaleString('en-US'); }
+    var n=$('rendersN'); if(n && d && d.total_renders!=null){ n.textContent=(d.total_renders||0).toLocaleString('ru-RU'); }
   }).catch(function(){});
 
   /* ===== пауза при скрытой вкладке ===== */
@@ -1599,7 +1436,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
 <!-- cookie-notice -->
 <div id="cknotice" role="dialog" aria-label="Cookie notice" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;max-width:780px;margin:0 auto;background:#180D2C;color:#F2EEF8;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;box-shadow:0 14px 44px rgba(0,0,0,.55);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
   <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-    <span style="flex:1;min-width:230px">We use analytics and cookies (including Yandex.Metrica with Webvisor) to improve the site. More in our <a href="/en/privacy/" style="color:#FF3D8A;text-decoration:none">Privacy Policy</a>.</span>
+    <span style="flex:1;min-width:230px">We use analytics and cookies (including Yandex.Metrica with Webvisor) to improve the site. Details are in our <a href="/en/privacy/" style="color:#FF3D8A;text-decoration:none">Privacy Policy</a>.</span>
     <button id="ckok" type="button" style="flex:none;cursor:pointer;background:#FF3D8A;color:#fff;border:0;border-radius:10px;padding:9px 20px;font-weight:700;font-size:14px">Got it</button>
   </div>
 </div>
@@ -1609,14 +1446,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
      приложения (на сайте платёжной формы нет), поэтому «подставить код в оплату»
      здесь физически некуда — вместо этого запоминаем код и показываем его человеку
      с кнопкой копирования: он вставит его в приложении на экране оплаты «Навсегда». -->
-<div id="refnotice" role="note" aria-label="Referral code" style="display:none;position:fixed;left:12px;right:12px;top:12px;z-index:99998;max-width:760px;margin:0 auto;background:#101B2C;color:#F2EEF8;border:1px solid rgba(34,211,238,.45);border-radius:14px;padding:14px 16px;box-shadow:0 14px 44px rgba(0,0,0,.55);font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
-  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <span style="flex:1;min-width:250px">🤝 You were invited via a referral link. Code <b id="refcode" style="font-family:Consolas,monospace;letter-spacing:2px;color:#22D3EE">—</b> — enter it in the app on the "Lifetime" payment screen, in the "Referrer's code" field.</span>
-    <button id="refcopy" type="button" style="flex:none;cursor:pointer;background:#22D3EE;color:#06121a;border:0;border-radius:10px;padding:9px 16px;font-weight:700;font-size:14px">Copy code</button>
-    <button id="reflink" type="button" style="flex:none;cursor:pointer;background:transparent;color:#F2EEF8;border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:9px 16px;font-weight:700;font-size:14px">Copy link</button>
-    <button id="refx" type="button" aria-label="Close" style="flex:none;cursor:pointer;background:transparent;color:#9aa;border:0;font-size:20px;line-height:1;padding:4px 6px">×</button>
-  </div>
-</div>
+
 <script>(function(){
   // алфавит кода — как в приложении и на сервере (без 0/O/1/I)
   var AL="23456789ABCDEFGHJKLMNPQRSTUVWXYZ", K="vr_ref_code";
@@ -1642,7 +1472,7 @@ footer{border-top:1px solid var(--brd-soft);padding:48px 0 40px;margin-top:64px;
     try{ document.execCommand("copy"); done(); }catch(e){} document.body.removeChild(t); }
   document.getElementById("refcopy").addEventListener("click",function(){ copy(code,this); });
   document.getElementById("reflink").addEventListener("click",function(){
-    copy("https://videorils.com/en/?ref="+code,this); });
+    copy("https://videorils.com/?ref="+code,this); });
   document.getElementById("refx").addEventListener("click",function(){ n.style.display="none"; });
 })();</script>
 

@@ -135,7 +135,7 @@ P._active_content_lang = function () { return this._content_lang || this.video_l
 P._active_edge_voice = function () { return this._active_content_lang() === 'en' ? this.reel_voice_en : this.reel_voice; };
 P.set_ui_lang = function (lang) { this.ui_lang = lang === 'en' ? 'en' : 'ru'; this._persist(); return this.ui_lang; };
 P.get_ui_lang = function () { return this.ui_lang; };
-P.get_build_variant = function () { return BUILD_VARIANT; };
+P.get_build_variant = function () { return this.ui_lang === 'en' ? 'en' : 'ru'; };   // ru — оплата в ₽ (Продамус), en — USDT
 P._t = function (key, ...args) {
   const [ru, en] = MSGS[key] || [key, key];
   let s = this.ui_lang === 'en' ? en : ru;

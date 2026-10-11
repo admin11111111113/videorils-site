@@ -49,6 +49,11 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
 <script>
 (function(){
   const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+  // английский интерфейс: цены в $ (оплата USDT по нашему курсу), тексты по-английски; русский — ₽ (Продамус)
+  const EN=()=>(typeof uiLang!=='undefined'&&uiLang==='en');
+  const L=(ru,en)=>EN()?en:ru;
+  const money=(rub,usd)=>EN()?('$'+(usd!=null?usd:Math.max(1,Math.round(rub/85)))):(fmt(rub)+' ₽');
+  const perDay=(rub,usd,days)=>EN()?('≈ $'+((usd!=null?usd:rub/85)/days).toFixed(2)+' a day'):('≈ '+fmt(rub/days)+' ₽ в день');
   const FB=window.__vrWebPlansFB;
   function plansOf(pr){ const w=(pr&&pr.web_plans)||FB||{}; return (w.web_week&&w.web_month&&w.web_year)?w:FB; }
   // карточки ступеней в box (окно лицензии / окно «Моя лицензия»)
@@ -59,19 +64,20 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
     const getp=(typeof api==='function')?api('get_plans'):Promise.resolve(null);
     Promise.resolve(getp).catch(()=>null).then(pr=>{
       const P=plansOf(pr); const w=P.web_week.rub, m=P.web_month.rub, y=P.web_year.rub;
+      const wu=P.web_week.usd, mu=P.web_month.usd, yu=P.web_year.usd;
       const save=Math.max(0,Math.round((1-y/(m*12))*100));
-      const card=(cls,lvl,per,price,days,old,tag,plan)=>'<div class="vrSub '+cls+'">'
+      const card=(cls,lvl,per,price,usd,days,old,oldUsd,tag,plan)=>'<div class="vrSub '+cls+'">'
         +'<div class="a"><div class="lvl">'+lvl+'</div><div class="per">'+per+'</div>'+(tag?'<span class="tag">'+tag+'</span>':'')+'</div>'
-        +'<div class="b"><div class="pr">'+fmt(price)+' ₽</div><div class="pd">≈ '+fmt(price/days)+' ₽ в день</div>'+(old?'<div class="old">'+fmt(old)+' ₽</div>':'')+'</div>'
-        +'<button class="pay" onclick="vrSubPay(\''+plan+'\')">Оплатить</button></div>';
+        +'<div class="b"><div class="pr">'+money(price,usd)+'</div><div class="pd">'+perDay(price,usd,days)+'</div>'+(old?'<div class="old">'+money(old,oldUsd)+'</div>':'')+'</div>'
+        +'<button class="pay" onclick="vrSubPay(\''+plan+'\')">'+L('Оплатить','Pay')+'</button></div>';
       box.innerHTML=(title?'<div style="width:100%;font-weight:800;margin:0 0 6px">'+title+'</div>':'')
-        +(lic&&subEnd()?'<div class="vrSubLeft">⏳ До конца подписки: <span class="vrSubLeftT">'+fmtLeft(subEnd()-Date.now())+'</span></div>':'')
+        +(lic&&subEnd()?'<div class="vrSubLeft">⏳ '+L('До конца подписки','Subscription ends in')+': <span class="vrSubLeftT">'+fmtLeft(subEnd()-Date.now())+'</span></div>':'')
         +'<div class="vrSubs">'
-        +card('w','Старт','7 дней',w,7,0,'','web_week')
-        +card('m','Популярный','30 дней',m,30,w*30/7>m?Math.round(w*30/7):0,'🔥 хит','web_month')
-        +card('y','Максимум','Год',y,365,m*12,'−'+save+'%','web_year')
-        +'</div><div class="vrSubsNote">Без автосписаний: оплатил срок — пользуешься. Ключ придёт и вставится сам.'
-        +(lic?' Продление прибавит дни к текущему сроку.':'')+'</div>';
+        +card('w',L('Старт','Starter'),L('7 дней','7 days'),w,wu,7,0,null,'','web_week')
+        +card('m',L('Популярный','Popular'),L('30 дней','30 days'),m,mu,30,w*30/7>m?Math.round(w*30/7):0,(wu&&wu*30/7>mu)?Math.round(wu*30/7):null,L('🔥 хит','🔥 best'),'web_month')
+        +card('y',L('Максимум','Maximum'),L('Год','Year'),y,yu,365,m*12,mu?mu*12:null,'−'+save+'%','web_year')
+        +'</div><div class="vrSubsNote">'+L('Без автосписаний: оплатил срок — пользуешься. Ключ придёт и вставится сам.','No auto-renewal: pay for the period and use it. Payment in USDT (TRC-20) at our rate; the key arrives and is inserted automatically.')
+        +(lic?L(' Продление прибавит дни к текущему сроку.',' Renewing adds days to your current period.'):'')+'</div>';
       const sb=document.getElementById('scarBanner'); if(sb)sb.style.display='none';
     });
   }
@@ -88,7 +94,7 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
     if(ms<=0) return '0:00:00';
     const s=Math.floor(ms/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), x=s%60;
     const p=n=>String(n).padStart(2,'0');
-    return (d?d+' д ':'')+h+':'+p(m)+':'+p(x);
+    return (d?d+L(' д ',' d '):'')+h+':'+p(m)+':'+p(x);
   }
   // за сколько до конца предупреждать: неделя — за 2 дня, месяц — за 3, год — за 7
   const warnMs=()=>({weekly:2,monthly:3,yearly:7}[(access&&access.key_type)||'']||3)*86400000;
@@ -100,17 +106,17 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
     try{ if(sessionStorage.getItem('vrSubWarn')===day) return; }catch(e){}
     if(document.getElementById('vrSubWarn')) return;
     const w=document.createElement('div'); w.id='vrSubWarn';
-    w.innerHTML='<span>⚠️ Подписка закончится через <b class="vrSubLeftT">'+fmtLeft(left)+'</b> — продли, чтобы не прерываться</span>'
-      +'<button class="go" onclick="vrRenewOpen()">Продлить</button><button class="x" title="Скрыть">✕</button>';
+    w.innerHTML='<span>⚠️ '+L('Подписка закончится через','Your subscription ends in')+' <b class="vrSubLeftT">'+fmtLeft(left)+'</b> — '+L('продли, чтобы не прерываться','renew to keep going')+'</span>'
+      +'<button class="go" onclick="vrRenewOpen()">'+L('Продлить','Renew')+'</button><button class="x" title="'+L('Скрыть','Hide')+'">✕</button>';
     w.querySelector('.x').onclick=()=>{ try{sessionStorage.setItem('vrSubWarn',day);}catch(e){} w.remove(); };
     document.body.appendChild(w);
   }
   function showEnded(){
     if(document.getElementById('vrSubEnd')) return;
     const m=document.createElement('div'); m.id='vrSubEnd';
-    m.innerHTML='<div class="box"><h3>⏰ Подписка закончилась</h3><div style="margin:0 0 14px;opacity:.9">Ролики, которые уже сделаны, остаются у тебя. Чтобы делать новые — продли подписку.</div>'
-      +'<button class="btn pp" style="width:100%;padding:12px;font-size:16px;font-weight:900" onclick="document.getElementById(\'vrSubEnd\').remove();vrRenewOpen()">Продлить подписку</button>'
-      +'<button class="btn ghost" style="width:100%;margin-top:8px" onclick="document.getElementById(\'vrSubEnd\').remove()">Позже</button></div>';
+    m.innerHTML='<div class="box"><h3>⏰ '+L('Подписка закончилась','Your subscription has ended')+'</h3><div style="margin:0 0 14px;opacity:.9">'+L('Ролики, которые уже сделаны, остаются у тебя. Чтобы делать новые — продли подписку.','Reels you already made stay with you. To make new ones — renew your subscription.')+'</div>'
+      +'<button class="btn pp" style="width:100%;padding:12px;font-size:16px;font-weight:900" onclick="document.getElementById(\'vrSubEnd\').remove();vrRenewOpen()">'+L('Продлить подписку','Renew subscription')+'</button>'
+      +'<button class="btn ghost" style="width:100%;margin-top:8px" onclick="document.getElementById(\'vrSubEnd\').remove()">'+L('Позже','Later')+'</button></div>';
     document.body.appendChild(m);
   }
   let lastWasSub=false;
@@ -121,7 +127,7 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
     if(!end){ if(el)el.remove(); return; }
     try{ localStorage.setItem('vrSubHad','1'); }catch(e){} lastWasSub=true;
     const left=end-Date.now();
-    if(!el&&btn){ el=document.createElement('button'); el.id='vrSubTimer'; el.className='rulesbtn'; el.title='До конца подписки'; el.onclick=renewOpen; btn.after(el); }
+    if(!el&&btn){ el=document.createElement('button'); el.id='vrSubTimer'; el.className='rulesbtn'; el.title=L('До конца подписки','Subscription time left'); el.onclick=renewOpen; btn.after(el); }
     if(el){ el.textContent='⏳ '+fmtLeft(left); el.classList.toggle('warn',left<=warnMs()&&left>86400000); el.classList.toggle('bad',left<=86400000); }
     document.querySelectorAll('.vrSubLeftT').forEach(x=>{ x.textContent=fmtLeft(left); });
     if(left<=0){ if(el)el.remove(); if(!window.__vrSubEndDone){ window.__vrSubEndDone=1; try{ if(window.__vrApi) window.__vrApi.licensed=false; }catch(e){} if(typeof access!=='undefined'&&access)access.licensed=false; if(typeof applyAccessUI==='function')applyAccessUI(); showEnded(); } return; }

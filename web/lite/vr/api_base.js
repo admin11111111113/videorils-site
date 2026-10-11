@@ -219,7 +219,7 @@ export class Api {
   static _ver_tuple(v) { try { return String(v).trim().split('.').map(x => { const n = parseInt(x); if (Number.isNaN(n)) throw 0; return n; }); } catch (e) { return [0]; } }
   // веб-версия обновляется сама (страница) — апдейтер десктопа не нужен
   check_app_update() { return { update: false, web: true, current: APP_VERSION }; }
-  download_and_install_update() { return { ok: false, msg: 'Веб-версия обновляется автоматически' }; }
+  download_and_install_update() { return { ok: false, msg: (this.ui_lang === 'en' ? 'The web version updates automatically' : 'Веб-версия обновляется автоматически') }; }
   open_update_download(url) { const u = (url || '').trim(); if (u.startsWith('https://github.com/')) { webbrowser.open(u); return { ok: true }; } return { ok: false }; }
 
   static _gem_classify(prompt) {
@@ -335,8 +335,8 @@ export class Api {
     return (own && ref === own) ? '' : ref;
   }
   async set_pending_ref(ref) { this._pending_ref = await this._ref_for_purchase('lifetime', ref); return { ok: true }; }
-  async reserve_purchase(plan = 'lifetime', ref = '') {
-    plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime'].includes(plan)) plan = 'lifetime';
+  async reserve_purchase(plan = 'lifetime', ref = '') {   // USDT (английская версия): в т.ч. веб-подписки 7/30/365 дней
+    plan = (plan || 'lifetime').trim().toLowerCase(); if (!['monthly', 'yearly', 'lifetime', 'web_week', 'web_month', 'web_year'].includes(plan)) plan = 'lifetime';
     const body = { machine: await this.get_machine_id(), product: 'lite', plan, key: this.license_key || '' };
     const _r = await this._ref_for_purchase(plan, ref); if (_r) { body.ref = _r; this._pending_ref = _r; }
     const resp = await this._server_post('/reserve', body);
@@ -559,6 +559,7 @@ export class Api {
     return { ok: false, plans: { monthly: 29, yearly: 149, lifetime: 197 }, web_plans: WEB_PLANS_FB };
   }
   async get_upgrade_price() {
+    if (!this.licensed) return { ok: false };   // веб: апгрейд считается только для активной лицензии
     let out;
     try { const r = await requests.get(`${VR_SERVER_URL}/license/upgrade-price`, { params: { machine_id: await this.get_machine_id(), key: this.license_key || '' }, timeout: 12 }); out = Object.assign({}, r.json() || {}); }
     catch (e) { return { ok: false }; }

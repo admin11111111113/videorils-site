@@ -38,14 +38,14 @@ P.get_groq_keys = function () { return { keys: this._groq_keys_load().map(k => (
 P.add_groq_key = async function (key) {
   key = (this._clean_key ? this._clean_key(key) : String(key || '').trim());
   const l = this._groq_keys_load();
-  if (!key) return { ok: false, msg: 'Вставьте ключ Groq', ...this.get_groq_keys() };
-  if (!/^gsk_/.test(key)) return { ok: false, msg: 'Это не похоже на ключ Groq (он начинается с gsk_)', ...this.get_groq_keys() };
-  if (l.includes(key)) return { ok: false, msg: 'Этот ключ уже добавлен', ...this.get_groq_keys() };
-  if (l.length >= 5) return { ok: false, msg: 'Максимум 5 ключей', ...this.get_groq_keys() };
+  if (!key) return { ok: false, msg: (this.ui_lang === 'en' ? 'Paste a Groq key' : 'Вставьте ключ Groq'), ...this.get_groq_keys() };
+  if (!/^gsk_/.test(key)) return { ok: false, msg: (this.ui_lang === 'en' ? 'This does not look like a Groq key (it starts with gsk_)' : 'Это не похоже на ключ Groq (он начинается с gsk_)'), ...this.get_groq_keys() };
+  if (l.includes(key)) return { ok: false, msg: (this.ui_lang === 'en' ? 'This key is already added' : 'Этот ключ уже добавлен'), ...this.get_groq_keys() };
+  if (l.length >= 5) return { ok: false, msg: (this.ui_lang === 'en' ? 'Maximum 5 keys' : 'Максимум 5 ключей'), ...this.get_groq_keys() };
   const [ok, http] = await this._groq_check(key);
-  if (!ok) return { ok: false, msg: http === 401 ? 'Ключ Groq неверный' : 'Не удалось проверить ключ — проверьте интернет', ...this.get_groq_keys() };
+  if (!ok) return { ok: false, msg: http === 401 ? (this.ui_lang === 'en' ? 'Invalid Groq key' : 'Ключ Groq неверный') : (this.ui_lang === 'en' ? 'Could not check the key — check your internet' : 'Не удалось проверить ключ — проверьте интернет'), ...this.get_groq_keys() };
   l.push(key); this._groq_keys_save();
-  return { ok: true, msg: '✅ Ключ Groq работает, сохранён', ...this.get_groq_keys() };
+  return { ok: true, msg: (this.ui_lang === 'en' ? '✅ Groq key works, saved' : '✅ Ключ Groq работает, сохранён'), ...this.get_groq_keys() };
 };
 P.remove_groq_key = function (idx = 0) { const l = this._groq_keys_load(), i = parseInt(idx); if (i >= 0 && i < l.length) { l.splice(i, 1); this._groq_keys_save(); } return this.get_groq_keys(); };
 P.open_groq_signup = function () { webbrowser.open('https://console.groq.com/keys'); return true; };
@@ -89,5 +89,5 @@ P._ai_quota_mark = function () { const l = this._ai_quota_list(); l.push(Date.no
 
 // Галочка снята и нужного ключа нет -> вместо «Key не задан» понятная подсказка, что делать
 const KEY_MSG_IDS = new Set(['ai_no_key', 'gem_no_key', 'stock_key_needed_mine', 'need_media_key', 'cm_need_media_key', 'cm_msg_need_media_key', 'm1_no_key', 'm2_no_key']);
-P._need_keys_msg = function () { return `Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, без лимита (при нагрузке — короткая очередь). Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).`; };
+P._need_keys_msg = function () { if (this.ui_lang === 'en') return 'No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, no limit (a short queue at peak times). Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'; return `Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, без лимита (при нагрузке — короткая очередь). Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).`; };
 { const _t0 = P._t; P._t = function (key, ...args) { if (KEY_MSG_IDS.has(key) && this._shared_ready() && !this._use_shared()) return this._need_keys_msg(); return _t0.call(this, key, ...args); }; }

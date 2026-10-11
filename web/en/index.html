@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" id="vrVp"><script>/* телефон -> вид «как на ПК»; планшеты/ПК не трогаем */(function(){try{var c=matchMedia("(pointer:coarse)").matches,w=Math.min(screen.width,screen.height);if(c&&w<900){document.getElementById("vrVp").setAttribute("content","width=1280");document.documentElement.classList.add("vrPhone");}}catch(e){}})();</script>
+<title>VideoRils online — reels right in your browser</title>
+<link rel="canonical" href="https://videorils.com/web/en/">
+<meta name="description" content="VideoRils in your browser: script, voice-over, clips and subtitles — nothing to install, on PC and phone. Your first reel is free.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<style>
+/* те же цвета, шрифт, шапка и кнопки, что на главной videorils.com */
+:root{
+  --bg:#0D0716;--bg-2:#150C26;--txt:#F2EEF8;--dim:#9A8FB0;--dimmer:#6E6386;
+  --pink:#FF3D8A;--purple:#7B2FFF;--orange:#FF8A3D;--ok:#3DFF8A;--cy:#22d3ee;
+  --panel:rgba(22,13,40,.66);--panel-2:rgba(28,17,50,.72);
+  --brd:rgba(255,61,138,.25);--brd-soft:rgba(255,255,255,.08);
+  --grad:linear-gradient(120deg,#FF3D8A,#7B2FFF);--max:1160px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;min-height:100vh;
+  background-image:radial-gradient(1100px 560px at 15% -8%,rgba(123,47,255,.28),transparent 60%),radial-gradient(900px 520px at 100% 0%,rgba(255,61,138,.16),transparent 60%),radial-gradient(900px 600px at 50% 110%,rgba(34,211,238,.10),transparent 60%);background-attachment:fixed}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+@media(max-width:600px){.wrap{padding:0 16px}}
+/* шапка */
+header{position:sticky;top:0;z-index:60;background:#0D0716;border-bottom:1px solid rgba(255,61,138,.22);box-shadow:0 2px 22px rgba(0,0,0,.5)}
+.nav{display:flex;align-items:center;justify-content:space-between;min-height:64px;gap:14px}
+.logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px}
+.logo .mk{width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 6px 20px rgba(255,61,138,.4)}
+.logo .mk svg{width:20px;height:20px}
+.logo small{font-size:12px;font-weight:700;color:var(--ok);border:1px solid rgba(61,255,138,.45);border-radius:999px;padding:2px 9px;margin-left:2px}
+.nav-cta{display:flex;align-items:center;gap:20px}
+.nav-cta a.link{color:var(--dim);font-size:14.5px;font-weight:600;transition:color .2s}
+.nav-cta a.link:hover{color:var(--txt)}
+@media(max-width:720px){.nav-cta a.link.hide-m{display:none}.logo small{display:none}}
+/* кнопки */
+.btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;min-height:44px;font-weight:700;font-size:15px;border-radius:13px;padding:12px 22px;cursor:pointer;border:1px solid transparent;transition:transform .14s,box-shadow .18s,background .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{color:#fff;background:linear-gradient(rgba(255,255,255,.24),rgba(255,255,255,0) 46%),var(--grad);box-shadow:0 10px 30px rgba(255,61,138,.35)}
+.btn.lite{color:#fff;background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,0) 46%),linear-gradient(120deg,#7B2FFF,#22d3ee);box-shadow:0 10px 30px rgba(123,47,255,.35)}
+.btn.ghost{color:var(--txt);background:rgba(255,255,255,.04);border-color:var(--brd-soft)}
+.btn.lg{min-height:54px;font-size:16.5px;padding:15px 28px;border-radius:15px}
+/* герой */
+.hero{text-align:center;padding:64px 0 26px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ok);background:rgba(61,255,138,.08);border:1px solid rgba(61,255,138,.35);border-radius:999px;padding:6px 14px;margin-bottom:20px}
+.hero h1{font-size:clamp(34px,5.6vw,62px);line-height:1.08;font-weight:900;letter-spacing:-.02em}
+.hero h1 .g{background:linear-gradient(120deg,#FF3D8A,#7B2FFF 55%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{color:var(--dim);font-size:clamp(16px,2vw,19px);max-width:720px;margin:18px auto 0}
+.pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:24px}
+.pills span{font-size:14px;font-weight:600;color:var(--txt);background:var(--panel);border:1px solid var(--brd-soft);border-radius:999px;padding:8px 14px}
+/* карточки */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:34px 0 10px}
+@media(max-width:820px){.cards{grid-template-columns:1fr}}
+.card{position:relative;background:var(--panel);border:1px solid var(--brd-soft);border-radius:22px;padding:28px 26px 26px;display:flex;flex-direction:column;transition:border-color .2s,transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.card.mini:hover{border-color:rgba(255,61,138,.5)}
+.card.lite:hover{border-color:rgba(34,211,238,.5)}
+.card .tag{align-self:flex-start;font-size:12.5px;font-weight:800;border-radius:999px;padding:5px 12px;margin-bottom:14px}
+.card.mini .tag{color:#ffb3d1;background:rgba(255,61,138,.14);border:1px solid rgba(255,61,138,.4)}
+.card.lite .tag{color:#9ef0ff;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.4)}
+.card h2{font-size:26px;font-weight:900;letter-spacing:-.01em}
+.card .for{color:var(--dim);font-size:15px;margin:6px 0 16px}
+.card ul{list-style:none;display:grid;gap:9px;margin-bottom:22px}
+.card li{display:flex;gap:10px;font-size:15px;line-height:1.45}
+.card li::before{content:"✓";color:var(--ok);font-weight:900;flex:none}
+.card .go{margin-top:auto}
+.card .go .btn{width:100%}
+/* шаги */
+.sec{padding:40px 0 10px}
+.sec h3{text-align:center;font-size:clamp(24px,3.4vw,34px);font-weight:900;margin-bottom:22px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:820px){.steps{grid-template-columns:1fr}}
+.step{background:var(--panel);border:1px solid var(--brd-soft);border-radius:18px;padding:20px}
+.step b{display:inline-flex;width:30px;height:30px;border-radius:9px;background:var(--grad);align-items:center;justify-content:center;font-size:15px;margin-bottom:10px}
+.step p{color:var(--dim);font-size:15px}
+.step p strong{color:var(--txt)}
+/* вопросы */
+.faq{max-width:820px;margin:0 auto;display:grid;gap:10px}
+.faq details{background:var(--panel);border:1px solid var(--brd-soft);border-radius:16px;padding:16px 20px}
+.faq summary{cursor:pointer;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::after{content:"+";color:var(--pink);font-weight:900}
+.faq details[open] summary::after{content:"–"}
+.faq details p{color:var(--dim);font-size:15px;margin-top:10px}
+.note{text-align:center;color:var(--dimmer);font-size:14px;margin:26px 0 0}
+.note a{color:var(--ok);font-weight:700}
+/* подвал */
+footer{border-top:1px solid var(--brd-soft);padding:36px 0 34px;margin-top:56px}
+.fgrid{display:flex;flex-wrap:wrap;justify-content:space-between;gap:22px;align-items:center}
+.flinks{display:flex;flex-wrap:wrap;gap:18px}
+.flinks a{color:var(--dim);font-size:14.5px;font-weight:600}
+.flinks a:hover{color:var(--txt)}
+.fcopy{color:var(--dimmer);font-size:13px;margin-top:18px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="/en/" class="logo">
+      <span class="mk"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="3" stroke="#fff" stroke-width="2"/><path d="M10.5 9.5v5l4-2.5z" fill="#fff"/></svg></span>
+      VideoRils <small>online</small>
+    </a>
+    <nav class="nav-cta">
+      <a href="/en/" class="link hide-m">Home</a>
+      <a href="#how" class="link hide-m">How to start</a>
+      <a href="#faq" class="link hide-m">FAQ</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="badge">🌐 Nothing to install · PC and phone</span>
+    <h1>Reels right <span class="g">in your browser</span></h1>
+    <p class="sub">The AI writes the script, voices it, picks footage and adds big subtitles. Keys are already connected — nothing to sign up for, and your first reel is free.</p>
+    <div class="pills"><span>🎬 Finished 9:16 reel</span><span>🎙 Voice-over in English and Russian</span><span>💬 Subtitles</span><span>🆓 1 reel free</span></div>
+  </section>
+
+  <section class="cards">
+    <a class="card mini" href="/web/mini/?lang=en">
+      <span class="tag">Simpler</span>
+      <h2>VideoRils Mini</h2>
+      <p class="for">To quickly turn a topic or story into a reel</p>
+      <ul>
+        <li>Topic → AI script → finished reel</li>
+        <li>Voice-over, clips, subtitles, music</li>
+        <li>Reels up to 40 seconds</li>
+        <li>“From video” — your reel from someone else’s</li>
+      </ul>
+      <span class="go"><span class="btn primary lg">Open Mini →</span></span>
+    </a>
+    <a class="card lite" href="/web/lite/?lang=en">
+      <span class="tag">More features</span>
+      <h2>VideoRils Lite</h2>
+      <p class="for">For people who run a channel and make lots of reels</p>
+      <ul>
+        <li>Everything in Mini + reel batches</li>
+        <li>Clip-mix, hook cover, your own logo</li>
+        <li>Animated subtitles, auto-editing</li>
+        <li>Footage from someone else’s video, reels up to 120 seconds</li>
+      </ul>
+      <span class="go"><span class="btn lite lg">Open Lite →</span></span>
+    </a>
+  </section>
+
+  <section class="sec" id="how">
+    <h3>How to start</h3>
+    <div class="steps">
+      <div class="step"><b>1</b><p><strong>Choose Mini or Lite</strong> — it opens right on the page, nothing to download.</p></div>
+      <div class="step"><b>2</b><p><strong>Nothing to set up</strong> Clips and AI are already connected (the “Our keys” tick). Your own keys are optional.</p></div>
+      <div class="step"><b>3</b><p><strong>Type a topic</strong> or take an “Idea of the day” — and tap “Voice and build the reel”.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="faq">
+    <h3>FAQ</h3>
+    <div class="faq">
+      <details><summary>Which browser works best?</summary><p>Any modern browser on phone or computer — Chrome, Safari, Edge, Firefox. Reels build faster on a computer.</p></details>
+      <details><summary>Do I need to install anything?</summary><p>No. VideoRils runs right on the page and builds the reel on your device — nothing is uploaded to a server.</p></details>
+      <details><summary>How much does it cost?</summary><p>Your first reel is free. After that — a subscription for 7, 30 or 365 days in the “License” window, priced in US dollars and paid in USDT. The key is inserted automatically and works in this browser.</p></details>
+      <details><summary>Where is the finished reel saved?</summary><p>Tap “Download reel” — the file goes to Downloads. Your browser remembers keys and settings.</p></details>
+      <details><summary>Do I need to download anything heavy?</summary><p>No. Only some features download a model once — the Piper voice (~63 MB) or speech recognition for “From video”. After that they load from the browser’s memory.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <a href="/en/" class="logo">
+        <span class="mk"><svg viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="3" stroke="#fff" stroke-width="2"/><path d="M10.5 9.5v5l4-2.5z" fill="#fff"/></svg></span>
+        VideoRils
+      </a>
+      <nav class="flinks">
+        <a href="/en/">Home</a>
+        <a href="/web/mini/?lang=en">Mini online</a>
+        <a href="/web/lite/?lang=en">Lite online</a>
+        <a href="/en/#faq">FAQ</a>
+      </nav>
+    </div>
+    <p class="fcopy">© VideoRils · videorils.com</p>
+  </div>
+</footer>
+</body>
+</html>

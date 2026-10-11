@@ -21,7 +21,7 @@ P.build_reel = async function (claude_answer, style_index) {
   this.track('generate_started');
   // браузер без сборки видео (старый Safari/iOS < 16.4 и т.п.) — понятное сообщение, а не «Can't find variable»
   { const miss = ['VideoEncoder', 'AudioEncoder', 'OffscreenCanvas', 'AudioBuffer'].filter((k) => typeof globalThis[k] === 'undefined');
-    if (miss.length) return { ok: false, code: 'browser_unsupported', msg: 'Этот браузер не умеет собирать видео. Откройте сайт в Chrome или Edge на компьютере, в Chrome на Android или обновите iPhone до iOS 17+ (Safari).' }; }
+    if (miss.length) return { ok: false, code: 'browser_unsupported', msg: (this.ui_lang === 'en' ? 'This browser can’t build video. Open the site in Chrome or Edge on a computer, Chrome on Android, or update your iPhone to iOS 17+ (Safari).' : 'Этот браузер не умеет собирать видео. Откройте сайт в Chrome или Edge на компьютере, в Chrome на Android или обновите iPhone до iOS 17+ (Safari).') }; }
   if (this.busy) return { ok: false, msg: this._t('already_processing') };
   if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   { const q = this._hour_quota_check(1); if (q) return q; }

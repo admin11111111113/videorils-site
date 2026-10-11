@@ -325,7 +325,7 @@ P.scene_upload_file = function (idx) {
           ? 'Не получилось открыть и перевести это видео. Видео с iPhone: Настройки → Камера → Форматы → «Наиболее совместимый» и выключите «HDR-видео», затем снимите заново. Или откройте сайт в Safari на iPhone.'
           : 'Не получается открыть это видео в браузере. Попробуйте файл MP4 (H.264) или другой ролик.' };
       }
-      return { ok: false, msg: 'Не получается открыть эту картинку. Попробуйте JPG или PNG.' };
+      return { ok: false, msg: (this.ui_lang === 'en' ? 'Can’t open this image. Try JPG or PNG.' : 'Не получается открыть эту картинку. Попробуйте JPG или PNG.') };
     }
     Object.assign(this.reel_scenes[idx], { clip: p, preview: '', locked: true });
     this._thumb_tick++;
