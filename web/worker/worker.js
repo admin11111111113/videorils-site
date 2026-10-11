@@ -366,6 +366,7 @@ const cors = (origin) => !origin ? {} : ({ 'Access-Control-Allow-Origin': origin
 // Общий сток для веб-версии: поиск Pexels/Pixabay нашим ключом (секреты PEXELS_KEY / PIXABAY_KEY,
 // в браузер не попадают). Только с нашего сайта, только поиск, ответы кешируются 24 ч (правила Pixabay).
 // Сами файлы клипов браузер качает напрямую с CDN стоков — ключ для них не нужен.
+let pexelsBlockedUntil = 0;   // Pexels в лимите до этого времени (мс)
 const STOCK_PATHS = { pexels: ['/videos/search', '/v1/search'], pixabay: ['/api/', '/api/videos/'] };
 const STOCK_EXPOSE = 'X-Ratelimit-Remaining, X-Ratelimit-Limit, X-RateLimit-Remaining, X-RateLimit-Limit, X-RateLimit-Reset, Retry-After';
 async function stock(req, env, ctx, url, origin) {
@@ -381,6 +382,15 @@ async function stock(req, env, ctx, url, origin) {
   const cacheKey = new Request('https://stock-cache.videorils/' + kind + m[2] + '?' + q.toString());
   const cache = caches.default;
   let r = await cache.match(cacheKey);
+  // Pexels в лимите: помним до времени восстановления (Pexels присылает X-Ratelimit-Reset) и сразу отвечаем
+  // «429» — приложение мгновенно берёт клип с Pixabay, без лишнего запроса и задержки.
+  const blockKey = new Request('https://stock-cache.videorils/pexels-blocked');
+  if (!r && kind === 'pexels') {
+    let until = pexelsBlockedUntil;
+    if (until <= Date.now()) { const b = await cache.match(blockKey); if (b) until = parseInt(await b.text()) || 0; }
+    if (until > Date.now()) { pexelsBlockedUntil = until;
+      return new Response('{"error":"Pexels limit"}', { status: 429, headers: Object.assign({}, h, { 'Retry-After': String(Math.ceil((until - Date.now()) / 1000)), 'X-Ratelimit-Remaining': '0' }) }); }
+  }
   if (!r) {
     let up;
     if (kind === 'pexels') up = await fetch('https://api.pexels.com' + m[2] + '?' + q.toString(), { headers: { Authorization: key } });
@@ -389,7 +399,15 @@ async function stock(req, env, ctx, url, origin) {
     const body = await up.text();
     const keep = {}; for (const k of STOCK_EXPOSE.split(', ')) { const v = up.headers.get(k); if (v !== null) keep[k] = v; }
     r = new Response(body, { status: up.status, headers: Object.assign({ 'Content-Type': 'application/json' }, keep) });
-    if (up.status === 200) { const c = new Response(body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=86400' } }); ctx.waitUntil(cache.put(cacheKey, c)); }
+    // кеш: Pexels — 7 дней (ссылки стабильные), Pixabay — 24 часа (их правила)
+    if (up.status === 200) { const c = new Response(body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=' + (kind === 'pexels' ? 604800 : 86400) } }); ctx.waitUntil(cache.put(cacheKey, c)); }
+    if (kind === 'pexels' && up.status === 429) {
+      const rs = parseInt(up.headers.get('X-Ratelimit-Reset') || '0') || 0;
+      let until = rs > 1e9 ? rs * 1000 : Date.now() + 300000;           // нет заголовка — 5 минут
+      until = Math.min(Math.max(until, Date.now() + 30000), Date.now() + 3600000);
+      pexelsBlockedUntil = until;
+      ctx.waitUntil(cache.put(blockKey, new Response(String(until), { headers: { 'Cache-Control': 'max-age=' + Math.ceil((until - Date.now()) / 1000) } })));
+    }
   }
   const out = new Headers(r.headers); for (const [k, v] of Object.entries(h)) out.set(k, v);
   return new Response(r.body, { status: r.status, headers: out });
