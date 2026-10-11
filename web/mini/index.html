@@ -2629,7 +2629,7 @@ const I18N={
   lic_launch:['🔥 Стартовая цена — растёт с каждой сотней покупателей','🔥 Starting price — goes up with every 100 buyers'],
   lic_seats:['🔥 Осталось {n} мест по ${p} (потом ${np})','🔥 {n} seats left at ${p} (then ${np})'],
   lic_wallet:['Оплата USDT (TRC-20)','Pay in USDT (TRC-20)'],
-  need_media_key:['Для сборки нужен твой Pixabay Key (клипы/видео). Вставь его в разделе «🔑 API-ключи».','Building needs your Pixabay Key (clips/video). Add it in the “🔑 API keys” section.'],
+  need_media_key:['Не удалось подобрать клипы — проверь интернет и попробуй ещё раз.','Building needs your Pixabay Key (clips/video). Add it in the “🔑 API keys” section.'],
   pay_send:['Отправь ТОЧНО эту сумму (USDT, сеть TRC-20):','Send EXACTLY this amount (USDT, TRC-20 network):'],
   pay_wallet_lbl:['Адрес кошелька (TRC-20):','Wallet address (TRC-20):'],
   pay_warn:['Отправь показанную сумму. Небольшая разница из-за комиссии сети допускается — ключ всё равно придёт.','Send the amount shown. A small difference from the network fee is fine — you\'ll still get the key.'],
@@ -2701,7 +2701,7 @@ const I18N={
   upg_price_wait:['Цена доплаты загружается — нажми ещё раз через секунду','Upgrade price is loading — tap again in a second'],
   upg_already:['У тебя уже пожизненная лицензия','You already have a lifetime license'],
   lic_activated:['✅ Лицензия активирована!','✅ License activated!'],
-  lic_enter_keys:['✅ Куплено! Теперь впиши СВОИ ключи (Pixabay Key, Gemini Key, при желании ElevenLabs Key / Claude Key) в разделе «🔑 API-ключи» для полной работы.','✅ Purchased! Now enter YOUR OWN keys (Pixabay Key, Gemini Key, optionally ElevenLabs Key / Claude Key) in the “🔑 API keys” section for full functionality.'],
+  lic_enter_keys:['✅ Куплено! Теперь впиши СВОИ ключи (Gemini Key, при желании ElevenLabs Key / Claude Key) в разделе «🔑 API-ключи» для полной работы.','✅ Purchased! Now enter YOUR OWN keys (Pixabay Key, Gemini Key, optionally ElevenLabs Key / Claude Key) in the “🔑 API keys” section for full functionality.'],
   ffmpeg_missing:['⚠️ Не найден ffmpeg. Положи ffmpeg.exe и ffprobe.exe в папку с программой и перезапусти — иначе сборка видео не работает.','⚠️ ffmpeg not found. Put ffmpeg.exe and ffprobe.exe in the app folder and restart — otherwise video building won\'t work.'],
   lic_revoked:['Лицензия недействительна. Обратись за ключом.','License is no longer valid. Please request a key.'],
   lic_trial_head:['🎁 Бесплатный триал — 1 видео','🎁 Free trial — 1 video'],
@@ -2726,7 +2726,7 @@ const I18N={
   trial_ready_go:['✅ Готово, собираем видео…','✅ Ready, building your video…'],
   trial_retry:['Сервер просыпается — нажми ещё раз','Server is waking up — click again'],
   trial_voice_locked:['🔒 ElevenLabs Key доступен только по лицензии. В триале озвучка — бесплатный Edge-TTS.','🔒 ElevenLabs Key requires a license. In the trial, voiceover uses free Edge-TTS.'],
-  trial_mode_note:['🎁 Триал: клипы — на твоём бесплатном ключе Pixabay, текст — на Gemini, озвучка — Edge-TTS. ElevenLabs Key и Claude откроются после покупки.','🎁 Trial: clips use your free Pixabay key, text uses Gemini, voiceover is Edge-TTS. ElevenLabs Key and Claude unlock after purchase.'],
+  trial_mode_note:['🎁 Триал: клипы подбираются автоматически, текст — на Gemini, озвучка — Edge-TTS. ElevenLabs Key и Claude откроются после покупки.','🎁 Trial: clips use your free Pixabay key, text uses Gemini, voiceover is Edge-TTS. ElevenLabs Key and Claude unlock after purchase.'],
   lic_trial_used:['Бесплатный триал уже использован на этом ПК.','The free trial has already been used on this PC.'],
   lic_close:['Закрыть','Close'],
   lic_need_toast:['Нужна лицензия или триал.','A license or trial is required.'],
@@ -7325,6 +7325,9 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
 html.vrPhone .vrCredit{font-size:20px}
 html.vrPhone .vrReelCredits{font-size:20px;max-width:none}
 html.vrPhone .vrSwapCredit{font-size:22px}
+/* общий ключ стоков (через наш сервер): поля ключей Pexels/Pixabay и онбординг «откуда брать видео» не показываем */
+#px2AccHead,#px2AccBody,#pxbayAccHead,#pxbayAccBody,#mediaOnbModal{display:none!important}
+#keyGuideModal .modal-body>div:has(#kgMediaBadge),.trial-step:has(#licTrialPxKey){display:none!important}
 </style>
 <script id="vrCredits">
 /* Атрибуция стоков (правила Pexels/Pixabay): автор под клипом каждой сцены,
