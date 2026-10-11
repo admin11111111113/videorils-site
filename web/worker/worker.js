@@ -361,7 +361,7 @@ async function pingRender(env, d, web) {
 }
 
 const cors = (origin) => !origin ? {} : ({ 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' });
+  'Access-Control-Allow-Headers': 'Content-Type, X-VR-Owner', 'Access-Control-Max-Age': '86400', Vary: 'Origin' });
 
 // Общий сток для веб-версии: поиск Pexels/Pixabay нашим ключом (секреты PEXELS_KEY / PIXABAY_KEY,
 // в браузер не попадают). Только с нашего сайта, только поиск, ответы кешируются 24 ч (правила Pixabay).
@@ -371,10 +371,11 @@ const STOCK_EXPOSE = 'X-Ratelimit-Remaining, X-Ratelimit-Limit, X-RateLimit-Rema
 async function stock(req, env, ctx, url, origin) {
   const h = Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Expose-Headers': STOCK_EXPOSE }, cors(origin));
   if (url.pathname === '/stock/status')
-    return new Response(JSON.stringify({ pexels: !!env.PEXELS_KEY, pixabay: !!env.PIXABAY_KEY, groq: !!(env.GROQ_KEYS || env.GROQ_KEY || env.GEMINI_KEY) }), { headers: Object.assign(h, { 'Cache-Control': 'max-age=300' }) });
+  { const k = await sharedKeys(env);
+    return new Response(JSON.stringify({ pexels: !!k.pexels, pixabay: !!k.pixabay, groq: !!(k.groq || k.gemini), reset: k.reset, owner: isOwner(req, k) }), { headers: Object.assign(h, { 'Cache-Control': 'no-store' }) }); }
   const m = url.pathname.match(/^\/stock\/(pexels|pixabay)(\/.*)$/);
   if (!m || !STOCK_PATHS[m[1]].includes(m[2]) || req.method !== 'GET') return new Response('{}', { status: 404, headers: h });
-  const kind = m[1], key = kind === 'pexels' ? env.PEXELS_KEY : env.PIXABAY_KEY;
+  const kind = m[1], sk = await sharedKeys(env), key = kind === 'pexels' ? sk.pexels : sk.pixabay;
   if (!key) return new Response('{}', { status: 503, headers: h });
   const q = new URLSearchParams(url.search); q.delete('key'); q.sort();
   const cacheKey = new Request('https://stock-cache.videorils/' + kind + m[2] + '?' + q.toString());
@@ -384,6 +385,7 @@ async function stock(req, env, ctx, url, origin) {
     let up;
     if (kind === 'pexels') up = await fetch('https://api.pexels.com' + m[2] + '?' + q.toString(), { headers: { Authorization: key } });
     else { const qq = new URLSearchParams(q); qq.set('key', key); up = await fetch('https://pixabay.com' + m[2] + '?' + qq.toString()); }
+    aiStat(env, ctx, up.status === 429 ? kind + '_limit' : kind);
     const body = await up.text();
     const keep = {}; for (const k of STOCK_EXPOSE.split(', ')) { const v = up.headers.get(k); if (v !== null) keep[k] = v; }
     r = new Response(body, { status: up.status, headers: Object.assign({ 'Content-Type': 'application/json' }, keep) });
@@ -393,8 +395,8 @@ async function stock(req, env, ctx, url, origin) {
   return new Response(r.body, { status: r.status, headers: out });
 }
 
-// Общий ИИ (Groq) для веб-версии: один ключ проекта (секрет GROQ_KEYS). Как в ботах: работаем на текущей
-// модели, упёрлись в лимит/ошибку — следующая модель. Удачная модель запоминается (пока жив экземпляр Worker).
+// ИИ для веб-версии (площадка владельца): секреты GROQ_KEYS и GEMINI_KEYS — ключи через запятую. Как в ботах:
+// текущая модель, упёрлись в лимит/ошибку — следующая модель, потом следующий ключ; дальше — Gemini по кругу.
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODELS = [
   ['openai/gpt-oss-120b', { reasoning_effort: 'low', include_reasoning: false }],
@@ -403,41 +405,77 @@ const GROQ_MODELS = [
 ];
 const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-lite-latest'];
 let groqPos = 0;   // индекс в (ключ × модель)
-async function groq(req, env, origin) {
-  const h = Object.assign({ 'Content-Type': 'application/json' }, cors(origin));
-  const keys = String(env.GROQ_KEYS || env.GROQ_KEY || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 1);
-  if (!keys.length) return new Response('{"error":{"message":"no shared AI"}}', { status: 503, headers: h });
+async function groq(req, env, origin, ctx) {
+  const h = Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Expose-Headers': 'X-VR-Model' }, cors(origin));
+  const sk = await sharedKeys(env), keys = sk.groq_list, gkeys = sk.gemini_list;   // все ключи по кругу (площадка владельца)
+  if (!keys.length && !gkeys.length) return new Response('{"error":{"message":"no shared AI"}}', { status: 503, headers: h });
   let d = {}; try { d = await req.json(); } catch (e) { }
   const msgs = Array.isArray(d.messages) ? d.messages.slice(0, 8) : [];
   const size = msgs.reduce((a, m) => a + String((m && m.content) || '').length, 0);
   if (!msgs.length || size > 60000) return new Response('{"error":{"message":"bad request"}}', { status: 400, headers: h });
   const max_tokens = Math.max(64, Math.min(parseInt(d.max_tokens) || 2000, 4000));
   const temperature = Math.max(0, Math.min(Number(d.temperature ?? 0.9) || 0.9, 1.2));
-  const total = keys.length * GROQ_MODELS.length; let last = null;
+  let last = null;
+  const tryGroq = async () => {
+  const total = keys.length * GROQ_MODELS.length;
   for (let n = 0; n < total; n++) {
     const pos = (groqPos + n) % total, key = keys[Math.floor(pos / GROQ_MODELS.length)], [model, extra] = GROQ_MODELS[pos % GROQ_MODELS.length];
     let r; try { r = await fetch(GROQ_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
       body: JSON.stringify(Object.assign({ model, messages: msgs, max_tokens, temperature }, extra)) }); } catch (e) { last = null; continue; }
-    if (r.status === 200) { groqPos = pos; const body = await r.text(); return new Response(body, { status: 200, headers: Object.assign(h, { 'X-VR-Model': model }) }); }
+    if (r.status === 200) { groqPos = pos; aiStat(env, ctx, 'groq'); const body = await r.text(); return new Response(body, { status: 200, headers: Object.assign(h, { 'X-VR-Model': model }) }); }
+    if (r.status === 429) aiStat(env, ctx, 'groq_limit');
     last = r; const t = await r.text();
     if (![429, 404, 400, 500, 502, 503].includes(r.status)) return new Response(t, { status: r.status, headers: h });
   }
-  // Groq занят/лимит -> запасной: один ключ Gemini проекта (секрет GEMINI_KEY), модели по очереди
-  const gk = String(env.GEMINI_KEY || '').trim();
-  if (gk) {
-    const text = msgs.map(m => String((m && m.content) || '')).join(String.fromCharCode(10, 10));
+  return null; };
+  // Groq занят/лимит -> запасной Gemini: ключ за ключом (у владельца — до 3), модели по очереди
+  const tryGemini = async () => {
+  const text = msgs.map(m => String((m && m.content) || '')).join(String.fromCharCode(10, 10));
+  for (const gk of gkeys) {
     for (const gm of GEMINI_MODELS) {
       let r; try { r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm}:generateContent`, { method: 'POST',
         headers: { 'x-goog-api-key': gk, 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text }] }], generationConfig: { maxOutputTokens: Math.max(max_tokens, 2048), temperature } }) }); } catch (e) { continue; }
-      if (r.status !== 200) continue;
+      if (r.status !== 200) { if (r.status === 429) aiStat(env, ctx, 'gemini_limit'); continue; }
       let j = {}; try { j = await r.json(); } catch (e) { continue; }
       const out = (((j.candidates || [])[0] || {}).content || {}).parts || [];
       const t = out.filter(x => !x.thought).map(x => x.text || '').join('').trim();
-      if (t) return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: t } }] }), { status: 200, headers: Object.assign(h, { 'X-VR-Model': gm }) });
+      if (t) { aiStat(env, ctx, 'gemini'); return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: t } }] }), { status: 200, headers: Object.assign(h, { 'X-VR-Model': gm }) }); }
     }
   }
+  return null; };
+  // вкладка «Gemini» -> сначала Gemini, запасной Groq; вкладка «Groq» (и по умолчанию) -> сначала Groq, запасной Gemini
+  const first = String(d.prefer || '') === 'gemini' ? [tryGemini, tryGroq] : [tryGroq, tryGemini];
+  for (const f of first) { const resp = await f(); if (resp) return resp; }
+  aiStat(env, ctx, 'ai_fail');
   return new Response('{"error":{"message":"shared AI busy"}}', { status: last ? last.status : 502, headers: h });
+}
+
+// Счётчик запросов к общим ключам (для админки): /videorils_ai_stats/<день UTC>/<час UTC> {поле: +1}.
+// Пишем фоном (ctx.waitUntil), ответ пользователю не ждёт.
+function aiStat(env, ctx, field) {
+  if (!ctx || !fbOn(env)) return;
+  const d = new Date(), day = d.toISOString().slice(0, 10), hh = String(d.getUTCHours()).padStart(2, '0');
+  ctx.waitUntil(fb(env, 'PATCH', `/videorils_ai_stats/${day}/${hh}`, { [field]: { '.sv': { increment: 1 } } }).catch(() => { }));
+}
+
+// Ключи общих сервисов: из админки (Firebase /videorils_shared_keys, кеш 60 с) — иначе секреты Cloudflare.
+// Там же limits_reset (мс): «Обнулить лимиты» в админке — браузеры забывают свои часовые счётчики.
+let skCache = { at: 0, v: null };
+// владелец (кнопка в админке «Включить мои ключи на этом устройстве») — заголовок X-VR-Owner
+const isOwner = (req, sk) => !!(sk.owner && (req.headers.get('X-VR-Owner') || '') === sk.owner);
+async function sharedKeys(env) {
+  if (skCache.v && Date.now() - skCache.at < 60000) return skCache.v;
+  let fbk = {};
+  if (fbOn(env)) { try { fbk = (await fb(env, 'GET', '/videorils_shared_keys')) || {}; } catch (e) { fbk = (skCache.v && skCache.v._fb) || {}; } }
+  const pick = (a, b) => String(a || b || '').trim();
+  const list = (x, envv) => { let l = Array.isArray(x) ? x : (x && typeof x === 'object' ? Object.values(x) : (x ? [x] : []));
+    l = l.map(k => String(k || '').trim()).filter(Boolean); if (!l.length && envv) l = String(envv).split(',').map(k => k.trim()).filter(Boolean); return l.slice(0, 10); };
+  const v = { pexels: pick(fbk.pexels, env.PEXELS_KEY), pixabay: pick(fbk.pixabay, env.PIXABAY_KEY),
+    groq_list: list(fbk.groq, env.GROQ_KEYS || env.GROQ_KEY), gemini_list: list(fbk.gemini, env.GEMINI_KEYS || env.GEMINI_KEY),
+    owner: String(fbk.owner_token || '').trim(), reset: parseInt(fbk.limits_reset || 0) || 0, _fb: fbk };
+  v.groq = v.groq_list[0] || ''; v.gemini = v.gemini_list[0] || '';
+  skCache = { at: Date.now(), v }; return v;
 }
 
 export default {
@@ -458,9 +496,9 @@ export default {
     if (!origin && url.pathname === '/edge') return new Response('forbidden', { status: 403 });
     if (url.pathname === '/ai/groq') {
       if (!fromSite) return new Response('forbidden', { status: 403 });
-      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: Object.assign({ 'Access-Control-Allow-Headers': 'Content-Type' }, cors(origin)) });
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
       if (req.method !== 'POST') return new Response('{}', { status: 405, headers: cors(origin) });
-      return await groq(req, env, origin);
+      return await groq(req, env, origin, ctx);
     }
     if (url.pathname.startsWith('/stock/')) {
       if (!fromSite) return new Response('forbidden', { status: 403 });

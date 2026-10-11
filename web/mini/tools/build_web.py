@@ -83,7 +83,12 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 # веб: клипы Pexels/Pixabay идут через наш общий ключ — в подсказках не просим вставлять ключи стоков
 STOCK_TEXT = [
-    ("renderReelAi(r.has_claude, r.has_gemini);", "window.__vrFreeIsGroq=!!r.free_groq; renderReelAi(r.has_claude, r.has_gemini);"),
+    ("ai_pick_fast:['⚡ Быстрый','⚡ Fast']", "ai_pick_fast:['🟣 Claude','🟣 Claude']"),
+    ("ai_pick_smart:['🧠 Умный','🧠 Smart']", "ai_pick_smart:['🧠 Claude Opus','🧠 Claude Opus']"),
+    ("ai_pick_free:['🔵 Бесплатный','🔵 Free']", "ai_pick_free:['🔵 Gemini','🔵 Gemini'],\n  ai_pick_groq:['🟠 Groq','🟠 Groq']"),
+    ("if(hasGemini){opts.push(['free','ai_pick_free']);}", "if(hasGemini){opts.push(['free','ai_pick_free']);} if(window.__vrHasGroq){opts.push(['groq','ai_pick_groq']);}"),
+    ("window.__vrFreeIsGroq=!!r.free_groq; renderReelAi(r.has_claude, r.has_gemini);", "window.__vrFreeIsGroq=!!r.free_groq; window.__vrHasGroq=!!r.has_groq; renderReelAi(r.has_claude, r.has_gemini);"),
+    ("renderReelAi(r.has_claude, r.has_gemini);", "window.__vrFreeIsGroq=!!r.free_groq; window.__vrHasGroq=!!r.has_groq; renderReelAi(r.has_claude, r.has_gemini);"),
     ("renderGemQuota(hasGemini);", "renderGemQuota(hasGemini&&!window.__vrFreeIsGroq);"),
     ("Pixabay (клипы) + Gemini (текст).", "ключ ИИ — Gemini или Claude (текст); клипы уже подключены."),
     ("Для бесплатной проверки нужны 2 бесплатных ключа. Оба вставляются один раз, займёт ~2 минуты.", "Для бесплатной проверки нужен 1 бесплатный ключ ИИ — Gemini (или Claude). Клипы уже подключены."),

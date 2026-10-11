@@ -109,7 +109,7 @@ export class Api {
     { const o = dec_secret(s.gemini_key || ''); if (o && !this.gemini_keys.includes(o)) this.gemini_keys.unshift(o); }
     this.gemini_keys = this.gemini_keys.slice(0, 1); this.gemini_idx = 0;
     this.gemini_model = 'flash';
-    this.ai_provider = s.ai_provider ?? 'claude'; if (!['claude', 'gemini'].includes(this.ai_provider)) this.ai_provider = 'claude';
+    this.ai_provider = s.ai_provider ?? 'claude'; if (!['claude', 'gemini', 'groq'].includes(this.ai_provider)) this.ai_provider = 'claude';
     this._ai_last_status = 0; this._ai_last_reason = ''; this._cred_cache = {};
     this.reel_text = ''; this.foreign_audio_path = null; this.foreign_segments = [];
     this.reel_phrases = []; this.reel_spoken = []; this.reel_segments = [];

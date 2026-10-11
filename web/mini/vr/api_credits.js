@@ -1,5 +1,5 @@
 // Атрибуция стоков (правила Pexels/Pixabay): кто автор клипа сцены + титры готового ролика.
-import { stock_credit, stock_used_list, store } from './core.js';
+import { stock_credit, stock_used_list, store, STOCK } from './core.js';
 import { Api } from './api_base.js';
 const P = Api.prototype;
 P.scene_credit = function (i) {
@@ -24,8 +24,8 @@ const QUOTA = { reel: { limit: 1, key: 'vr_mini_hour_builds' }, };
 const OWN_KEY_TIP = 'Или снимите галочку «Наши ключи» и вставьте свои бесплатные ключи — без лимита.';
 P._PROD = 'mini';
 P._shared_limits = function () { return { limit: QUOTA.reel.limit, series_limit: QUOTA.series ? QUOTA.series.limit : 0, ai_limit: 15 }; };
-P._on_shared_stock = function () { return this._use_shared(); };
-P._hour_list = function (kind = 'reel') { let l = []; try { l = JSON.parse(store.get(QUOTA[kind].key) || '[]'); } catch (e) { } const t = Date.now(); return (Array.isArray(l) ? l : []).filter(x => typeof x === 'number' && x > t - HOUR_MS && x <= t + 60000); };
+P._on_shared_stock = function () { return false; };   // площадка владельца — без лимитов
+P._hour_list = function (kind = 'reel') { let l = []; try { l = JSON.parse(store.get(QUOTA[kind].key) || '[]'); } catch (e) { } const t = Date.now(); return (Array.isArray(l) ? l : []).filter(x => typeof x === 'number' && x > t - HOUR_MS && x > (STOCK.reset || 0) && x <= t + 60000); };
 P._hour_quota_check = function (n = 1, kind = 'reel') {
   if (!QUOTA[kind] || !this._on_shared_stock()) return null;
   const lim = QUOTA[kind].limit, l = this._hour_list(kind).sort((a, b) => a - b);

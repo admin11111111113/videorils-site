@@ -2153,7 +2153,7 @@ function loadReelAi(){
   api('get_reel_ai').then(r=>{
     if(!r)return;
     reelAiChoice=r.choice||'fast';
-    window.__vrFreeIsGroq=!!r.free_groq; renderReelAi(r.has_claude, r.has_gemini);
+    window.__vrFreeIsGroq=!!r.free_groq; window.__vrHasGroq=!!r.has_groq; renderReelAi(r.has_claude, r.has_gemini);
   });
 }
 function renderReelAi(hasClaude,hasGemini){
@@ -2161,7 +2161,7 @@ function renderReelAi(hasClaude,hasGemini){
   if(!tabs)return; tabs.innerHTML='';
   const opts=[];
   if(hasClaude){opts.push(['fast','ai_pick_fast']);opts.push(['smart','ai_pick_smart']);}
-  if(hasGemini){opts.push(['free','ai_pick_free']);}
+  if(hasGemini){opts.push(['free','ai_pick_free']);} if(window.__vrHasGroq){opts.push(['groq','ai_pick_groq']);}
   if(opts.length<=0){wrap.style.display='none';return;}
   if(!opts.some(o=>o[0]===reelAiChoice))reelAiChoice=opts[0][0];
   opts.forEach(([c,key])=>{
@@ -2975,9 +2975,10 @@ const I18N={
   ph_gem_key:['Gemini Key (запасной)','Gemini Key (backup)'],
   api_gem_hint:['Запасной бесплатный AI (без карты). Лимит бесплатного ключа определяется автоматически из ответа Google. Включается, если выбран в селекторе «AI» или если основной недоступен. После создания примени к ключу ограничение API (требуется с июня 2026).','Backup free AI (no card). The free key\'s limit is detected automatically from Google\'s response. Used when selected in the “AI” picker or when the main one is unavailable. After creating the key, apply an API restriction to it (required from June 2026).'],
   reel_ai_lbl:['AI:','AI:'],
-  ai_pick_fast:['⚡ Быстрый','⚡ Fast'],
-  ai_pick_smart:['🧠 Умный','🧠 Smart'],
-  ai_pick_free:['🔵 Бесплатный','🔵 Free'],
+  ai_pick_fast:['🟣 Claude','🟣 Claude'],
+  ai_pick_smart:['🧠 Claude Opus','🧠 Claude Opus'],
+  ai_pick_free:['🔵 Gemini','🔵 Gemini'],
+  ai_pick_groq:['🟠 Groq','🟠 Groq'],
   ai_chosen:['✓ AI: {x} — впиши тему и жми «Получить результат»','✓ AI: {x} — enter a topic and hit “Get result”'],
   gen_running:['🤖 Генерирую…','🤖 Generating…'],
   toast_paste_ai:['Вставьте Claude Key','Paste an Claude Key'],
@@ -7335,7 +7336,13 @@ html.vrPhone .vrStockOpt{font-size:20px}
 .vrGroq{margin:6px 0 10px;padding:10px 12px;border:1px solid var(--line,#2a2540);border-radius:12px}
 .vrGroq .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .vrGroq .km{display:flex;justify-content:space-between;font-size:12px;margin-top:4px}
-html.vrPhone .vrShared label{font-size:24px}html.vrPhone .vrShared .hint,html.vrPhone .vrGroq{font-size:20px}
+html.vrPhone .vrShared label{font-size:24px}
+.vrAiPick{position:relative;display:inline-block}
+.vrAiPick>button{padding:7px 14px;border-radius:999px;border:1px solid rgba(168,85,247,.55);background:rgba(168,85,247,.16);color:inherit;font-weight:800;cursor:pointer}
+.vrAiMenu{position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#17132a;border:1px solid rgba(168,85,247,.45);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.vrAiMenu button{display:block;width:100%;text-align:left;padding:9px 12px;border:none;background:transparent;color:inherit;border-radius:8px;font-weight:700;cursor:pointer}
+.vrAiMenu button:hover,.vrAiMenu button.on{background:rgba(168,85,247,.22)}
+html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrAiMenu{min-width:340px}html.vrPhone .vrAiMenu button{font-size:26px;padding:16px 18px}html.vrPhone .vrShared .hint,html.vrPhone .vrGroq{font-size:20px}
 #keyGuideModal .modal-body>div:has(#kgMediaBadge),.trial-step:has(#licTrialPxKey){display:none!important}
 </style>
 <script id="vrCredits">
@@ -7383,7 +7390,7 @@ html.vrPhone .vrShared label{font-size:24px}html.vrPhone .vrShared .hint,html.vr
       b.innerHTML='<label><input type="checkbox" id="vrSharedChk"> Наши ключи — клипы и ИИ уже подключены</label><div class="hint" id="vrSharedHint"></div>';
       const h3=panel.querySelector('h3'); panel.insertBefore(b,h3?h3.nextSibling:panel.firstChild);
       const chk=b.querySelector('#vrSharedChk'), hint=b.querySelector('#vrSharedHint');
-      const paint=function(st){ chk.checked=!!st.on; hint.textContent=st.on?('С галочкой: '+limitText(st)+'. Сними её и вставь свои бесплатные ключи ниже — без лимита.'):'Работают только твои ключи — без лимита. Поставь галочку, чтобы пользоваться нашими ('+limitText(st)+').'; };
+      const paint=function(st){ chk.checked=!!st.on; hint.textContent=st.on?'С галочкой работают наши ключи (Pexels, Pixabay, Groq, Gemini). Сними её — будут работать только твои ключи ниже.':'Работают только твои ключи. Поставь галочку, чтобы пользоваться нашими.'; };
       paint(st);
       chk.onchange=function(){ api('set_use_shared',chk.checked).then(function(s2){ paint(s2); stockOpt(true); refreshAll(); }); };
     }).catch(function(){});
@@ -7393,13 +7400,13 @@ html.vrPhone .vrShared label{font-size:24px}html.vrPhone .vrShared .hint,html.vr
       const body=document.getElementById(id); const inner=body&&(body.querySelector('.acc-inner')||body); if(!inner)return;
       let d=inner.querySelector('.vrStockOpt'); if(d&&!force)return;
       if(!d){ d=document.createElement('div'); d.className='vrStockOpt'; inner.insertBefore(d,inner.firstChild); }
-      d.textContent='✅ Необязательно: с галочкой «Наши ключи» клипы идут через наш ключ. Свой ключ работает, когда галочка снята — без лимита.';
+      d.textContent='✅ Необязательно: с галочкой «Наши ключи» клипы идут через наш ключ. Свой ключ работает, когда галочка снята.';
     });
   }
   function groqBox(){
     const gem=document.getElementById('gemAccBody'); if(!gem||document.getElementById('vrGroqBox')||!canApi())return;
     const b=document.createElement('div'); b.className='vrGroq'; b.id='vrGroqBox';
-    b.innerHTML='<b>⚡ Groq — бесплатный ИИ для текста</b><div class="hint" style="font-size:12px;margin-top:4px">Необязательно. Свой ключ Groq — без лимита; без него при галочке «Наши ключи» работает наш Groq.</div><div id="vrGroqList"></div><div class="row2"><input type="password" id="vrGroqKey" class="fld" style="flex:1;min-width:160px" placeholder="gsk_… ключ Groq" autocomplete="off"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div>';
+    b.innerHTML='<b>⚡ Groq — бесплатный ИИ для текста</b><div class="hint" style="font-size:12px;margin-top:4px">Необязательно: с галочкой «Наши ключи» работает наш ИИ. Свой ключ Groq — когда галочка снята.</div><div id="vrGroqList"></div><div class="row2"><input type="password" id="vrGroqKey" class="fld" style="flex:1;min-width:160px" placeholder="gsk_… ключ Groq" autocomplete="off"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div>';
     gem.parentNode.insertBefore(b,gem.nextSibling);
     const list=b.querySelector('#vrGroqList'), msg=b.querySelector('#vrGroqMsg');
     const paint=function(r){ list.innerHTML=''; ((r&&r.keys)||[]).forEach(function(k,i){ const row=document.createElement('div'); row.className='km'; row.innerHTML='<span>🔑 '+esc(k.mask)+'</span>'; const x=document.createElement('button'); x.className='btn ghost'; x.textContent='✕'; x.onclick=function(){ api('remove_groq_key',i).then(function(r2){ paint(r2); refreshAll(); }); }; row.appendChild(x); list.appendChild(row); }); };
@@ -7407,7 +7414,27 @@ html.vrPhone .vrShared label{font-size:24px}html.vrPhone .vrShared .hint,html.vr
     b.querySelector('#vrGroqSave').onclick=function(){ const inp=b.querySelector('#vrGroqKey'); msg.textContent='Проверяю…'; api('add_groq_key',inp.value).then(function(r){ msg.textContent=(r&&r.msg)||''; msg.style.color=(r&&r.ok)?'var(--green)':'var(--pink)'; if(r&&r.ok)inp.value=''; paint(r); refreshAll(); }); };
     b.querySelector('#vrGroqWhere').onclick=function(){ api('open_groq_signup'); };
   }
-  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); }
+  // выбор ИИ: одна кнопка -> список Gemini / Groq / Claude (Claude — если вставлен его ключ)
+  function aiDropdown(tabsEl){
+    if(!tabsEl)return;
+    const tabs=[...tabsEl.querySelectorAll('.rtab')].filter(function(b){ return !/Opus/.test(b.textContent); });
+    let box=tabsEl.parentNode.querySelector('.vrAiPick[data-for="'+tabsEl.id+'"]');
+    if(!tabs.length){ if(box)box.remove(); return; }
+    tabsEl.style.display='none';
+    if(!box){ box=document.createElement('div'); box.className='vrAiPick'; box.dataset.for=tabsEl.id; tabsEl.parentNode.insertBefore(box,tabsEl.nextSibling); }
+    const cur=tabs.find(function(b){ return b.classList.contains('on'); })||tabs[0];
+    box.innerHTML='';
+    const btn=document.createElement('button'); btn.type='button'; btn.textContent='Выбери ИИ: '+cur.textContent+' ▾'; box.appendChild(btn);
+    btn.onclick=function(e){ e.stopPropagation(); let m=box.querySelector('.vrAiMenu'); if(m){ m.remove(); return; }
+      m=document.createElement('div'); m.className='vrAiMenu';
+      tabs.forEach(function(t){ const it=document.createElement('button'); it.type='button'; it.textContent=t.textContent; if(t===cur)it.className='on';
+        it.onclick=function(ev){ ev.stopPropagation(); m.remove(); t.click(); }; m.appendChild(it); });
+      box.appendChild(m);
+      setTimeout(function(){ document.addEventListener('click',function off(){ if(m.parentNode)m.remove(); document.removeEventListener('click',off); }); },0); };
+  }
+  function boot(){ hook(); stockOpt(); sharedBox(); groqBox();
+    wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
+    aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
   window.vrReelCredits=function(box){
     if(!box||!canApi())return;

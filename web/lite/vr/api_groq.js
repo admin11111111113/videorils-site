@@ -17,7 +17,7 @@ let _groqModel = 0;
 P._shared_store_key = function () { return `vr_${this._prod_id()}_use_shared`; };
 P._prod_id = function () { return this._PROD || 'app'; };
 P._shared_ready = function () { return !!(STOCK.pexels || STOCK.pixabay || STOCK.groq); };
-P._use_shared = function () { let v = null; try { v = store.get(this._shared_store_key()); } catch (e) { } return v !== '0' && this._shared_ready(); };
+P._use_shared = function () { let v = null; try { v = store.get(this._shared_store_key()); } catch (e) { } return v !== '0' && this._shared_ready(); };   // галочка «Наши ключи»
 P.set_use_shared = function (on) { store.set(this._shared_store_key(), on ? '1' : '0'); this._media_chain_obj = null; try { this._invalidate_media_caches(); } catch (e) { } return this.get_shared_state(); };
 P.get_shared_state = function () { const q = this.get_hour_quota ? this.get_hour_quota() : {}; return Object.assign({ on: this._use_shared(), ready: this._shared_ready(), groq_shared: !!STOCK.groq }, q, this._shared_limits()); };
 
@@ -51,34 +51,35 @@ P.remove_groq_key = function (idx = 0) { const l = this._groq_keys_load(), i = p
 P.open_groq_signup = function () { webbrowser.open('https://console.groq.com/keys'); return true; };
 
 // ---------- вызов Groq ----------
-P._groq_call = async function (prompt, max_tokens = 4000) {
+P._groq_call = async function (prompt, max_tokens = 4000, prefer = 'groq') {
   const messages = [{ role: 'user', content: prompt }];
   const own = this._groq_keys_load();
   const pick = (j) => { const t = ((((j || {}).choices || [])[0] || {}).message || {}).content || ''; return String(t).trim(); };
-  if (own.length) {     // свои ключи: модель за моделью, ключ за ключом
+  if (own.length && prefer !== 'gemini') {     // свои ключи: модель за моделью, ключ за ключом
     for (let n = 0; n < own.length * GROQ_MODELS.length; n++) {
       const mi = (_groqModel + n) % GROQ_MODELS.length, key = own[Math.floor(n / GROQ_MODELS.length) % own.length], [model, extra] = GROQ_MODELS[mi];
       let r; try { r = await requests.post(GROQ_URL, { headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, json: { model, messages, max_tokens: Math.min(max_tokens, 8000), temperature: 0.9, ...extra }, timeout: 120 }); }
       catch (e) { log(`  ⚠ Groq сеть: ${String(e.message || e).slice(0, 80)}`); continue; }
-      if (r.status_code === 200) { const t = pick(r.json()); if (t) { _groqModel = mi; log(`  🤖 Groq (свой ключ): ${model}`); return [true, t]; } }
-      log(`  ↩ Groq ${model}: HTTP ${r.status_code} — пробую следующую модель`);
+      if (r.status_code === 200) { const t = pick(r.json()); if (t) { _groqModel = mi; log('  🤖 ИИ: Groq (свой ключ)'); return [true, t]; } }
+      log(`  ↩ Groq: HTTP ${r.status_code} — пробую ещё раз`);
       if (r.status_code === 401) break;
     }
     if (!(this._use_shared() && STOCK.groq)) return [false, 'Groq сейчас не отвечает (лимит ключа). Попробуйте через минуту.'];
   }
   if (!(this._use_shared() && STOCK.groq)) return [false, this._t('ai_no_key')];
   const q = this._ai_quota_check(); if (q) return [false, q];
-  let r; try { r = await requests.post(CF_URL + '/ai/groq', { json: { messages, max_tokens: Math.min(max_tokens, 4000), temperature: 0.9 }, timeout: 150 }); }
+  let r; try { r = await requests.post(CF_URL + '/ai/groq', { json: { messages, max_tokens: Math.min(max_tokens, 4000), temperature: 0.9, prefer }, timeout: 150 }); }
   catch (e) { return [false, this._t('ai_network')]; }
-  if (r.status_code === 200) { const t = pick(r.json()); if (t) { this._ai_quota_mark(); log(`  🤖 общий ИИ: ${r.headers.get('X-VR-Model') || 'Groq'}`); return [true, t]; } return [false, this._t('ai_empty')]; }
+  if (r.status_code === 200) { const t = pick(r.json()); if (t) { this._ai_quota_mark(); log(`  🤖 ИИ: ${/^gemini/i.test(r.headers.get('X-VR-Model') || '') ? 'Gemini' : 'Groq'}`); return [true, t]; } return [false, this._t('ai_empty')]; }
   log(`  ✖ общий ИИ: HTTP ${r.status_code}`);
   return [false, 'Общий ИИ сейчас перегружен — попробуйте через минуту или вставьте свой бесплатный ключ Groq или Gemini (без лимита).'];
 };
 
 // лимит запросов к общему ИИ за 60 минут (сценарии, перегенерации, подписи)
 P._ai_quota_key = function () { return `vr_${this._prod_id()}_ai_hour`; };
-P._ai_quota_list = function () { let l = []; try { l = JSON.parse(store.get(this._ai_quota_key()) || '[]'); } catch (e) { } const t = Date.now(); return (Array.isArray(l) ? l : []).filter(x => typeof x === 'number' && x > t - 3600000 && x <= t + 60000); };
+P._ai_quota_list = function () { let l = []; try { l = JSON.parse(store.get(this._ai_quota_key()) || '[]'); } catch (e) { } const t = Date.now(); return (Array.isArray(l) ? l : []).filter(x => typeof x === 'number' && x > t - 3600000 && x > (STOCK.reset || 0) && x <= t + 60000); };
 P._ai_quota_check = function () {
+  return null;   // площадка владельца — без лимитов
   const lim = this._shared_limits().ai_limit, l = this._ai_quota_list().sort((a, b) => a - b);
   if (l.length < lim) return null;
   const mins = Math.max(1, Math.ceil((l[l.length - lim] + 3600000 - Date.now()) / 60000));

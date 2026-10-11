@@ -1,5 +1,5 @@
 // Порт Api: AI-ключи, _ai_call/_claude_call/_gemini_call, квота Gemini, ошибки (app.py 7067–7981).
-import { C, log, re, requests, webbrowser, sleep, now, store, sha1Hex, call_js, vfs, blobToDataUrl } from './core.js';
+import { STOCK, C, log, re, requests, webbrowser, sleep, now, store, sha1Hex, call_js, vfs, blobToDataUrl } from './core.js';
 import { Api } from './api_base.js';
 
 const P = Api.prototype;
@@ -59,14 +59,15 @@ P.remove_claude_key = function (idx = 0) { const i = parseInt(idx); if (!Number.
 P.set_claude_key = function (key) { return this.add_claude_key(key); };
 P.set_ai_provider = function (which) { this.ai_provider = ['claude', 'gemini'].includes(which) ? which : 'claude'; this._persist(); return { ok: true, provider: this.ai_provider }; };
 P.get_ai_providers = function () { return { provider: this.ai_provider, has_claude: !!this.claude_key, has_gemini: !!this.gemini_key }; };
-P.get_ai_choice = function () { if (this.ai_provider === 'gemini') return 'free'; return this.ai_model === 'opus' ? 'smart' : 'fast'; };
+P.get_ai_choice = function () { if (this.ai_provider === 'gemini') return 'free'; if (this.ai_provider === 'groq') return 'groq'; return this.ai_model === 'opus' ? 'smart' : 'fast'; };
 P.set_ai_choice = function (choice) {
   if (choice === 'free') this.ai_provider = 'gemini';
+  else if (choice === 'groq') this.ai_provider = 'groq';
   else if (choice === 'smart') { this.ai_provider = 'claude'; this.ai_model = 'opus'; }
   else { this.ai_provider = 'claude'; this.ai_model = 'sonnet'; }
   this._persist(); return { ok: true, choice: this.get_ai_choice() };
 };
-P.get_reel_ai = function () { const g = this._groq_available(); return { choice: this.get_ai_choice(), has_claude: !!this.claude_key, has_gemini: !!this.gemini_key || g, free_groq: !this.gemini_key && g }; };
+P.get_reel_ai = function () { const sh = this._use_shared() && STOCK.groq; return { choice: this.get_ai_choice(), has_claude: !!this.claude_key, has_gemini: !!this.gemini_key || sh, has_groq: !!this.groq_key || sh, free_groq: !this.gemini_key }; };
 P.open_gemini_signup = function () { webbrowser.open('https://aistudio.google.com/apikey'); return true; };
 P.get_gemini_key_status = function () { return { has: !!this.gemini_key, mask: this.gemini_key ? Api._mask(this.gemini_key) : '', model: this.gemini_model }; };
 P.check_gemini_key = async function (key = null) {
@@ -104,7 +105,7 @@ P._ai_call = async function (prompt, key = null, max_tokens = 4000, model = null
   provider = provider || this.ai_provider;
   if (!key) {   // нет своего ключа выбранного ИИ -> другой свой -> Groq (свой или наш общий)
     if (provider === 'claude' && !this.claude_key) provider = this.gemini_key ? 'gemini' : (this._groq_available() ? 'groq' : provider);
-    else if (provider === 'gemini' && !this.gemini_key) provider = this.claude_key ? 'claude' : (this._groq_available() ? 'groq' : provider);
+    else if (provider === 'gemini' && !this.gemini_key) { if (this._use_shared() && STOCK.groq) return await this._groq_call(prompt, max_tokens, 'gemini'); provider = this.claude_key ? 'claude' : (this._groq_available() ? 'groq' : provider); }
   }
   if (provider === 'groq') return await this._groq_call(prompt, max_tokens);
   if (provider === 'gemini') {
@@ -149,7 +150,7 @@ P._claude_call_one = async function (prompt, key = null, max_tokens = 4000, mode
     } catch (e) { return [false, this._t('ai_bad_response', String(e.message || e).slice(0, 140))]; }
   }
   let _em; try { const _e = r.json().error || {}; _em = _e.message || (r.text || '').slice(0, 200); } catch (e) { _em = (r.text || '').slice(0, 200); }
-  log(`  ✖ Claude ${r.status_code} (model=${model || this._ai_model_id()}): ${_em}`);
+  log(`  ✖ Claude ${r.status_code}: ${_em}`);
   return [false, this._ai_error_msg(r)];
 };
 
@@ -314,14 +315,14 @@ P._gemini_call_one = async function (prompt, key = null, max_tokens = 4000, mode
         if (perday) break;
         if (_retry === 0) {
           const rd = this._gemini_retry_delay(r);
-          if (rd > 0 && rd <= 30) { log(`  ⏳ Gemini 429 (минутный лимит ${mid}) — пауза ${rd.toFixed(0)}с и повтор`); await sleep(rd + 0.3); await _ai_throttle(mid); cont = true; }
+          if (rd > 0 && rd <= 30) { log(`  ⏳ Gemini 429 (минутный лимит) — пауза ${rd.toFixed(0)}с и повтор`); await sleep(rd + 0.3); await _ai_throttle(mid); cont = true; }
         }
       }
       if (!cont) break;
     }
     if ((got404 || perday || bad400) && _mi < mids.length - 1) {
       const why = got404 ? 'недоступна (404)' : (perday ? 'исчерпана на сегодня (лимит/сутки)' : 'отвергла запрос (400)');
-      log(`  ↩ модель ${mid} ${why} — переключаюсь на ${mids[_mi + 1]}`);
+      log(`  ↩ Gemini: ${why} — пробую ещё раз`);
       continue;
     }
     break;
