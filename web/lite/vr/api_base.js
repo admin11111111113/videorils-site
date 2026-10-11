@@ -213,7 +213,7 @@ export class Api {
   // ==================== ЛИЦЕНЗИЯ ====================
   _ping_render() { thread(async () => { try { await requests.post(`${VR_SERVER_URL}/ping-render`, { json: { product: 'lite' }, timeout: 3 }); } catch (e) { } }); }
   report_client_error(error_type, message = '', stage = '') {
-    thread(async () => { try { await requests.post(`${VR_SERVER_URL}/client-error`, { json: { machine_id: await this._install_id(), app_version: APP_VERSION + '-web', error_type: String(error_type).slice(0, 60), message: String(message).slice(0, 200), stage: String(stage).slice(0, 24) }, timeout: 5 }); } catch (e) { } });
+    thread(async () => { try { await requests.post(`${VR_SERVER_URL}/client-error`, { json: { machine_id: await this._install_id(), app_version: (APP_VERSION + '-web-lite').slice(0, 16), error_type: String(error_type).slice(0, 60), message: String(message).slice(0, 200), stage: String(stage).slice(0, 24) }, timeout: 5 }); } catch (e) { } });
     return { ok: true };
   }
   static _ver_tuple(v) { try { return String(v).trim().split('.').map(x => { const n = parseInt(x); if (Number.isNaN(n)) throw 0; return n; }); } catch (e) { return [0]; } }

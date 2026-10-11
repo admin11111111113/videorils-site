@@ -102,6 +102,8 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 # веб: клипы Pexels/Pixabay идут через наш общий ключ — в подсказках не просим вставлять ключи стоков
 STOCK_TEXT = [
+    # старый блок «свои фото/видео» в вебе Лайт не выводится (нет #mediaList и др.) — не падаем при обновлении
+    ("function renderMedia(r){\n  if(!r)return;", "function renderMedia(r){\n  if(!r||!$('mediaList')||!$('mediaSrcName'))return;"),
     ('aiKeyOn=!!(r&&(r.ai||r.gemini))', 'aiKeyOn=!!(r&&(r.ai||r.gemini||r.groq||r.shared))'),
     ('aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0', 'aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0||!!(window.__vrShared&&window.__vrShared.on)'),
     ("    if(!media||!gem){ openKeyGuide(); if($('kgHint'))$('kgHint').textContent=t('kg_missing'); return; }", "    if(!(ks&&ks.shared)&&(!media||!gem)){ openKeyGuide(); if($('kgHint'))$('kgHint').textContent=t('kg_missing'); return; }"),

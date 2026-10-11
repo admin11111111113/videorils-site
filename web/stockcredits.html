@@ -283,7 +283,31 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     const d=document.createElement('div'); d.id='vrRulesWeb'; d.innerHTML=S.join('');
     body.insertBefore(d, body.firstChild);
   }
-  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
+  // Ошибки у людей -> сервер (админка «Ошибки» + бот с причиной и решением). Одинаковое — 1 раз за сессию,
+  // не больше 15 сообщений с одного браузера. Шум (расширения браузера, ResizeObserver) не шлём.
+  const ERR_SEEN={}; let ERR_N=0;
+  const ERR_IGN=/ResizeObserver loop|chrome-extension:|moz-extension:|safari-extension:|^Script error\.?$|Non-Error promise rejection captured|AbortError|The play\(\) request was interrupted|NotAllowedError: play\(\)/i;
+  function repErr(type,msg,stage){
+    try{ msg=String(msg||'').replace(/\s+/g,' ').trim().slice(0,200); if(!msg||ERR_IGN.test(msg))return;
+      const k=type+'|'+msg; if(ERR_SEEN[k]||ERR_N>=15)return; ERR_SEEN[k]=1; ERR_N++;
+      if(canApi()) api('report_client_error',type,msg,String(stage||'web').slice(0,24)); }catch(e){}
+  }
+  window.vrReportError=repErr;
+  window.addEventListener('error',function(e){ if(!e||!e.message)return; const f=String(e.filename||''); if(ERR_IGN.test(f))return;
+    repErr('js_error', e.message+' @'+f.split('/').pop()+':'+(e.lineno||0), 'page'); });
+  window.addEventListener('unhandledrejection',function(e){ const r=e&&e.reason; repErr('js_promise', (r&&(r.message||r))||'', 'page'); });
+  function wrapErrCallbacks(){
+    const w=function(name,check){ const f=window[name]; if(typeof f!=='function'||f.__vre)return;
+      const g=function(){ try{ check.apply(null,arguments); }catch(e){} return f.apply(this,arguments); }; g.__vre=1; window[name]=g; };
+    w('transcribeDone',function(c,s,e){ if(e)repErr('transcribe_failed',e,'from_video'); });
+    w('clipmixDone',function(p,err){ if(err)repErr('clipmix_failed',err,'clipmix'); });
+    w('subsDone',function(p,err){ if(err)repErr('subs_failed',err,'subs_only'); });
+    w('clipmixPreviewReady',function(r){ if(r&&r.ok===false)repErr('clipmix_preview_failed',r.msg||'','clipmix'); });
+    w('batchDone',function(r){ if(r&&r.total&&r.done<r.total)repErr('batch_partial','собрано '+r.done+' из '+r.total,'batch'); });
+    w('aiFail',function(r){ repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
+    w('edgeLimitAsk',function(){ repErr('tts_limit','бесплатный голос притормозил (Microsoft)','voice'); });
+  }
+  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); window.addEventListener('pywebviewready',function(){ boot(); setTimeout(boot,300); }); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
