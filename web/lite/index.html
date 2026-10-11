@@ -5891,7 +5891,7 @@ const I18N={
   tr_prep:['Готовлю распознавание…','Preparing recognition…'],
   tr_prep2:['🧠 Готовлю распознавание…','🧠 Preparing recognition…'],
   tr_load_model:['🧠 Загружаю модель распознавания…','🧠 Loading the recognition model…'],
-  tr_load_sub:['Первый раз — качается ~460 МБ, потом мгновенно','First run downloads ~460 MB, then it is instant'],
+  tr_load_sub:['Первый раз модель качается (~80 МБ на телефоне, ~300 МБ на ПК), потом мгновенно','First run downloads the model (~80 MB on phone, ~300 MB on PC), then it is instant'],
   tr_listen:['🎧 Распознаю речь…','🎧 Recognizing speech…'],
   tr_listen_sub:['Кот внимательно слушает…','The cat is listening carefully…'],
   tr_fail:['😿 Не удалось распознать','😿 Recognition failed'],
@@ -6012,7 +6012,7 @@ function setForeignDropzone(name,dur){
   const durTxt=(dur!=null&&dur!=='')?(dur+t('sec_short')):'';
   dz.innerHTML='<div class="dzicon">🎬</div>'
     +'<div class="dztext"><b>'+(name||'')+'</b><br><span>'+durTxt+(durTxt?' · ':'')+t('dz_replace')+'</span></div>'
-    +'<button class="btn ghost" style="margin-top:10px" onclick="event.stopPropagation();clearForeignDropzone()">✕ '+t('dz_remove')+'</button>';
+    +'<button class="btn ghost" style="margin-top:10px" onclick="event.stopPropagation();clearForeignDropzone();window.resetForeignWork&&resetForeignWork();ready()&&api(&quot;clear_foreign_source&quot;)">✕ '+t('dz_remove')+'</button>';
   const p=$('fAudioInfo'); if(p)p.style.display='none';
 }
 function clearForeignDropzone(){
@@ -8049,10 +8049,9 @@ function setForeignMode(mode){
     if(typeof drawZoneRect==='function')drawZoneRect();
     if(typeof updateZoneState==='function')updateZoneState(null);
     // загруженное видео + прогресс распознавания
-    if(typeof clearForeignDropzone==='function')clearForeignDropzone();
     if(typeof _hideForeignProgress==='function')_hideForeignProgress();
     const ch=$('reelCenterHint'); if(ch)ch.style.display='';
-    if(ready())api('clear_foreign_source');   // бэкенд: чужое видео/текст/зона/сцены
+    if(ready())api('reset_foreign_work').then(r=>{ if(r&&r.has_video&&r.segments>0&&typeof window.transcribeDone==='function') setTimeout(()=>window.transcribeDone(r.segments,'foreign',null),0); });
   }
   if(mode==='frames'){ setForeignVisual('source'); setForeignRewrite('tight'); }
   else if(mode==='subsonly'){ setForeignVisual('source'); setForeignRewrite('subsonly'); }
@@ -9128,6 +9127,7 @@ function customConfirm(title, text, okLabel, onOk){
 function confirmOk(){ $('confirmModal').classList.remove('show'); const cb=_confirmCb; _confirmCb=null; if(cb)cb(); }
 function confirmCancel(){ $('confirmModal').classList.remove('show'); _confirmCb=null; }
 function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)
+  try{ if(typeof clearForeignDropzone==='function')clearForeignDropzone(); if(ready())api('clear_foreign_source'); }catch(e){}
   try{clearReelResult();}catch(e){}   // и прошлый результат в превью тоже
   // 0. ОТМЕНА активной генерации: двигаем токен (её ответ будет отброшен) + возвращаем кнопки
   _genSeq++;
@@ -10533,7 +10533,7 @@ function showReelInPreview(colId, boxId){
       // держим выбранную скорость превью при (пере)загрузке источника (src сбрасывает playbackRate)
       v.addEventListener('loadeddata',_applyReelSpeed); v.addEventListener('play',_applyReelSpeed);
       v.addEventListener('loadedmetadata',_updateReelDur);   // длительность известна -> показать «≈Nс»
-      wrap.appendChild(v); box.appendChild(wrap);
+      wrap.appendChild(v); box.appendChild(wrap); { wrap.style.position='relative'; const xb=document.createElement('button'); xb.className='vrResultClose'; xb.title='Закрыть ролик'; xb.textContent='✕'; xb.onclick=(e)=>{ e.stopPropagation(); clearReelResult(); }; wrap.appendChild(xb); }
       // «Смотреть крупно» — открывает готовый ролик в БОЛЬШОМ встроенном плеере (showClipModal),
       // а НЕ во внешнем проигрывателе Windows. loop=false — готовое видео не автоповторяется.
       const fs=document.createElement('button'); fs.className='btn gc'; fs.style.cssText='width:100%;margin-top:12px';
@@ -11444,6 +11444,9 @@ setTimeout(()=>{ if(styles.length===0){
 showView('home');
 </script>
 <style id="vrWebMobile">
+.vrResultClose{position:absolute;top:8px;right:8px;z-index:5;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(10,8,20,.72);color:#fff;font-size:17px;font-weight:900;cursor:pointer;line-height:1}
+.vrResultClose:hover{background:rgba(220,38,38,.85)}
+html.vrPhone .vrResultClose{width:60px;height:60px;font-size:30px;top:12px;right:12px}
 /* телефон: одна колонка, крупные зоны нажатия, без горизонтальной прокрутки */
 /* узкий экран: в приложении правая колонка (превью/готовый ролик) скрыта — в вебе показываем её под остальными */
 @media (max-width: 1100px){

@@ -314,6 +314,14 @@ P.scene_need_sec = function (idx) {
   if (!(need > 0)) need = Math.max(1.2, pysplit(txt).length / this._wps()) + 0.35;
   return { ok: true, need: Math.round(need * 10) / 10 };
 };
+// веб: смена режима «Из видео» — сбрасываем сцены/ролик/зону, НО оставляем загруженное видео и
+// распознанный текст (сначала грузят файл, потом выбирают режим). segments — сколько фраз уже есть.
+P.reset_foreign_work = function () {
+  this.foreign_cap_zone = null;
+  try { this.reset_reel(); } catch (e) { }
+  this._persist();
+  return { ok: true, has_video: !!(this.foreign_audio_path && vfs.exists(this.foreign_audio_path)), segments: (this.foreign_segments || []).filter(x => (x.text || '').trim()).length };
+};
 // полный сброс рабочего места «Из видео» при смене режима
 P.clear_foreign_source = function () {
   this.foreign_audio_path = null; this.foreign_segments = []; this.foreign_cap_zone = null; this._foreign_src_dur = 0;

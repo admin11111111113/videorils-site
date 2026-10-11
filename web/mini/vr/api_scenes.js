@@ -77,6 +77,8 @@ P.scene_set_start = function (idx, seconds) {
   if (idx >= 0 && idx < this.reel_scenes.length) { const v = parseFloat(seconds); this.reel_scenes[idx].start = Number.isNaN(v) ? 0 : Math.max(0.0, v); }
   return { ok: true, start: (idx >= 0 && idx < this.reel_scenes.length) ? (this.reel_scenes[idx].start || 0) : 0 };
 };
+// «✕ Убрать» загруженное видео «Из видео»: файл и распознанный текст — прочь
+P.clear_foreign_source = function () { this.foreign_audio_path = null; this.foreign_segments = []; this._persist(); return { ok: true }; };
 P.scene_delete = function (idx) { if (idx >= 0 && idx < this.reel_scenes.length) this.reel_scenes.splice(idx, 1); return this.get_scenes(); };
 P.scene_add = function (idx) {
   const placeholder = this.video_lang === 'en' ? 'New reel line' : 'Новая фраза рилса';

@@ -3452,7 +3452,7 @@ const I18N={
   tr_prep:['Готовлю распознавание…','Preparing recognition…'],
   tr_prep2:['🧠 Готовлю распознавание…','🧠 Preparing recognition…'],
   tr_load_model:['🧠 Загружаю модель распознавания…','🧠 Loading the recognition model…'],
-  tr_load_sub:['Первый раз — качается ~460 МБ, потом мгновенно','First run downloads ~460 MB, then it is instant'],
+  tr_load_sub:['Первый раз модель качается (~80 МБ на телефоне, ~300 МБ на ПК), потом мгновенно','First run downloads the model (~80 MB on phone, ~300 MB on PC), then it is instant'],
   tr_listen:['🎧 Распознаю речь…','🎧 Recognizing speech…'],
   tr_listen_sub:['Кот внимательно слушает…','The cat is listening carefully…'],
   tr_fail:['😿 Не удалось распознать','😿 Recognition failed'],
@@ -3560,7 +3560,7 @@ function setForeignDropzone(name,dur){
   const durTxt=(dur!=null&&dur!=='')?(dur+t('sec_short')):'';
   dz.innerHTML='<div class="dzicon">🎬</div>'
     +'<div class="dztext"><b>'+(name||'')+'</b><br><span>'+durTxt+(durTxt?' · ':'')+t('dz_replace')+'</span></div>'
-    +'<button class="btn ghost" style="margin-top:10px" onclick="event.stopPropagation();clearForeignDropzone()">✕ '+t('dz_remove')+'</button>';
+    +'<button class="btn ghost" style="margin-top:10px" onclick="event.stopPropagation();clearForeignDropzone();window.resetForeignWork&&resetForeignWork();ready()&&api(&quot;clear_foreign_source&quot;)">✕ '+t('dz_remove')+'</button>';
   const p=$('fAudioInfo'); if(p)p.style.display='none';   // дубль-пилюля снизу больше не нужна
 }
 function clearForeignDropzone(){
@@ -5249,6 +5249,7 @@ function customConfirm(title, text, okLabel, onOk){
 function confirmOk(){ $('confirmModal').classList.remove('show'); const cb=_confirmCb; _confirmCb=null; if(cb)cb(); }
 function confirmCancel(){ $('confirmModal').classList.remove('show'); _confirmCb=null; }
 function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)
+  try{ if(typeof clearForeignDropzone==='function')clearForeignDropzone(); if(ready())api('clear_foreign_source'); }catch(e){}
   try{clearReelResult();}catch(e){}   // и прошлый результат в превью тоже
   // 1. текст сценария и раскадровка
   if($('reelStory'))$('reelStory').value='';
@@ -6209,7 +6210,7 @@ function showReelInPreview(){
       // controls дадут replay). Зациклен только образец субтитра (subSampleReel) — там анимация.
       const v=document.createElement('video'); v.id='reelResultVideo'; v.controls=true; v.loop=false; v.setAttribute('playsinline',''); v.setAttribute('preload','metadata');
       v.style.cssText='width:100%;height:100%;object-fit:cover;display:block';
-      wrap.appendChild(v); box.appendChild(wrap);
+      wrap.appendChild(v); box.appendChild(wrap); { wrap.style.position='relative'; const xb=document.createElement('button'); xb.className='vrResultClose'; xb.title='Закрыть ролик'; xb.textContent='✕'; xb.onclick=(e)=>{ e.stopPropagation(); clearReelResult(); }; wrap.appendChild(xb); }
       // «Смотреть крупно» — открывает готовый ролик в БОЛЬШОМ встроенном плеере (showClipModal),
       // а НЕ во внешнем проигрывателе Windows (os.startfile тормозил/не тот плеер). Узкая рамка
       // телефона = только превью; полноценные контролы (звук/перемотка) — в крупном плеере.
@@ -7055,6 +7056,9 @@ setTimeout(()=>{ if(styles.length===0){
 showView('home');
 </script>
 <style id="vrWebMobile">
+.vrResultClose{position:absolute;top:8px;right:8px;z-index:5;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(10,8,20,.72);color:#fff;font-size:17px;font-weight:900;cursor:pointer;line-height:1}
+.vrResultClose:hover{background:rgba(220,38,38,.85)}
+html.vrPhone .vrResultClose{width:60px;height:60px;font-size:30px;top:12px;right:12px}
 /* телефон: одна колонка, крупные зоны нажатия, без горизонтальной прокрутки */
 /* узкий экран: в приложении правая колонка (превью/готовый ролик) скрыта — в вебе показываем её под остальными */
 @media (max-width: 1100px){

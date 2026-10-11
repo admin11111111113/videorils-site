@@ -70,6 +70,30 @@ UI_PATCHES = [
     ("licst_monthly:['Месяц','Monthly'],", "licst_monthly:['Месяц','Monthly'],\n  licst_weekly:['Неделя','Weekly'],"),
     ("lt==='monthly'?t('licst_monthly')", "lt==='weekly'?t('licst_weekly'):lt==='monthly'?t('licst_monthly')"),
     ("(kt==='monthly')?t('licst_monthly')", "(kt==='weekly')?t('licst_weekly'):(kt==='monthly')?t('licst_monthly')"),
+    # веб: модель распознавания в браузере меньше, чем в программе (телефон ~77 МБ, ПК ~250–320 МБ)
+    ("tr_load_sub:['Первый раз — качается ~460 МБ, потом мгновенно','First run downloads ~460 MB, then it is instant']",
+     "tr_load_sub:['Первый раз модель качается (~80 МБ на телефоне, ~300 МБ на ПК), потом мгновенно','First run downloads the model (~80 MB on phone, ~300 MB on PC), then it is instant']"),
+    # веб: смена режима «Из видео» НЕ выкидывает загруженное видео и распознанный текст
+    # (зона загрузки стоит выше выбора режима — люди грузят файл, потом выбирают режим);
+    # сцены/ролик/зона сбрасываются, а уже распознанный текст сразу идёт в новый режим.
+    ("""    if(typeof clearForeignDropzone==='function')clearForeignDropzone();
+    if(typeof _hideForeignProgress==='function')_hideForeignProgress();
+    const ch=$('reelCenterHint'); if(ch)ch.style.display='';
+    if(ready())api('clear_foreign_source');   // бэкенд: чужое видео/текст/зона/сцены
+  }""",
+     """    if(typeof _hideForeignProgress==='function')_hideForeignProgress();
+    const ch=$('reelCenterHint'); if(ch)ch.style.display='';
+    if(ready())api('reset_foreign_work').then(r=>{ if(r&&r.has_video&&r.segments>0&&typeof window.transcribeDone==='function') setTimeout(()=>window.transcribeDone(r.segments,'foreign',null),0); });
+  }"""),
+    # веб: «✕ Убрать» — убрать видео и на сервере-части (раньше чистилась только картинка зоны)
+    ("""onclick="event.stopPropagation();clearForeignDropzone()">""",
+     """onclick="event.stopPropagation();clearForeignDropzone();window.resetForeignWork&&resetForeignWork();ready()&&api(&quot;clear_foreign_source&quot;)">"""),
+    # веб: крестик «закрыть» на готовом ролике (3-я колонка) -> снова образец субтитра
+    ("wrap.appendChild(v); box.appendChild(wrap);",
+     "wrap.appendChild(v); box.appendChild(wrap); { wrap.style.position='relative'; const xb=document.createElement('button'); xb.className='vrResultClose'; xb.title='Закрыть ролик'; xb.textContent='✕'; xb.onclick=(e)=>{ e.stopPropagation(); clearReelResult(); }; wrap.appendChild(xb); }"),
+    # веб: «Очистить» убирает и загруженное видео «Из видео» с распознанным текстом
+    ("function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)",
+     "function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)\n  try{ if(typeof clearForeignDropzone==='function')clearForeignDropzone(); if(ready())api('clear_foreign_source'); }catch(e){}"),
     # «Галерея» (папка output) в браузере = скачать ролик
     ("open_folder:['📁 Папка output','📁 output folder']", "open_folder:['⬇ Скачать ролик','⬇ Download reel']"),
 ]
@@ -78,6 +102,9 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 i = s.rindex("</body>")
 MOBILE_CSS = """<style id="vrWebMobile">
+.vrResultClose{position:absolute;top:8px;right:8px;z-index:5;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(10,8,20,.72);color:#fff;font-size:17px;font-weight:900;cursor:pointer;line-height:1}
+.vrResultClose:hover{background:rgba(220,38,38,.85)}
+html.vrPhone .vrResultClose{width:60px;height:60px;font-size:30px;top:12px;right:12px}
 /* телефон: одна колонка, крупные зоны нажатия, без горизонтальной прокрутки */
 /* узкий экран: в приложении правая колонка (превью/готовый ролик) скрыта — в вебе показываем её под остальными */
 @media (max-width: 1100px){
