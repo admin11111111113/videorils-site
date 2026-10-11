@@ -24,6 +24,7 @@ P.build_reel = async function (claude_answer, style_index) {
     if (miss.length) return { ok: false, code: 'browser_unsupported', msg: 'Этот браузер не умеет собирать видео. Откройте сайт в Chrome или Edge на компьютере, в Chrome на Android или обновите iPhone до iOS 17+ (Safari).' }; }
   if (this.busy) return { ok: false, msg: this._t('already_processing') };
   if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
+  { const q = this._hour_quota_check(1); if (q) return q; }
   if ((claude_answer || '').trim()) this.parse_to_scenes(claude_answer);
   let _voiced = this.reel_scenes.filter(s => s.text.trim());
   const _dd = [];
@@ -412,6 +413,7 @@ P._build_reel_worker = async function (style_index, batch = false, out_name = nu
     vfs.write(out_path, res.blob); await vfs.flush(out_path);
     log(`  🎞 рендер: ${res.duration.toFixed(1)}s видео за ${(now() - t0).toFixed(1)}с, ${(res.blob.size / 1048576).toFixed(1)} МБ`);
     this.last_reel = out_path; this._reel_master_path = '';
+    if (!batch) this._hour_quota_mark();
     log(`✅ Рилс готов: ${out_name}`);
     this._ping_render();
     if (!batch && !this.licensed) { await this._mark_trial_used(); this.trial_active = false; call_js('trialUsed', {}); }

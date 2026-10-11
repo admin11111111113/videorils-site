@@ -83,6 +83,11 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 # веб: клипы Pexels/Pixabay идут через наш общий ключ — в подсказках не просим вставлять ключи стоков
 STOCK_TEXT = [
+    ("renderReelAi(r.has_claude, r.has_gemini);", "window.__vrFreeIsGroq=!!r.free_groq; renderReelAi(r.has_claude, r.has_gemini);"),
+    ("renderGemQuota(hasGemini);", "renderGemQuota(hasGemini&&!window.__vrFreeIsGroq);"),
+    ("Pixabay (клипы) + Gemini (текст).", "ключ ИИ — Gemini или Claude (текст); клипы уже подключены."),
+    ("Для бесплатной проверки нужны 2 бесплатных ключа. Оба вставляются один раз, займёт ~2 минуты.", "Для бесплатной проверки нужен 1 бесплатный ключ ИИ — Gemini (или Claude). Клипы уже подключены."),
+    ("if(r&&r.gemini){ finishGem(); }", "if(r&&(r.gemini||r.ai)){ finishGem(); }"),
     ("проверь, что вставлен Pixabay Key (блок ключей сверху)", "обнови страницу и попробуй ещё раз (клип сцены можно заменить своим файлом)"),
     ("добавь несколько ключей Pixabay и ElevenLabs (до 5 каждого)", "добавь несколько ключей ElevenLabs (до 5)"),
     ("Pixabay Key и ElevenLabs Key — до 5 ключей каждый", "ElevenLabs Key — до 5 ключей"),

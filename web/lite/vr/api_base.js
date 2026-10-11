@@ -207,8 +207,8 @@ export class Api {
     // логотип: обработанный PNG пересобираем из исходника (в фоне)
     if (this.logo_src) thread(async () => { try { await this._process_logo(); } catch (e) { console.warn('logo process on load err:', e); } });
   }
-  get pixabay_key() { const l = this.pixabay_keys; return l && l.length ? l[(this.pixabay_idx || 0) % l.length] : (STOCK.pixabay ? SHARED_STOCK : ''); }
-  _pix_keys() { const l = this.pixabay_keys; return l && l.length ? l : (STOCK.pixabay ? [SHARED_STOCK] : []); }
+  get pixabay_key() { if (STOCK.pixabay && this._use_shared()) return SHARED_STOCK; const l = this.pixabay_keys; return l && l.length ? l[(this.pixabay_idx || 0) % l.length] : ''; }
+  _pix_keys() { if (STOCK.pixabay && this._use_shared()) return [SHARED_STOCK]; const l = this.pixabay_keys; return l && l.length ? l : []; }
 
   // ==================== ЛИЦЕНЗИЯ ====================
   _ping_render() { thread(async () => { try { await requests.post(`${VR_SERVER_URL}/ping-render`, { json: { product: 'lite' }, timeout: 3 }); } catch (e) { } }); }
@@ -595,10 +595,10 @@ export class Api {
       consent_ok: this._consent_ok(), docs_version: DOCS_VERSION, machine_id: await this.get_machine_id() };
   }
   async _active_pixabay_key() {
+    if (STOCK.pixabay && this._use_shared()) return SHARED_STOCK;   // галочка «Наши ключи» (через наш Worker)
     const keys = this.pixabay_keys;
     if (keys && keys.length) return keys[Math.min(this._pix_key_idx || 0, keys.length - 1)];
     if (this.pixabay_key) return this.pixabay_key;
-    if (STOCK.pixabay) return SHARED_STOCK;   // общий ключ (через наш Worker)
     if (!this.licensed) return await this._trial_media_key();
     return '';
   }

@@ -371,7 +371,7 @@ const STOCK_EXPOSE = 'X-Ratelimit-Remaining, X-Ratelimit-Limit, X-RateLimit-Rema
 async function stock(req, env, ctx, url, origin) {
   const h = Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Expose-Headers': STOCK_EXPOSE }, cors(origin));
   if (url.pathname === '/stock/status')
-    return new Response(JSON.stringify({ pexels: !!env.PEXELS_KEY, pixabay: !!env.PIXABAY_KEY }), { headers: Object.assign(h, { 'Cache-Control': 'max-age=300' }) });
+    return new Response(JSON.stringify({ pexels: !!env.PEXELS_KEY, pixabay: !!env.PIXABAY_KEY, groq: !!(env.GROQ_KEYS || env.GROQ_KEY || env.GEMINI_KEY) }), { headers: Object.assign(h, { 'Cache-Control': 'max-age=300' }) });
   const m = url.pathname.match(/^\/stock\/(pexels|pixabay)(\/.*)$/);
   if (!m || !STOCK_PATHS[m[1]].includes(m[2]) || req.method !== 'GET') return new Response('{}', { status: 404, headers: h });
   const kind = m[1], key = kind === 'pexels' ? env.PEXELS_KEY : env.PIXABAY_KEY;
@@ -393,6 +393,53 @@ async function stock(req, env, ctx, url, origin) {
   return new Response(r.body, { status: r.status, headers: out });
 }
 
+// Общий ИИ (Groq) для веб-версии: один ключ проекта (секрет GROQ_KEYS). Как в ботах: работаем на текущей
+// модели, упёрлись в лимит/ошибку — следующая модель. Удачная модель запоминается (пока жив экземпляр Worker).
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODELS = [
+  ['openai/gpt-oss-120b', { reasoning_effort: 'low', include_reasoning: false }],
+  ['qwen/qwen3.8-27b', { reasoning_effort: 'none' }],
+  ['openai/gpt-oss-20b', { reasoning_effort: 'low', include_reasoning: false }],
+];
+const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-lite-latest'];
+let groqPos = 0;   // индекс в (ключ × модель)
+async function groq(req, env, origin) {
+  const h = Object.assign({ 'Content-Type': 'application/json' }, cors(origin));
+  const keys = String(env.GROQ_KEYS || env.GROQ_KEY || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 1);
+  if (!keys.length) return new Response('{"error":{"message":"no shared AI"}}', { status: 503, headers: h });
+  let d = {}; try { d = await req.json(); } catch (e) { }
+  const msgs = Array.isArray(d.messages) ? d.messages.slice(0, 8) : [];
+  const size = msgs.reduce((a, m) => a + String((m && m.content) || '').length, 0);
+  if (!msgs.length || size > 60000) return new Response('{"error":{"message":"bad request"}}', { status: 400, headers: h });
+  const max_tokens = Math.max(64, Math.min(parseInt(d.max_tokens) || 2000, 4000));
+  const temperature = Math.max(0, Math.min(Number(d.temperature ?? 0.9) || 0.9, 1.2));
+  const total = keys.length * GROQ_MODELS.length; let last = null;
+  for (let n = 0; n < total; n++) {
+    const pos = (groqPos + n) % total, key = keys[Math.floor(pos / GROQ_MODELS.length)], [model, extra] = GROQ_MODELS[pos % GROQ_MODELS.length];
+    let r; try { r = await fetch(GROQ_URL, { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ model, messages: msgs, max_tokens, temperature }, extra)) }); } catch (e) { last = null; continue; }
+    if (r.status === 200) { groqPos = pos; const body = await r.text(); return new Response(body, { status: 200, headers: Object.assign(h, { 'X-VR-Model': model }) }); }
+    last = r; const t = await r.text();
+    if (![429, 404, 400, 500, 502, 503].includes(r.status)) return new Response(t, { status: r.status, headers: h });
+  }
+  // Groq занят/лимит -> запасной: один ключ Gemini проекта (секрет GEMINI_KEY), модели по очереди
+  const gk = String(env.GEMINI_KEY || '').trim();
+  if (gk) {
+    const text = msgs.map(m => String((m && m.content) || '')).join(String.fromCharCode(10, 10));
+    for (const gm of GEMINI_MODELS) {
+      let r; try { r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm}:generateContent`, { method: 'POST',
+        headers: { 'x-goog-api-key': gk, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text }] }], generationConfig: { maxOutputTokens: Math.max(max_tokens, 2048), temperature } }) }); } catch (e) { continue; }
+      if (r.status !== 200) continue;
+      let j = {}; try { j = await r.json(); } catch (e) { continue; }
+      const out = (((j.candidates || [])[0] || {}).content || {}).parts || [];
+      const t = out.filter(x => !x.thought).map(x => x.text || '').join('').trim();
+      if (t) return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: t } }] }), { status: 200, headers: Object.assign(h, { 'X-VR-Model': gm }) });
+    }
+  }
+  return new Response('{"error":{"message":"shared AI busy"}}', { status: last ? last.status : 502, headers: h });
+}
+
 export default {
   // раз в час: досылаем на сервер лицензий отметки триала, которые не дошли сразу.
   // Сервер НЕ будим впустую (бесплатные часы Render) — запрос только если есть что досылать.
@@ -409,6 +456,12 @@ export default {
     const fromSite = ALLOWED.some(r => r.test(origin));
     if (origin && !fromSite) return new Response('forbidden', { status: 403 });
     if (!origin && url.pathname === '/edge') return new Response('forbidden', { status: 403 });
+    if (url.pathname === '/ai/groq') {
+      if (!fromSite) return new Response('forbidden', { status: 403 });
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: Object.assign({ 'Access-Control-Allow-Headers': 'Content-Type' }, cors(origin)) });
+      if (req.method !== 'POST') return new Response('{}', { status: 405, headers: cors(origin) });
+      return await groq(req, env, origin);
+    }
     if (url.pathname.startsWith('/stock/')) {
       if (!fromSite) return new Response('forbidden', { status: 403 });
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });

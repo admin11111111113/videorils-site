@@ -66,7 +66,7 @@ P.set_ai_choice = function (choice) {
   else { this.ai_provider = 'claude'; this.ai_model = 'sonnet'; }
   this._persist(); return { ok: true, choice: this.get_ai_choice() };
 };
-P.get_reel_ai = function () { return { choice: this.get_ai_choice(), has_claude: !!this.claude_key, has_gemini: !!this.gemini_key }; };
+P.get_reel_ai = function () { const g = this._groq_available(); return { choice: this.get_ai_choice(), has_claude: !!this.claude_key, has_gemini: !!this.gemini_key || g, free_groq: !this.gemini_key && g }; };
 P.open_gemini_signup = function () { webbrowser.open('https://aistudio.google.com/apikey'); return true; };
 P.get_gemini_key_status = function () { return { has: !!this.gemini_key, mask: this.gemini_key ? Api._mask(this.gemini_key) : '', model: this.gemini_model }; };
 P.check_gemini_key = async function (key = null) {
@@ -101,11 +101,21 @@ P._notify_ai_limit = function () { try { call_js('aiLimitAsk', { has_paid: !!thi
 
 P._ai_call = async function (prompt, key = null, max_tokens = 4000, model = null, provider = null) {
   this._ai_last_reason = '';
-  if (!this.licensed) return await this._gemini_call(prompt, this.gemini_key, max_tokens, model);
+  if (!this.licensed) {   // триал: свой ключ Gemini или Claude
+    if (!this.gemini_key && this.claude_key) return await this._claude_call(prompt, key, max_tokens, model);
+    return await this._gemini_call(prompt, this.gemini_key, max_tokens, model);
+  }
   provider = provider || this.ai_provider;
-  if (provider === 'claude' && !(key || this.claude_key) && this.gemini_key) provider = 'gemini';
-  else if (provider === 'gemini' && !(key || this.gemini_key) && this.claude_key) provider = 'claude';
-  if (provider === 'gemini') return await this._gemini_call(prompt, key, max_tokens, model);
+  if (!key) {   // нет своего ключа выбранного ИИ -> другой свой -> Groq (свой или наш общий)
+    if (provider === 'claude' && !this.claude_key) provider = this.gemini_key ? 'gemini' : (this._groq_available() ? 'groq' : provider);
+    else if (provider === 'gemini' && !this.gemini_key) provider = this.claude_key ? 'claude' : (this._groq_available() ? 'groq' : provider);
+  }
+  if (provider === 'groq') return await this._groq_call(prompt, max_tokens);
+  if (provider === 'gemini') {
+    const res = await this._gemini_call(prompt, key, max_tokens, model);
+    if (!res[0] && !key && this._is_ai_limit(res[1]) && this._groq_available()) { log('  🔁 лимит Gemini — пишу текст через Groq'); const g = await this._groq_call(prompt, max_tokens); if (g[0]) return g; }
+    return res;
+  }
   return await this._claude_call(prompt, key, max_tokens, model);
 };
 P._claude_call = async function (prompt, key = null, max_tokens = 4000, model = null) {

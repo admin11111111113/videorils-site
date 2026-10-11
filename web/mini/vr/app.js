@@ -11,6 +11,7 @@ import './api_tts.js';
 import './api_scenes.js';
 import './api_build.js';
 import './api_credits.js';
+import './api_groq.js';
 import './api_outro.js';
 import './api_whisper.js';
 import { sfxPreload } from './api_misc.js';

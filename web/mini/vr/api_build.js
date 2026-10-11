@@ -24,6 +24,7 @@ P.build_reel = async function (claude_answer, style_index) {
   { const miss = ['VideoEncoder', 'AudioEncoder', 'OffscreenCanvas', 'AudioBuffer'].filter((k) => typeof globalThis[k] === 'undefined');
     if (miss.length) return { ok: false, code: 'browser_unsupported', msg: 'Этот браузер не умеет собирать видео. Откройте сайт в Chrome или Edge на компьютере, в Chrome на Android или обновите iPhone до iOS 17+ (Safari).' }; }
   if (this.busy) return { ok: false, msg: this._t('already_processing') };
+  { const q = this._hour_quota_check(1); if (q) return q; }
   if (this.reel_source === 'foreign' && !this.foreign_segments.length) return { ok: false, code: 'foreign_no_text', msg: this._t('foreign_no_text') };
   if ((claude_answer || '').trim()) this.parse_to_scenes(claude_answer);
   let _voiced = this.reel_scenes.filter(s => s.text.trim());
@@ -313,7 +314,7 @@ P._build_reel_worker = async function (style_index) {
     if (placeholders.length) log('⚠ Сцены без медиа (тёмная заглушка): ' + placeholders.map(x => '#' + x).join(', '));
     if (_bad_total) this._degrade(`${_bad_total} сцен(а) не собрались — заменены тёмной заглушкой. Проверь ролик`);
     bar(100, 'Готово');
-    this.track('reel_done');
+    this.track('reel_done'); this._hour_quota_mark();
     call_js('reelDone', out_path, '', _bad_total);
     return out_path;
   } catch (e) {

@@ -2153,7 +2153,7 @@ function loadReelAi(){
   api('get_reel_ai').then(r=>{
     if(!r)return;
     reelAiChoice=r.choice||'fast';
-    renderReelAi(r.has_claude, r.has_gemini);
+    window.__vrFreeIsGroq=!!r.free_groq; renderReelAi(r.has_claude, r.has_gemini);
   });
 }
 function renderReelAi(hasClaude,hasGemini){
@@ -2170,7 +2170,7 @@ function renderReelAi(hasClaude,hasGemini){
   });
   wrap.style.display='flex';
   window.gemAvailable=hasGemini;
-  renderGemQuota(hasGemini);   // счётчик бесплатной квоты Gemini под выбором AI
+  renderGemQuota(hasGemini&&!window.__vrFreeIsGroq);   // счётчик бесплатной квоты Gemini под выбором AI
 }
 // Счётчик «осталось на бесплатном Gemini»: локальный, самообучаемый (точный лимит
 // узнаём из 429). До первой границы честно пишем «уточняется — отправлено N».
@@ -2705,7 +2705,7 @@ const I18N={
   ffmpeg_missing:['⚠️ Не найден ffmpeg. Положи ffmpeg.exe и ffprobe.exe в папку с программой и перезапусти — иначе сборка видео не работает.','⚠️ ffmpeg not found. Put ffmpeg.exe and ffprobe.exe in the app folder and restart — otherwise video building won\'t work.'],
   lic_revoked:['Лицензия недействительна. Обратись за ключом.','License is no longer valid. Please request a key.'],
   lic_trial_head:['🎁 Бесплатный триал — 1 видео','🎁 Free trial — 1 video'],
-  lic_trial_desc:['Триал — 1 бесплатное видео на ТВОИХ бесплатных ключах (получить оба ~2 минуты): Pixabay (клипы) + Gemini (текст). Озвучка — бесплатный Edge-TTS.','Trial — 1 free video on YOUR free keys (both take ~2 minutes): Pixabay (clips) + Gemini (text). Voiceover — free Edge-TTS.'],
+  lic_trial_desc:['Триал — 1 бесплатное видео на ТВОИХ бесплатных ключах (получить оба ~2 минуты): ключ ИИ — Gemini или Claude (текст); клипы уже подключены. Озвучка — бесплатный Edge-TTS.','Trial — 1 free video on YOUR free keys (both take ~2 minutes): Pixabay (clips) + Gemini (text). Voiceover — free Edge-TTS.'],
   lic_trial_get:['🔑 Получить бесплатный Gemini-ключ','🔑 Get a free Gemini key'],
   trial_step1:['Получи бесплатный ключ на Google (кнопка «Create API key», скопируй ключ вида AIza…):','Get a free key from Google (click “Create API key”, copy the AIza… key):'],
   trial_step2:['Вставь скопированный ключ сюда:','Paste the copied key here:'],
@@ -3270,7 +3270,7 @@ const I18N={
   rules_keys_h:["🔑 КЛЮЧИ (работает на твоих API-ключах)","🔑 KEYS (runs on your own API keys)"],
   rules_keys_p:["Как добавить ключ: зарегистрируйся по ссылке → скопируй ключ → вставь в поле → «Сохранить».\n\n• Pixabay Key (клипы/видео) — ОБЯЗАТЕЛЬНО, без него не будет клипов. Бесплатный.\n   → pixabay.com/api/docs/\n• Gemini Key (текст) — ОБЯЗАТЕЛЕН (генерация текста), бесплатный, без карты.\n   → aistudio.google.com/apikey\n• Claude Key (авто-текст) — по желанию, платный, умнее и быстрее.\n   → console.anthropic.com\n• ElevenLabs Key (премиум-голос) — по желанию, есть бесплатный лимит.\n   → try.elevenlabs.io/8x0as2j35ncg\n\nЛимит бесплатного Gemini определяется автоматически из ответа Google. Хватает на десятки роликов; упёрся — подожди, пока окно лимита обновится, или подключи Claude.","How to add a key: sign up via the link → copy the key → paste into the field → “Save”.\n\n• Pixabay Key (clips/video) — REQUIRED, no clips without it. Free.\n   → pixabay.com/api/docs/\n• Gemini Key (text) — REQUIRED (text generation), free, no card.\n   → aistudio.google.com/apikey\n• Claude Key (auto-text) — optional, paid, smarter and faster.\n   → console.anthropic.com\n• ElevenLabs Key (premium voice) — optional, has a free limit.\n   → try.elevenlabs.io/8x0as2j35ncg\n\nThe free Gemini limit is detected automatically from Google's response. Enough for dozens of videos; if you hit it, wait for the limit window to reset or add Claude."],
   rules_trial_h:["🎁 ТРИАЛ vs ЛИЦЕНЗИЯ","🎁 TRIAL vs LICENSE"],
-  rules_trial_p:["• Бесплатный триал — 1 видео, работает на ТВОИХ бесплатных ключах Pixabay (клипы) + Gemini (текст). Получить оба — ~2 минуты. Озвучка в триале — бесплатный Edge-TTS.\n• После покупки — по желанию добавь ElevenLabs Key (премиум-голос) и Claude Key (умнее/быстрее текст).","• Free trial — 1 video, runs on YOUR free Pixabay (clips) + Gemini (text) keys. Both take ~2 minutes to get. Trial voiceover — free Edge-TTS.\n• After purchase — optionally add ElevenLabs Key (premium voice) and Claude Key (smarter/faster text)."],
+  rules_trial_p:["• Бесплатный триал — 1 видео, работает на ТВОИХ бесплатных ключах ключ ИИ — Gemini или Claude (текст); клипы уже подключены. Получить оба — ~2 минуты. Озвучка в триале — бесплатный Edge-TTS.\n• После покупки — по желанию добавь ElevenLabs Key (премиум-голос) и Claude Key (умнее/быстрее текст).","• Free trial — 1 video, runs on YOUR free Pixabay (clips) + Gemini (text) keys. Both take ~2 minutes to get. Trial voiceover — free Edge-TTS.\n• After purchase — optionally add ElevenLabs Key (premium voice) and Claude Key (smarter/faster text)."],
   rules_lifetime_h:["♾ АПГРЕЙД ДО «НАВСЕГДА» (доплата с зачётом)","♾ UPGRADE TO “FOREVER” (top up with credit)"],
   rules_lifetime_p:["Не обязательно сразу брать «Навсегда». Можно начать с подписки (Месяц или Год), попробовать — а потом в окне «Лицензия» доплатить РАЗНИЦУ до «Навсегда»: уже оплаченное по подписке засчитывается. Нажми на карточку «Навсегда» → справа сразу откроется панель оплаты с суммой доплаты (с учётом зачёта) → оплати USDT на кошелёк (QR или адрес) → нажми «Я оплатил — проверить». Тариф станет пожизненным автоматически за 1–3 минуты, без переустановки и без ручного ввода TxID.\n⚠ У подписок автопродления НЕТ — это разовая оплата за выбранный срок; продлеваешь вручную, если захочешь.\n🔥 Цена «Навсегда» — стартовая и постепенно растёт (каждые 100 продаж +$1). Купишь сейчас — зафиксируешь текущую цену.","You don’t have to buy “Forever” upfront. Start with a subscription (Monthly or Yearly), try it — then in the “License” window pay the DIFFERENCE up to “Forever”: what you already paid on the subscription is credited. Click the “Forever” card → a payment panel with the top-up amount (credit already applied) opens on the right → pay USDT to the wallet (QR or address) → press “I paid — check”. The plan becomes lifetime automatically within 1–3 minutes, with no reinstall and no manual TxID entry.\n⚠ Subscriptions do NOT auto-renew — it’s a one-time payment for the chosen term; you renew manually if you want.\n🔥 The “Forever” price is a starting price and rises gradually (+$1 per 100 sales). Buy now to lock in the current price."],
   rules_win_h:["🛡 ПЕРВЫЙ ЗАПУСК (Windows)","🛡 FIRST LAUNCH (Windows)"],
@@ -6579,14 +6579,14 @@ function startTrial(){
       else{ fail(t('trial_retry')); }       // таймаут/ошибка -> «нажми ещё раз», кнопка активна
     }).catch(()=>fail(t('trial_retry')));
   };
-  // НОВАЯ модель: триал на СВОИХ ключах. Нужны Pixabay (клипы) + Gemini (текст).
+  // НОВАЯ модель: триал на СВОИХ ключах. Нужны ключ ИИ — Gemini или Claude (текст); клипы уже подключены.
   const pxMsg=$('licTrialPxMsg');
   const saveGeminiThenGo=()=>{
     const finishGem=()=>{ if(typeof loadKeysStatus==='function')loadKeysStatus(); go(); };
     if(gk){ busy(t('trial_saving_key'));
       api('set_gemini_key',gk).then(finishGem).catch(()=>fail(t('trial_retry'))); }
     else{ api('get_keys_status').then(r=>{
-        if(r&&r.gemini){ finishGem(); }
+        if(r&&(r.gemini||r.ai)){ finishGem(); }
         else{ fail(t('trial_need_gem')); const f=$('licTrialGemKey'); if(f)f.focus(); }
       }).catch(finishGem); }
   };
@@ -7325,8 +7325,17 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
 html.vrPhone .vrCredit{font-size:20px}
 html.vrPhone .vrReelCredits{font-size:20px;max-width:none}
 html.vrPhone .vrSwapCredit{font-size:22px}
-/* общий ключ стоков (через наш сервер): поля ключей Pexels/Pixabay и онбординг «откуда брать видео» не показываем */
-#px2AccHead,#px2AccBody,#pxbayAccHead,#pxbayAccBody,#mediaOnbModal{display:none!important}
+/* общий ключ стоков (через наш сервер): онбординг «откуда брать видео» не показываем; свой ключ Pexels/Pixabay — по желанию (без лимита) */
+#mediaOnbModal{display:none!important}
+.vrStockOpt{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.35);color:#9be7b4;font-size:12px;line-height:1.4}
+html.vrPhone .vrStockOpt{font-size:20px}
+.vrShared{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.45)}
+.vrShared label{display:flex;gap:8px;align-items:center;font-weight:800;cursor:pointer}
+.vrShared .hint{margin-top:4px;font-size:12px;color:var(--mut,#9a95b3)}
+.vrGroq{margin:6px 0 10px;padding:10px 12px;border:1px solid var(--line,#2a2540);border-radius:12px}
+.vrGroq .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.vrGroq .km{display:flex;justify-content:space-between;font-size:12px;margin-top:4px}
+html.vrPhone .vrShared label{font-size:24px}html.vrPhone .vrShared .hint,html.vrPhone .vrGroq{font-size:20px}
 #keyGuideModal .modal-body>div:has(#kgMediaBadge),.trial-step:has(#licTrialPxKey){display:none!important}
 </style>
 <script id="vrCredits">
@@ -7361,7 +7370,45 @@ html.vrPhone .vrSwapCredit{font-size:22px}
       d.innerHTML='Кадры: '+link('https://www.pexels.com','Pexels')+' · '+link('https://pixabay.com','Pixabay')+' · '+link('https://commons.wikimedia.org','Wikimedia Commons');
     });
   }
-  hook(); document.addEventListener('DOMContentLoaded',hook);
+  // галочка «Наши ключи» (общие клипы + ИИ, с лимитом в час) + блок ключей Groq
+  function limitText(st){ if(!st)return ''; const r=st.limit||0, se=st.series_limit||0;
+    return 'до '+r+' '+(r===1?'ролика':'роликов')+(se?(' и '+se+' серии'):'')+' в час'; }
+  function refreshAll(){ try{ if(typeof loadKeysStatus==='function')loadKeysStatus(); }catch(e){}
+    try{ api('get_reel_ai').then(function(r){ if(!r)return; window.__vrFreeIsGroq=!!r.free_groq; if(typeof renderReelAi==='function')renderReelAi(r.has_claude,r.has_gemini); }); }catch(e){} }
+  function sharedBox(){
+    const panel=document.querySelector('.kmpanel'); if(!panel||panel.querySelector('.vrShared')||!canApi())return;
+    api('get_shared_state').then(function(st){
+      if(!st||!st.ready||panel.querySelector('.vrShared'))return;
+      const b=document.createElement('div'); b.className='vrShared';
+      b.innerHTML='<label><input type="checkbox" id="vrSharedChk"> Наши ключи — клипы и ИИ уже подключены</label><div class="hint" id="vrSharedHint"></div>';
+      const h3=panel.querySelector('h3'); panel.insertBefore(b,h3?h3.nextSibling:panel.firstChild);
+      const chk=b.querySelector('#vrSharedChk'), hint=b.querySelector('#vrSharedHint');
+      const paint=function(st){ chk.checked=!!st.on; hint.textContent=st.on?('С галочкой: '+limitText(st)+'. Сними её и вставь свои бесплатные ключи ниже — без лимита.'):'Работают только твои ключи — без лимита. Поставь галочку, чтобы пользоваться нашими ('+limitText(st)+').'; };
+      paint(st);
+      chk.onchange=function(){ api('set_use_shared',chk.checked).then(function(s2){ paint(s2); stockOpt(true); refreshAll(); }); };
+    }).catch(function(){});
+  }
+  function stockOpt(force){
+    ['px2AccBody','pxbayAccBody'].forEach(function(id){
+      const body=document.getElementById(id); const inner=body&&(body.querySelector('.acc-inner')||body); if(!inner)return;
+      let d=inner.querySelector('.vrStockOpt'); if(d&&!force)return;
+      if(!d){ d=document.createElement('div'); d.className='vrStockOpt'; inner.insertBefore(d,inner.firstChild); }
+      d.textContent='✅ Необязательно: с галочкой «Наши ключи» клипы идут через наш ключ. Свой ключ работает, когда галочка снята — без лимита.';
+    });
+  }
+  function groqBox(){
+    const gem=document.getElementById('gemAccBody'); if(!gem||document.getElementById('vrGroqBox')||!canApi())return;
+    const b=document.createElement('div'); b.className='vrGroq'; b.id='vrGroqBox';
+    b.innerHTML='<b>⚡ Groq — бесплатный ИИ для текста</b><div class="hint" style="font-size:12px;margin-top:4px">Необязательно. Свой ключ Groq — без лимита; без него при галочке «Наши ключи» работает наш Groq.</div><div id="vrGroqList"></div><div class="row2"><input type="password" id="vrGroqKey" class="fld" style="flex:1;min-width:160px" placeholder="gsk_… ключ Groq" autocomplete="off"><button class="btn gc" id="vrGroqSave">💾 Сохранить</button><button class="btn ghost" id="vrGroqWhere">🌐 Где взять</button></div><div class="kmsg" id="vrGroqMsg"></div>';
+    gem.parentNode.insertBefore(b,gem.nextSibling);
+    const list=b.querySelector('#vrGroqList'), msg=b.querySelector('#vrGroqMsg');
+    const paint=function(r){ list.innerHTML=''; ((r&&r.keys)||[]).forEach(function(k,i){ const row=document.createElement('div'); row.className='km'; row.innerHTML='<span>🔑 '+esc(k.mask)+'</span>'; const x=document.createElement('button'); x.className='btn ghost'; x.textContent='✕'; x.onclick=function(){ api('remove_groq_key',i).then(function(r2){ paint(r2); refreshAll(); }); }; row.appendChild(x); list.appendChild(row); }); };
+    api('get_groq_keys').then(paint);
+    b.querySelector('#vrGroqSave').onclick=function(){ const inp=b.querySelector('#vrGroqKey'); msg.textContent='Проверяю…'; api('add_groq_key',inp.value).then(function(r){ msg.textContent=(r&&r.msg)||''; msg.style.color=(r&&r.ok)?'var(--green)':'var(--pink)'; if(r&&r.ok)inp.value=''; paint(r); refreshAll(); }); };
+    b.querySelector('#vrGroqWhere').onclick=function(){ api('open_groq_signup'); };
+  }
+  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); }
+  hook(); document.addEventListener('DOMContentLoaded',boot); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
   window.vrReelCredits=function(box){
     if(!box||!canApi())return;
     let d=box.querySelector('.vrReelCredits');

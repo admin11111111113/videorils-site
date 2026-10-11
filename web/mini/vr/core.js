@@ -281,13 +281,13 @@ export async function sha1Hex(s) { const b = await crypto.subtle.digest('SHA-1',
 // не попадает). Свои ключи пользователя всегда в приоритете. Из ответов стоков собираем авторов:
 // кто снял клип/фото -> подпись «Видео: автор / Pexels» в сценах и титры под готовым роликом.
 export const SHARED_STOCK = 'vr-shared-stock';
-export const STOCK = { pexels: false, pixabay: false, checked: false };
+export const STOCK = { pexels: false, pixabay: false, groq: false, checked: false };
 export async function stock_shared_init() {
   if (STOCK.checked) return STOCK;
   try {
     const r = await fetch(CF_URL + '/stock/status', { cache: 'no-store' });
     const j = r.ok ? await r.json() : {};
-    STOCK.pexels = !!j.pexels; STOCK.pixabay = !!j.pixabay;
+    STOCK.pexels = !!j.pexels; STOCK.pixabay = !!j.pixabay; STOCK.groq = !!j.groq;
   } catch (e) { }
   STOCK.checked = true; return STOCK;
 }

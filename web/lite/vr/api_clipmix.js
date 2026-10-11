@@ -241,6 +241,7 @@ P._build_clipmix_worker = async function () {
     const out_name = `cut_${strftime('%H%M%S')}${res.ext}`; const out_path = `output/${out_name}`;
     vfs.write(out_path, res.blob); await vfs.flush(out_path);
     this.last_reel = out_path;
+    this._hour_quota_mark();
     log(`✅ Нарезка готова: ${out_name}`);
     this._ping_render();
     if (!this.licensed) { await this._mark_trial_used(); this.trial_active = false; call_js('trialUsed', {}); }
@@ -270,6 +271,7 @@ P._clipmix_src_check = function () {
 };
 P.build_clipmix = function (theme, from_preview = false) {
   const g = this._clipmix_guard(theme); if (g) return g;
+  { const q = this._hour_quota_check(1); if (q) return q; }
   if (!from_preview) this.clipmix_moments = null;
   const c = this._clipmix_src_check(); if (c) return c;
   this._persist(); this._build_clipmix_worker();
