@@ -1,0 +1,56 @@
+<style id="vrCreditsCss">
+.vrCredit{margin-top:6px;font-size:11px;line-height:1.35;color:#8b86a6;word-break:break-word}
+.vrCredit a,.vrReelCredits a,.vrSwapCredit a{color:#a99cff;text-decoration:none}
+.vrCredit a:hover,.vrReelCredits a:hover,.vrSwapCredit a:hover{text-decoration:underline}
+.vrReelCredits{margin-top:8px;font-size:11px;line-height:1.45;color:#8b86a6;word-break:break-word;max-width:360px}
+.vrSwapCredit{margin-top:8px;font-size:12px;color:#8b86a6;text-align:center}
+html.vrPhone .vrCredit{font-size:20px}
+html.vrPhone .vrReelCredits{font-size:20px;max-width:none}
+html.vrPhone .vrSwapCredit{font-size:22px}
+</style>
+<script id="vrCredits">
+/* Атрибуция стоков (правила Pexels/Pixabay): автор под клипом каждой сцены,
+   «Кадры: Pexels · Pixabay» в выборе клипа, титры авторов под готовым роликом. */
+(function(){
+  function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function link(u,t){return /^https:\/\//.test(u||'')?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(t)+'</a>':esc(t);}
+  function credit(c){ if(!c)return ''; return (c.author?link(c.author_url,c.author)+' / ':'')+link(c.page,c.source); }
+  function canApi(){ return typeof api==='function'&&(typeof ready!=='function'||ready()); }
+  function sceneCredit(th,i,again){
+    const card=th&&th.closest&&th.closest('.sbscene');
+    if(!card){ if(!again&&th)setTimeout(function(){sceneCredit(th,i,1);},0); return; }   // карточка ещё собирается
+    if(card.classList.contains('cta'))return;
+    const main=card.querySelector('.sbmain')||card;
+    let cr=document.getElementById('sbcr'+i);
+    if(!cr||!main.contains(cr)){ if(cr)cr.remove(); cr=document.createElement('div'); cr.id='sbcr'+i; cr.className='vrCredit'; main.appendChild(cr); }
+    cr.innerHTML=''; if(!canApi())return;
+    api('scene_credit',i).then(function(c){ cr.innerHTML=c?('🎞 Видео: '+credit(c)):''; }).catch(function(){});
+  }
+  function wrap(name,after){
+    const f=window[name]; if(typeof f!=='function'||f.__vrc)return;
+    const g=function(){ const r=f.apply(this,arguments); try{after.apply(this,arguments);}catch(e){} return r; };
+    g.__vrc=1; window[name]=g;
+  }
+  function hook(){
+    wrap('fillThumb',function(th,i){ sceneCredit(th,i); });
+    wrap('renderSwapCands',function(){
+      const g=document.getElementById('swapPickGrid'); if(!g||!g.parentNode)return;
+      let d=g.parentNode.querySelector('.vrSwapCredit');
+      if(!d){ d=document.createElement('div'); d.className='vrSwapCredit'; g.parentNode.insertBefore(d,g.nextSibling); }
+      d.innerHTML='Кадры: '+link('https://www.pexels.com','Pexels')+' · '+link('https://pixabay.com','Pixabay')+' · '+link('https://commons.wikimedia.org','Wikimedia Commons');
+    });
+  }
+  hook(); document.addEventListener('DOMContentLoaded',hook);
+  window.vrReelCredits=function(box){
+    if(!box||!canApi())return;
+    let d=box.querySelector('.vrReelCredits');
+    if(!d){ d=document.createElement('div'); d.className='vrReelCredits'; box.appendChild(d); }
+    d.innerHTML='';
+    api('get_reel_credits').then(function(r){
+      const l=(r&&r.credits)||[]; if(!l.length)return;
+      const src=[...new Set(l.map(function(c){return c.source;}))].join(' · ');
+      d.innerHTML='🎞 <b>Кадры ('+esc(src)+'):</b> '+l.map(credit).join(', ');
+    }).catch(function(){});
+  };
+})();
+</script>

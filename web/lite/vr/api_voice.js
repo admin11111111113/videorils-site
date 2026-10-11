@@ -1,6 +1,6 @@
 // Порт Api: «Мой голос», ключи (eleven/pexels/claude/gemini getters), онбординг,
 // ElevenLabs (кредиты, голоса, демо), get_voice_engine (app.py 5125–5648).
-import { C, log, re, requests, webbrowser, vfs, pickFiles, b64ToBlob, TEMP_DIR, path } from './core.js';
+import { C, log, re, requests, webbrowser, vfs, pickFiles, b64ToBlob, TEMP_DIR, path, SHARED_STOCK, STOCK } from './core.js';
 import * as A from './audio.js';
 import { Api } from './api_base.js';
 
@@ -92,7 +92,7 @@ P.myvoice_splice_scene = async function (idx, b64, ext, seg_start, seg_end) {
 P.set_eleven_voice = function (voice_id) { this.eleven_voice = (voice_id || '').trim(); this._persist(); return this.eleven_voice; };
 P._el_headers = function (accept = null, key = null) { const h = { 'xi-api-key': key !== null ? key : this.eleven_key }; if (accept) h.Accept = accept; return h; };
 for (const [name, list, idx] of [['eleven_key', 'eleven_keys', 'eleven_idx'], ['pexels_key', 'pexels_keys', 'pexels_idx'], ['claude_key', 'claude_keys', 'claude_idx'], ['gemini_key', 'gemini_keys', 'gemini_idx']]) {
-  Object.defineProperty(P, name, { get() { const l = this[list]; return l && l.length ? l[(this[idx] || 0) % l.length] : ''; }, configurable: true });
+  Object.defineProperty(P, name, { get() { const l = this[list]; return l && l.length ? l[(this[idx] || 0) % l.length] : (name === 'pexels_key' && STOCK.pexels ? SHARED_STOCK : ''); }, configurable: true });
 }
 P.reveal_key = function (kind, idx = 0) {
   idx = parseInt(idx); if (Number.isNaN(idx)) idx = 0;
@@ -105,9 +105,9 @@ P.reveal_key = function (kind, idx = 0) {
   const k = idx >= 0 && idx < ks.length ? ks[idx] : '';
   return { ok: !!k, key: k };
 };
-P.get_keys_status = function () { return { pixabay: !!this.pixabay_keys.length, pexels: !!this.pexels_key, eleven: !!this.eleven_keys.length, ai: !!this.claude_key, gemini: !!this.gemini_key, collapsed: this.keys_collapsed }; };
+P.get_keys_status = function () { return { pixabay: !!this.pixabay_key, pexels: !!this.pexels_key, eleven: !!this.eleven_keys.length, ai: !!this.claude_key, gemini: !!this.gemini_key, collapsed: this.keys_collapsed }; };
 P.set_keys_collapsed = function (v) { this.keys_collapsed = !!v; this._persist(); return { ok: true, collapsed: this.keys_collapsed }; };
-P.get_onboarding_state = function () { const has_media = !!(this.pixabay_keys.length || this.pexels_key); return { show: !this.media_onboarded && !has_media }; };
+P.get_onboarding_state = function () { const has_media = !!(STOCK.pexels || STOCK.pixabay || this.pixabay_keys.length || this.pexels_key); return { show: !this.media_onboarded && !has_media }; };
 P.set_media_onboarded = function (v = true) { this.media_onboarded = !!v; this._persist(); return { ok: true }; };
 P.onboarding_check_key = async function (service, key) {
   key = (key || '').trim();

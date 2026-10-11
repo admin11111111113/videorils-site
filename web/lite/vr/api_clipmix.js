@@ -326,7 +326,7 @@ P.clipmix_prev_replace = async function (i, source = '') {
   const src_sel = String(source || '').trim().toLowerCase();
   if (['pixabay', 'pexels'].includes(src_sel)) {
     if (src_sel === 'pexels' && !this.pexels_key) return { ok: false, msg: this._t('m1_no_key') };
-    if (src_sel === 'pixabay' && !this.pixabay_keys.length) return { ok: false, msg: this._t('m2_no_key') };
+    if (src_sel === 'pixabay' && !this.pixabay_key) return { ok: false, msg: this._t('m2_no_key') };
     try {
       const q = cur.query || this.clipmix_theme; this._cm_rep = (this._cm_rep || 0) + 1; const tag = `rp${String(this._cm_rep).padStart(4, '0')}`;
       const [nsrc, isv] = src_sel === 'pexels' ? await this._pexels_download(q, tag) : await this._download_pixabay(q, tag);
@@ -362,7 +362,7 @@ P.clipmix_swap_candidates = async function (i, source = 'pixabay') {
   const ms = this.clipmix_moments || []; if (!(i >= 0 && i < ms.length)) return { ok: false, msg: this._t('cm_msg_no_frame') };
   if (!['pixabay', 'pexels'].includes(source)) source = 'pixabay';
   if (source === 'pexels' && !this.pexels_key) return { ok: false, msg: this._t('m1_no_key') };
-  if (source === 'pixabay' && !this.pixabay_keys.length) return { ok: false, msg: this._t('m2_no_key') };
+  if (source === 'pixabay' && !this.pixabay_key) return { ok: false, msg: this._t('m2_no_key') };
   const q = ms[i].query || this.clipmix_theme || 'background';
   const state = (this._cm_swap_state = this._cm_swap_state || {}); let st = state[i];
   if (!st || st.source !== source || st.q !== q) { st = { source, q, hits: await this._swap_fetch_hits(source, q), offered: [] }; state[i] = st; }

@@ -53,7 +53,7 @@ P._cover_photo = async function (q, tag) {
     let ph = []; try { ph = await this._pexels_call('pexels_photos', q, 15); } catch (e) { ph = []; }
     for (const c of ph.slice(0, 4)) if (await take(c.id, c.url)) return dst;
   }
-  const keys = this.pixabay_keys || [];
+  const keys = this._pix_keys();
   for (let off = 0; off < keys.length; off++) {
     const key = keys[((this.pixabay_idx || 0) + off) % keys.length]; if (!key) continue;
     let hits, lim; try { [hits, lim] = await _pixabay_query('https://pixabay.com/api/', key, q, 20, true, 12); } catch (e) { continue; }

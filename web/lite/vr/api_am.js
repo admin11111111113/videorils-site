@@ -904,7 +904,7 @@ P.am_broll_candidates = async function (q, source = 'pixabay', reset = false) {
   const en = await this._am_ru2en(q); if (!en) return { ok: false, msg: this._t('am_no_query') };
   if (!['pexels', 'pixabay'].includes(source)) source = 'pixabay';
   if (source === 'pexels' && !this.pexels_key) return { ok: false, msg: this._t('m1_no_key') };
-  if (source === 'pixabay' && !this.pixabay_keys.length) return { ok: false, msg: this._t('m2_no_key') };
+  if (source === 'pixabay' && !this.pixabay_key) return { ok: false, msg: this._t('m2_no_key') };
   const st_all = (this._am_swap_state = this._am_swap_state || {}); const key = `${source}:${en}`; let st = st_all[key];
   if (reset || !st) { st = { hits: await this._swap_fetch_hits(source, en), offered: [] }; st_all[key] = st; }
   if (!st.hits.length) return { ok: false, q: en, msg: this._t(source === 'pexels' ? 'm1_empty' : 'm2_empty') };

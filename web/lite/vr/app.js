@@ -1,5 +1,5 @@
 // Видеорилс Лайт — веб. Точка входа: собирает Api из модулей и подменяет pywebview.
-import { vfs, log, restoreStore, uiUrls } from './core.js';
+import { vfs, log, restoreStore, uiUrls, stock_shared_init } from './core.js';
 import { Api } from './api_base.js';
 import './api_settings.js';
 import './api_voice.js';
@@ -10,6 +10,7 @@ import './api_reel.js';
 import './api_tts.js';
 import './api_scenes.js';
 import './api_build.js';
+import './api_credits.js';
 import './api_outro.js';
 import './api_whisper.js';
 import './api_logo.js';
@@ -65,7 +66,7 @@ async function boot() {
       if (rel.startsWith('assets/user/') || rel.startsWith('assets/voice_demos/')) await vfs.restore(rel);
     }
   } catch (e) { }
-  await Promise.all([sfxPreload(), loadFonts(), Piper.refreshStored().catch(() => { })]);
+  await Promise.all([sfxPreload(), loadFonts(), Piper.refreshStored().catch(() => { }), stock_shared_init().catch(() => { })]);
   await restoreStore();                                          // ключи/лицензия: восстановить из копии
   const api = new Api();
   window.__vrApi = api;

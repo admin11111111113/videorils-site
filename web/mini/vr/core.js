@@ -276,10 +276,65 @@ export async function sha256Hex(s) { const b = await crypto.subtle.digest('SHA-2
 export async function sha256Bytes(s) { return new Uint8Array(await crypto.subtle.digest('SHA-256', typeof s === 'string' ? new TextEncoder().encode(s) : s)); }
 export async function sha1Hex(s) { const b = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 
+// ------------------------------------------------ сток: общий ключ + атрибуция --
+// Нет своих ключей Pexels/Pixabay -> поиск идёт через наш Worker (ключ хранится там, в браузер
+// не попадает). Свои ключи пользователя всегда в приоритете. Из ответов стоков собираем авторов:
+// кто снял клип/фото -> подпись «Видео: автор / Pexels» в сценах и титры под готовым роликом.
+export const SHARED_STOCK = 'vr-shared-stock';
+export const STOCK = { pexels: false, pixabay: false, checked: false };
+export async function stock_shared_init() {
+  if (STOCK.checked) return STOCK;
+  try {
+    const r = await fetch(CF_URL + '/stock/status', { cache: 'no-store' });
+    const j = r.ok ? await r.json() : {};
+    STOCK.pexels = !!j.pexels; STOCK.pixabay = !!j.pixabay;
+  } catch (e) { }
+  STOCK.checked = true; return STOCK;
+}
+const STOCK_CREDITS = new Map();
+function _sc_put(u, c) { if (!u || typeof u !== 'string') return; STOCK_CREDITS.set(u, c); STOCK_CREDITS.set(u.split('?')[0], c); }
+export function stock_credit(u) { if (!u) return null; u = String(u); return STOCK_CREDITS.get(u) || STOCK_CREDITS.get(u.split('?')[0]) || null; }
+function _sc_index(kind, j) {
+  try {
+    if (kind === 'pexels') {
+      for (const v of (j.videos || [])) {
+        const us = v.user || {}; const c = { source: 'Pexels', author: us.name || '', author_url: us.url || '', page: v.url || 'https://www.pexels.com' };
+        _sc_put(v.image, c); for (const f of (v.video_files || [])) _sc_put(f.link, c); for (const p of (v.video_pictures || [])) _sc_put(p.picture, c);
+      }
+      for (const p of (j.photos || [])) {
+        const c = { source: 'Pexels', author: p.photographer || '', author_url: p.photographer_url || '', page: p.url || 'https://www.pexels.com' };
+        for (const k of Object.keys(p.src || {})) _sc_put(p.src[k], c);
+      }
+    } else {
+      for (const h of (j.hits || [])) {
+        const c = { source: 'Pixabay', author: h.user || '', author_url: (h.user && h.user_id) ? `https://pixabay.com/users/${h.user}-${h.user_id}/` : '', page: h.pageURL || 'https://pixabay.com' };
+        for (const k of ['previewURL', 'webformatURL', 'largeImageURL', 'imageURL', 'fullHDURL']) _sc_put(h[k], c);
+        for (const q of Object.keys(h.videos || {})) { _sc_put((h.videos[q] || {}).url, c); _sc_put((h.videos[q] || {}).thumbnail, c); }
+      }
+    }
+  } catch (e) { }
+}
+// клипы, реально скачанные за текущую сборку (сброс — в начале сборки)
+const STOCK_USED = new Map();
+export function stock_mark_used(u) { const c = stock_credit(u); if (c) STOCK_USED.set(c.source + '|' + c.page, c); }
+export function stock_used_reset() { STOCK_USED.clear(); }
+export function stock_used_list() { return [...STOCK_USED.values()]; }
+function _stock_kind(url) { return url.startsWith('https://api.pexels.com/') ? 'pexels' : url.startsWith('https://pixabay.com/api/') ? 'pixabay' : ''; }
+
 // --------------------------------------------------------------- HTTP (requests) --
 // requests.get/post -> fetch с таймаутом. Ответ: {status_code, headers, text, json(), blob}
 export async function http(method, url, { params, json, data, headers, timeout = 30, raw = false } = {}) {
   if (params) { const u = new URL(url); for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null) u.searchParams.set(k, v); url = u.toString(); }
+  const stock = _stock_kind(url);
+  if (stock) {   // общий ключ: тот же запрос, но через наш Worker (ключ подставит он)
+    const u = new URL(url);
+    if (stock === 'pexels' && headers && headers.Authorization === SHARED_STOCK) {
+      headers = Object.assign({}, headers); delete headers.Authorization;
+      url = CF_URL + '/stock/pexels' + u.pathname + u.search;
+    } else if (stock === 'pixabay' && u.searchParams.get('key') === SHARED_STOCK) {
+      u.searchParams.delete('key'); url = CF_URL + '/stock/pixabay' + u.pathname + u.search;
+    }
+  }
   const ctl = new AbortController(); const to = Array.isArray(timeout) ? timeout[0] + timeout[1] : timeout;
   const timer = setTimeout(() => ctl.abort(), to * 1000);
   const h = Object.assign({}, headers || {});
@@ -291,6 +346,7 @@ export async function http(method, url, { params, json, data, headers, timeout =
     if (raw) return r;
     const buf = await r.arrayBuffer();
     const text = new TextDecoder().decode(buf);
+    if (stock && r.status === 200) { try { _sc_index(stock, JSON.parse(text)); } catch (e) { } }
     return {
       status_code: r.status, ok: r.ok, headers: { get: (k) => r.headers.get(k) }, text, buf,
       json() { return JSON.parse(text || 'null'); },

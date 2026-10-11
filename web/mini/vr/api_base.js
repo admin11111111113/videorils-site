@@ -1,7 +1,7 @@
 // Порт class Api: __init__ + лицензия/триал/промо/рефералы/оплата (app.py 2918–4595).
 import {
   C, APP_VERSION, VR_SERVER_URL, CF_URL, BUILD_VARIANT, load_settings, save_settings, dec_secret, enc_secret,
-  log, call_js, sleep, now, requests, webbrowser, thread, store, sha256Hex, uuid4hex, isoNow, strftime, re,
+  log, call_js, sleep, now, requests, webbrowser, thread, store, sha256Hex, uuid4hex, isoNow, strftime, re, SHARED_STOCK, STOCK,
 } from './core.js';
 import { _sanitize_hex } from './textutil.js';
 import { PIX } from './media.js';
@@ -542,6 +542,7 @@ export class Api {
     const keys = this.pixabay_keys;
     if (keys && keys.length) return keys[Math.min(this._pix_key_idx || 0, keys.length - 1)];
     if (this.pixabay_key) return this.pixabay_key;
+    if (STOCK.pixabay) return SHARED_STOCK;   // общий ключ (через наш Worker)
     if (!this.licensed) return await this._trial_media_key();
     return '';
   }

@@ -71,7 +71,7 @@ UI_PATCHES = [
      """onclick="event.stopPropagation();clearForeignDropzone();window.resetForeignWork&&resetForeignWork();ready()&&api(&quot;clear_foreign_source&quot;)">"""),
     # веб: крестик «закрыть» на готовом ролике (3-я колонка) -> снова образец субтитра
     ("wrap.appendChild(v); box.appendChild(wrap);",
-     "wrap.appendChild(v); box.appendChild(wrap); { wrap.style.position='relative'; const xb=document.createElement('button'); xb.className='vrResultClose'; xb.title='Закрыть ролик'; xb.textContent='✕'; xb.onclick=(e)=>{ e.stopPropagation(); clearReelResult(); }; wrap.appendChild(xb); }"),
+     "wrap.appendChild(v); box.appendChild(wrap); { wrap.style.position='relative'; const xb=document.createElement('button'); xb.className='vrResultClose'; xb.title='Закрыть ролик'; xb.textContent='✕'; xb.onclick=(e)=>{ e.stopPropagation(); clearReelResult(); }; wrap.appendChild(xb); } window.vrReelCredits&&vrReelCredits(box);"),
     # веб: «Очистить» убирает и загруженное видео «Из видео» с распознанным текстом
     ("function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)",
      "function clearReel(){   // красная «Очистить»: полный сброс к чистому старту (БЕЗ подтверждения)\n  try{ if(typeof clearForeignDropzone==='function')clearForeignDropzone(); if(ready())api('clear_foreign_source'); }catch(e){}"),
@@ -160,7 +160,8 @@ html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;
 # веб-подписка: 3 ступени 7 дней / 30 дней / год вместо «Навсегда» + авто-проверка оплаты
 WEBSUBS = ('<script>window.__vrWebPlansFB={web_week:{type:"weekly",rub:539,days:7},web_month:{type:"monthly",rub:1199,days:30},web_year:{type:"yearly",rub:8990,days:365}};</script>\n'
            + io.open(os.path.join(os.path.dirname(OUT), "..", "websubs.html"), encoding="utf-8").read())
-s = s[:i] + MOBILE_CSS + WEBSUBS + SHIM + s[i:]
+CREDITS = io.open(os.path.join(os.path.dirname(OUT), "..", "stockcredits.html"), encoding="utf-8").read()
+s = s[:i] + MOBILE_CSS + WEBSUBS + CREDITS + SHIM + s[i:]
 s = s.replace("<title>", "<title>Веб · ", 1)
 s = s.replace("<head>", '<head>\n<meta name="robots" content="noindex, nofollow">', 1)
 io.open(OUT, "w", encoding="utf-8").write(s)

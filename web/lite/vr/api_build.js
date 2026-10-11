@@ -15,7 +15,7 @@ const { STYLES, EMOTIONS } = C;
 // ---- «деградации сборки» (видимые оговорки) ----
 P._degrade = function (msg) { (this._BUILD_DEGRADED = this._BUILD_DEGRADED || []).push(String(msg)); log('  ⚠ ' + msg); };
 
-P._has_stock = function () { return !!(this.pixabay_keys.length || this.pexels_key); };
+P._has_stock = function () { return !!(this.pixabay_key || this.pexels_key); };
 
 P.build_reel = async function (claude_answer, style_index) {
   this.track('generate_started');
@@ -156,7 +156,7 @@ P._clip_spec = async function (srcPath, isVideo, frames, start, kb, extra = {}) 
   return Object.assign({ kind: isVideo ? 'video' : 'image', blob: vfs.read(srcPath), frames, start: start || 0, kb }, extra);
 };
 P._download_pixabay = async function (query, tag) {
-  const keys = this.pixabay_keys; const pexels_first = !!this.pexels_key;
+  const keys = this._pix_keys(); const pexels_first = !!this.pexels_key;
   const deg = (m) => this._degrade(m);
   const _try_pixabay = async () => {
     if (!keys.length) return [null, null];

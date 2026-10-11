@@ -1,7 +1,7 @@
 // Порт class Api: __init__ + лицензия/триал/промо/рефералы/оплата (app.py 2918–4595).
 import {
   C, APP_VERSION, VR_SERVER_URL, CF_URL, BUILD_VARIANT, load_settings, save_settings, dec_secret, enc_secret,
-  log, call_js, sleep, now, requests, webbrowser, thread, store, sha256Hex, uuid4hex, isoNow, strftime, re,
+  log, call_js, sleep, now, requests, webbrowser, thread, store, sha256Hex, uuid4hex, isoNow, strftime, re, SHARED_STOCK, STOCK,
 } from './core.js';
 import { _sanitize_hex } from './textutil.js';
 import { PIX } from './media.js';
@@ -207,7 +207,8 @@ export class Api {
     // логотип: обработанный PNG пересобираем из исходника (в фоне)
     if (this.logo_src) thread(async () => { try { await this._process_logo(); } catch (e) { console.warn('logo process on load err:', e); } });
   }
-  get pixabay_key() { const l = this.pixabay_keys; return l && l.length ? l[(this.pixabay_idx || 0) % l.length] : ''; }
+  get pixabay_key() { const l = this.pixabay_keys; return l && l.length ? l[(this.pixabay_idx || 0) % l.length] : (STOCK.pixabay ? SHARED_STOCK : ''); }
+  _pix_keys() { const l = this.pixabay_keys; return l && l.length ? l : (STOCK.pixabay ? [SHARED_STOCK] : []); }
 
   // ==================== ЛИЦЕНЗИЯ ====================
   _ping_render() { thread(async () => { try { await requests.post(`${VR_SERVER_URL}/ping-render`, { json: { product: 'lite' }, timeout: 3 }); } catch (e) { } }); }
@@ -597,6 +598,7 @@ export class Api {
     const keys = this.pixabay_keys;
     if (keys && keys.length) return keys[Math.min(this._pix_key_idx || 0, keys.length - 1)];
     if (this.pixabay_key) return this.pixabay_key;
+    if (STOCK.pixabay) return SHARED_STOCK;   // общий ключ (через наш Worker)
     if (!this.licensed) return await this._trial_media_key();
     return '';
   }

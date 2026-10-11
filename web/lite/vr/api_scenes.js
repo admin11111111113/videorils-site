@@ -114,7 +114,7 @@ P.reel_precheck = function () {
   const repeats = Object.keys(where).filter(w => where[w].size >= 2).sort();
   return { ok: true, repeats: repeats.slice(0, 12) };
 };
-P.get_media_source = function () { return { pexels_available: !!this.pexels_key, pixabay_available: !!this.pixabay_keys.length }; };
+P.get_media_source = function () { return { pexels_available: !!this.pexels_key, pixabay_available: !!this.pixabay_key }; };
 
 P._clip_valid = async function (p, is_video) { return await probeOk(p, is_video); };
 // клип -> temp/scene_{i}_clip.mp4 + миниатюра 240px
@@ -130,7 +130,7 @@ P.scene_swap_clip = async function (idx, source = 'pexels') {
   if (!(idx >= 0 && idx < this.reel_scenes.length)) return { ok: false, msg: this._t('bad_scenario') };
   source = source === 'pixabay' ? 'pixabay' : 'pexels';
   if (source === 'pexels' && !this.pexels_key) return { ok: false, msg: this._t('m1_no_key') };
-  if (source === 'pixabay' && !this.pixabay_keys.length) return { ok: false, msg: this._t('m2_no_key') };
+  if (source === 'pixabay' && !this.pixabay_key) return { ok: false, msg: this._t('m2_no_key') };
   const sc = this.reel_scenes[idx]; const q = sc.query || 'background';
   const busy = new Set(this._scene_used_ids(idx)); const _cur = (sc.pick || {}).id; if (_cur != null) busy.add(_cur);
   const sk = `${source}:${q}`; const seen = (this._swap_seen[sk] = this._swap_seen[sk] || new Set());
@@ -174,7 +174,7 @@ P.scene_swap_candidates = async function (idx, source = 'pexels') {
   if (!(idx >= 0 && idx < this.reel_scenes.length)) return { ok: false, msg: this._t('bad_scenario') };
   if (!['pexels', 'pixabay', 'wikimedia'].includes(source)) source = 'pexels';
   if (source === 'pexels' && !this.pexels_key) return { ok: false, msg: this._t('m1_no_key') };
-  if (source === 'pixabay' && !this.pixabay_keys.length) return { ok: false, msg: this._t('m2_no_key') };
+  if (source === 'pixabay' && !this.pixabay_key) return { ok: false, msg: this._t('m2_no_key') };
   const sc = this.reel_scenes[idx]; const q = sc.query || 'background';
   let st = this._scene_swap_state[idx];
   if (!st || st.source !== source || st.q !== q) { st = { source, q, hits: await this._swap_fetch_hits(source, q), offered: [] }; this._scene_swap_state[idx] = st; }
@@ -196,7 +196,7 @@ P.scene_source_probe = async function (idx) {
   const q = sc.query || 'background';
   const cache = (this._src_probe_cache = this._src_probe_cache || {});
   if (q in cache) return Object.assign({ ok: true }, cache[q]);
-  const have_pex = !!this.pexels_key, have_pix = !!this.pixabay_keys.length;
+  const have_pex = !!this.pexels_key, have_pix = !!this.pixabay_key;
   const res = {}; if (!have_pex) res.pexels = 'nokey'; if (!have_pix) res.pixabay = 'nokey';
   const probe = (src) => this._swap_fetch_hits(src, q).then(r => !!(r && r.length)).catch(() => false);
   const jobs = []; if (have_pex) jobs.push('pexels'); if (have_pix) jobs.push('pixabay'); jobs.push('wikimedia');
@@ -237,7 +237,7 @@ P.scene_pick_candidate = async function (idx, source, hit_id) {
     const clip = await _dl_clip(idx, v.url);
     const toks = _rel_tokens(this.reel_topic);
     const ap = !!((hit.tags || '').trim() && toks.size && _hit_tag_overlap(hit, toks) === 0);
-    sc.clip = clip; sc.pick = { id: hit.id, approx: ap, source }; sc.locked = true;
+    sc.clip = clip; sc.pick = { id: hit.id, approx: ap, source, url: v.url }; sc.locked = true;
     log(`  🎬 сцена ${idx + 1}: выбран клип от ${source === 'pexels' ? 'Pexels' : 'Pixabay'} по запросу «${q}» → id ${hit.id}`);
     this._thumb_tick++;
     return { ok: true, approx: ap, thumb: `temp/scene_${idx}_thumb.jpg?t=${this._thumb_tick}` };
@@ -406,7 +406,7 @@ Api._pexels_hits_as_pixabay = function (clips) {
 P._pexels_hits_as_pixabay = Api._pexels_hits_as_pixabay;
 // видео-хиты Pixabay по вариантам запроса с ротацией ключей; pexels_fallback=false — строго Pixabay
 P._pixabay_video_hits = async function (query, pexels_fallback = true) {
-  const keys = this.pixabay_keys;
+  const keys = this._pix_keys();
   const dom = _topic_domain(this.reel_topic) || _topic_domain(query);
   const want = this._avg_scene_dur();
   if (keys.length) {

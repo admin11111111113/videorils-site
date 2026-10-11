@@ -1,5 +1,5 @@
 // Порт app.py стр. 1278–2205 (подбор стоковых клипов) + media_providers.py — 1:1.
-import { C, re, log, sleep, now, requests, sha1Hex, vfs, path, TEMP_DIR, sortedBy, maxBy, pystrip, isupper } from './core.js';
+import { C, re, log, sleep, now, requests, sha1Hex, vfs, path, TEMP_DIR, sortedBy, maxBy, pystrip, isupper, stock_mark_used, stock_used_reset } from './core.js';
 
 // ------------------------------------------------------------- Pixabay -------
 export function _pick_hit(hits, used) {
@@ -156,7 +156,7 @@ function _pix_cache_get(ck) {
   if (ent) PIX.QCACHE.delete(ck);
   return null;
 }
-export function _pix_reset_counters() { PIX.COUNT = 0; PIX.DL = 0; PIX.LIMIT_HIT = false; PIX.LIMITED = {}; }
+export function _pix_reset_counters() { stock_used_reset(); PIX.COUNT = 0; PIX.DL = 0; PIX.LIMIT_HIT = false; PIX.LIMITED = {}; }
 let _pixChain = Promise.resolve();
 export function _pix_throttle() {       // глобальная очередь (вместо Lock)
   const p = _pixChain.then(async () => {
@@ -337,7 +337,7 @@ export async function download_media(query, tag, key, used = null, topic = '', d
 
 // Скачивание с жёстким потолком по времени (wall-clock ×3 от timeout), 0 байт -> ошибка.
 export async function _download(url, dst, timeout = 15) {
-  PIX.DL += 1;
+  PIX.DL += 1; stock_mark_used(url);
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), Math.max(timeout, 5) * 3 * 1000);
   try {

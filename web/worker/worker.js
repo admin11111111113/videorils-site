@@ -363,6 +363,36 @@ async function pingRender(env, d, web) {
 const cors = (origin) => !origin ? {} : ({ 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' });
 
+// Общий сток для веб-версии: поиск Pexels/Pixabay нашим ключом (секреты PEXELS_KEY / PIXABAY_KEY,
+// в браузер не попадают). Только с нашего сайта, только поиск, ответы кешируются 24 ч (правила Pixabay).
+// Сами файлы клипов браузер качает напрямую с CDN стоков — ключ для них не нужен.
+const STOCK_PATHS = { pexels: ['/videos/search', '/v1/search'], pixabay: ['/api/', '/api/videos/'] };
+const STOCK_EXPOSE = 'X-Ratelimit-Remaining, X-Ratelimit-Limit, X-RateLimit-Remaining, X-RateLimit-Limit, X-RateLimit-Reset, Retry-After';
+async function stock(req, env, ctx, url, origin) {
+  const h = Object.assign({ 'Content-Type': 'application/json', 'Access-Control-Expose-Headers': STOCK_EXPOSE }, cors(origin));
+  if (url.pathname === '/stock/status')
+    return new Response(JSON.stringify({ pexels: !!env.PEXELS_KEY, pixabay: !!env.PIXABAY_KEY }), { headers: Object.assign(h, { 'Cache-Control': 'max-age=300' }) });
+  const m = url.pathname.match(/^\/stock\/(pexels|pixabay)(\/.*)$/);
+  if (!m || !STOCK_PATHS[m[1]].includes(m[2]) || req.method !== 'GET') return new Response('{}', { status: 404, headers: h });
+  const kind = m[1], key = kind === 'pexels' ? env.PEXELS_KEY : env.PIXABAY_KEY;
+  if (!key) return new Response('{}', { status: 503, headers: h });
+  const q = new URLSearchParams(url.search); q.delete('key'); q.sort();
+  const cacheKey = new Request('https://stock-cache.videorils/' + kind + m[2] + '?' + q.toString());
+  const cache = caches.default;
+  let r = await cache.match(cacheKey);
+  if (!r) {
+    let up;
+    if (kind === 'pexels') up = await fetch('https://api.pexels.com' + m[2] + '?' + q.toString(), { headers: { Authorization: key } });
+    else { const qq = new URLSearchParams(q); qq.set('key', key); up = await fetch('https://pixabay.com' + m[2] + '?' + qq.toString()); }
+    const body = await up.text();
+    const keep = {}; for (const k of STOCK_EXPOSE.split(', ')) { const v = up.headers.get(k); if (v !== null) keep[k] = v; }
+    r = new Response(body, { status: up.status, headers: Object.assign({ 'Content-Type': 'application/json' }, keep) });
+    if (up.status === 200) { const c = new Response(body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=86400' } }); ctx.waitUntil(cache.put(cacheKey, c)); }
+  }
+  const out = new Headers(r.headers); for (const [k, v] of Object.entries(h)) out.set(k, v);
+  return new Response(r.body, { status: r.status, headers: out });
+}
+
 export default {
   // раз в час: досылаем на сервер лицензий отметки триала, которые не дошли сразу.
   // Сервер НЕ будим впустую (бесплатные часы Render) — запрос только если есть что досылать.
@@ -379,6 +409,11 @@ export default {
     const fromSite = ALLOWED.some(r => r.test(origin));
     if (origin && !fromSite) return new Response('forbidden', { status: 403 });
     if (!origin && url.pathname === '/edge') return new Response('forbidden', { status: 403 });
+    if (url.pathname.startsWith('/stock/')) {
+      if (!fromSite) return new Response('forbidden', { status: 403 });
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
+      return await stock(req, env, ctx, url, origin);
+    }
     if (url.pathname in CACHED) {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
       const body = await cachedGet(env, ctx, url);
