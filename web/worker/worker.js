@@ -268,12 +268,15 @@ async function check(env, d) {
   const slot = String(d.client || '').trim().toLowerCase() === 'web' ? 'machine_web' : 'machine';
   const sfx = slot === 'machine_web' ? '_web' : '';
   const bound = lic[slot] || '';
+  const remember = async () => { if (slot === 'machine_web' && /^[0-9a-f]{16,64}$/i.test(machine)) { try { await fb(env, 'PATCH', '/videorils_web_machines', { [`${product}_${machine}`]: kid }); } catch (e) { } } };
   if (!bound) {
     const t = pyNow(); await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { [slot]: machine, ['activated_at' + sfx]: t, ['last_seen' + sfx]: t });
+    await remember();
     return [200, { status: 'ok', type: lic.type || 'lifetime', referrals: await refStats(env, key) }];
   }
   if (bound !== machine) return [200, { status: 'wrong_machine', msg: 'Ключ привязан к другому компьютеру' }];
   await fb(env, 'PATCH', `/videorils_licenses/${kid}`, { ['last_seen' + sfx]: pyNow() });
+  await remember();
   return [200, { status: 'ok', type: lic.type || 'lifetime', referrals: await refStats(env, key) }];
 }
 
@@ -532,6 +535,18 @@ async function queueJoin(req, env, origin) {
   } catch (e) { return new Response('{"wait":0}', { headers: h }); }
 }
 
+// Браузер потерял лицензию (Safari чистит данные сайта через 7 дней без захода, очистка истории) ->
+// возвращаем ключ, привязанный к этому браузеру. Ключ и так работает только с этим кодом браузера.
+async function licenseRestore(env, d) {
+  const machine = String(d.machine || '').trim(), product = String(d.product || 'mini').trim().toLowerCase();
+  if (!/^[0-9a-f]{16,64}$/i.test(machine) || !PRODUCTS.includes(product)) return [400, { status: 'error' }];
+  const kid = await fb(env, 'GET', `/videorils_web_machines/${product}_${machine}`);
+  if (!kid || typeof kid !== 'string') return [200, { status: 'none' }];
+  const lic = await fb(env, 'GET', `/videorils_licenses/${kid}`);
+  if (!lic || lic.blocked || String(lic.product || 'mini').toLowerCase() !== product || (lic.machine_web || '') !== machine) return [200, { status: 'none' }];
+  return [200, { status: 'ok', key: lic.key, type: lic.type || 'lifetime', expires: lic.expires || '', activated: lic.activated_at_web || lic.activated_at || '' }];
+}
+
 export default {
   // раз в час: досылаем на сервер лицензий отметки триала, которые не дошли сразу.
   // Сервер НЕ будим впустую (бесплатные часы Render) — запрос только если есть что досылать.
@@ -575,6 +590,13 @@ export default {
       try { r = url.pathname === '/api/ev' ? await apiEv(env, req, d || {}) : await pingRender(env, d || {}, fromSite); } catch (e) { r = null; }
       if (r) return new Response(JSON.stringify(r[1]), { status: r[0], headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
       // r === null -> ниже обычная пересылка на Render
+    }
+    if (url.pathname === '/license/restore') {
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
+      if (!fromSite || !fbOn(env)) return new Response('{"status":"none"}', { headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
+      let d = {}; try { d = await req.json(); } catch (e) { }
+      let code = 200, out = { status: 'none' }; try { [code, out] = await licenseRestore(env, d || {}); } catch (e) { }
+      return new Response(JSON.stringify(out), { status: code, headers: Object.assign({ 'Content-Type': 'application/json' }, cors(origin)) });
     }
     if (url.pathname === '/check') {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });

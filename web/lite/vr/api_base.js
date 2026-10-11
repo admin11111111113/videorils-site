@@ -394,11 +394,28 @@ export class Api {
       }
     } catch (e) { }
     if (this.license_key) thread(() => this._revalidate_license());
+    else thread(() => this._restore_license());
+  }
+  // браузер потерял лицензию (Safari чистит данные сайта через 7 дней без захода, очистка истории) —
+  // спрашиваем сервер, какой ключ привязан к этому браузеру, и возвращаем его сами
+  async _restore_license() {
+    try {
+      const r = await this._cf_post('/license/restore', { machine: await this.get_machine_id(), product: 'lite' });
+      if (!(r && r.status === 'ok' && r.key) || this.license_key) return;
+      store.set(LIC_KEY, JSON.stringify({ key: String(r.key).toUpperCase(), type: r.type || 'lifetime', activated: r.activated || isoNow(), expires: r.expires || '' }));
+      this._load_license();
+      call_js('licenseState', { licensed: this.licensed, msg: '' });
+    } catch (e) { }
   }
   async _revalidate_license() {
     const res = await this._validate_key(this.license_key);
     if (!res.reachable) return;
-    if (res.ok) this.licensed = true; else { this.licensed = false; store.del(LIC_KEY); }
+    // лицензию из браузера удаляем ТОЛЬКО если ключ правда не существует или заблокирован. Сбой сервера/базы
+    // («error») раньше тоже стирал её — теперь ничего не трогаем. Истёк / другой браузер — ключ храним (продление, поддержка).
+    if (res.ok) this.licensed = true;
+    else if (['invalid', 'blocked', 'wrong_product'].includes(res.status)) { this.licensed = false; store.del(LIC_KEY); }
+    else if (['expired', 'wrong_machine'].includes(res.status)) this.licensed = false;
+    else return;
     call_js('licenseState', { licensed: this.licensed, msg: res.msg || '' });
   }
   _license_expiry(lic_type, activated_iso) {
