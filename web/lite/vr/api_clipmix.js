@@ -130,13 +130,19 @@ P._clipmix_plan = async function (theme, pool_surplus = false) {
     if (!queries.length && !folder_moments.length) throw new Error(qerr || this._t('cm_no_queries'));
     log(`  🎬 ракурсов темы: ${queries.length}`);
     const pool = [];
-    for (let qi = 0; qi < queries.length; qi++) {
-      if (pool.length >= need) break;
-      const q = queries[qi];
-      bar(6 + Math.trunc((qi + 1) / Math.max(1, queries.length) * 40), `Источник ${qi + 1}/${queries.length}…`);
-      let src = null, isv = null;
-      try { [src, isv] = await this._download_pixabay(q, `pl${String(qi).padStart(3, '0')}`); } catch (e) { log(`  ⚠ источник «${q}» не вышел (${String(e.message || e).slice(0, 40)})`); continue; }
-      if (src && vfs.size(src) > 0) pool.push({ src, is_video: !!isv, query: q });
+    // веб: источники — пачками по CONC параллельно (раньше строго по одному: поиск + скачивание
+    // целого видео ×36 подряд = 1.5–2.5 мин на телефоне). Порядок кадров = порядок запросов.
+    const CONC = 5; let done_q = 0;
+    for (let qi = 0; qi < queries.length && pool.length < need; qi += CONC) {
+      const batch = queries.slice(qi, qi + CONC).map((q, k) => ({ q, idx: qi + k }));
+      const got = await Promise.all(batch.map(async ({ q, idx }) => {
+        let src = null, isv = null;
+        try { [src, isv] = await this._download_pixabay(q, `pl${String(idx).padStart(3, '0')}`); }
+        catch (e) { log(`  ⚠ источник «${q}» не вышел (${String(e.message || e).slice(0, 40)})`); }
+        done_q++; bar(6 + Math.trunc(done_q / Math.max(1, queries.length) * 40), `Источник ${done_q}/${queries.length}…`);
+        return (src && vfs.size(src) > 0) ? { src, is_video: !!isv, query: q } : null;
+      }));
+      for (const g of got) if (g && pool.length < need) pool.push(g);
     }
     if (pool.length) { stock_moments = this._stock_moments(pool, need, base_dur).slice(0, need); log(`  🎬 автоподбор: ${pool.length} источников → ${stock_moments.length} моментов (цель ${stock_target})`); }
   }
@@ -280,7 +286,12 @@ P._clipmix_preview_worker = async function () {
   try {
     const [moments, meta] = await this._clipmix_plan(this.clipmix_theme, true);
     this.clipmix_moments = moments; this._clipmix_meta = meta;
-    const items = []; for (let i = 0; i < moments.length; i++) items.push(await this._clipmix_prev_item(moments[i], i));
+    // миниатюры — по 4 параллельно (порядок карточек сохраняется)
+    const items = new Array(moments.length);
+    for (let i = 0; i < moments.length; i += 4) {
+      const part = await Promise.all(moments.slice(i, i + 4).map((m, k) => this._clipmix_prev_item(m, i + k)));
+      part.forEach((it, k) => { items[i + k] = it; });
+    }
     call_js('clipmixPreviewReady', { ok: true, items, seconds: meta.length || 0, count: items.length });
   } catch (e) { call_js('clipmixPreviewReady', { ok: false, msg: String(e.message || e) }); }
   finally { this.busy = false; }

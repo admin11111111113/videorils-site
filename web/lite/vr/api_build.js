@@ -190,12 +190,16 @@ P._pexels_download = async function (query, tag) {
   for (const c of await this._pexels_call('pexels_videos', query, 20)) {
     if (!c.url || (used && used.has(c.id))) continue;
     const dst = `temp/src_${tag}.mp4`;
-    try { await _download(c.url, dst); if (vfs.size(dst) > 0) { if (used) used.add(c.id); log(`  🎬 Pexels: видео для «${query}» → ${c.id}`); return [dst, true]; } } catch (e) { continue; }
+    if (used) used.add(c.id);   // резерв ДО скачивания: параллельные загрузки не возьмут тот же клип
+    try { await _download(c.url, dst); if (vfs.size(dst) > 0) { log(`  🎬 Pexels: видео для «${query}» → ${c.id}`); return [dst, true]; } } catch (e) { }
+    if (used) used.delete(c.id);
   }
   for (const p of await this._pexels_call('pexels_photos', query, 20)) {
     if (!p.url || (used && used.has(p.id))) continue;
     const dst = `temp/src_${tag}.jpg`;
-    try { await _download(p.url, dst); if (vfs.size(dst) > 0) { if (used) used.add(p.id); log(`  🖼 Pexels: фото для «${query}» → ${p.id}`); return [dst, false]; } } catch (e) { continue; }
+    if (used) used.add(p.id);
+    try { await _download(p.url, dst); if (vfs.size(dst) > 0) { log(`  🖼 Pexels: фото для «${query}» → ${p.id}`); return [dst, false]; } } catch (e) { }
+    if (used) used.delete(p.id);
   }
   return [null, null];
 };
