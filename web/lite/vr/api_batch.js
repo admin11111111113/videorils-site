@@ -51,7 +51,7 @@ P._batch_checks = function (topics_text) {
 };
 P.build_batch = function (topics_text, type_mode, diff_style) {
   const [topics, err] = this._batch_checks(topics_text); if (err) return err;
-  { const q = this._hour_quota_check(1, 'series'); if (q) return q; }
+  { const q = this._hour_quota_check(topics.length); if (q) return q; }
   if (!['ai', 'rotate', 'single', 'manual'].includes(type_mode)) type_mode = 'ai';
   this._batch_worker(topics, type_mode, !!diff_style);
   return { ok: true, total: topics.length };
@@ -155,7 +155,6 @@ P._batch_worker = async function (topics, type_mode, diff_style) {
       await sleep(4);
     }
     log(`✅ Пакет готов: ${done}/${total} рилсов в папке output`);
-    if (done) this._hour_quota_mark('series');
     if (done && !this.licensed) { await this._mark_trial_used(); this.trial_active = false; call_js('trialUsed', {}); }
     call_js('batchDone', { done, total, reels: this._batch_list() });
   } catch (e) {
@@ -287,7 +286,7 @@ P.build_batch_from_preview = function () {
   if (this.busy) return { ok: false, msg: this._t('already_processing') };
   if (!this._has_access()) return { ok: false, need_license: true, msg: this._t('lic_need') };
   if (!(this._batch_previews && this._batch_previews.length)) return { ok: false, msg: this._t('batch_msg_preview_first') };
-  { const q = this._hour_quota_check(1, 'series'); if (q) return q; }
+  { const q = this._hour_quota_check(this._batch_previews.length); if (q) return q; }
   this._batch_build_from_preview_worker();
   return { ok: true, total: this._batch_previews.length };
 };
@@ -341,7 +340,6 @@ P._batch_build_from_preview_worker = async function () {
       await sleep(2);
     }
     log(`✅ Пакет готов: ${done}/${total} рилсов в папке output`);
-    if (done) this._hour_quota_mark('series');
     if (done && !this.licensed) { await this._mark_trial_used(); this.trial_active = false; call_js('trialUsed', {}); }
     call_js('batchDone', { done, total, reels: this._batch_list() });
   } catch (e) {

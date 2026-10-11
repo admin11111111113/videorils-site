@@ -9,3 +9,14 @@ id = "2a615b38c83b458f8dc7e4869aeac4a2"
 
 [triggers]
 crons = ["17 * * * *"]
+
+[vars]
+QUEUE_PER_MIN = "4"
+
+[[durable_objects.bindings]]
+name = "QUEUE"
+class_name = "BuildQueue"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BuildQueue"]

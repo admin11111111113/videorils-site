@@ -86,3 +86,8 @@ P._ai_quota_check = function () {
   return `Лимит общего ИИ: ${lim} запросов в час. Следующий — через ${mins} мин. Или вставьте свой бесплатный ключ Groq или Gemini в разделе «Ключи» — без лимита.`;
 };
 P._ai_quota_mark = function () { const l = this._ai_quota_list(); l.push(Date.now()); store.set(this._ai_quota_key(), JSON.stringify(l.slice(-200))); };
+
+// Галочка снята и нужного ключа нет -> вместо «Key не задан» понятная подсказка, что делать
+const KEY_MSG_IDS = new Set(['ai_no_key', 'gem_no_key', 'stock_key_needed_mine', 'need_media_key', 'cm_need_media_key', 'cm_msg_need_media_key', 'm1_no_key', 'm2_no_key']);
+P._need_keys_msg = function () { return `Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, без лимита (при нагрузке — короткая очередь). Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).`; };
+{ const _t0 = P._t; P._t = function (key, ...args) { if (KEY_MSG_IDS.has(key) && this._shared_ready() && !this._use_shared()) return this._need_keys_msg(); return _t0.call(this, key, ...args); }; }

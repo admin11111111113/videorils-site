@@ -20,18 +20,19 @@ P.get_reel_credits = function () {
 // ролики/нарезки — 3, «Сделать серию» — 1 серия; запросы к общему ИИ — 40. Галочка снята (свои ключи) — без лимита.
 // Считаем только ГОТОВОЕ (упавшая сборка не тратит).
 const HOUR_MS = 3600000;
-const QUOTA = { reel: { limit: 3, key: 'vr_lite_hour_builds' }, series: { limit: 1, key: 'vr_lite_hour_series' }, };
-const OWN_KEY_TIP = 'Или снимите галочку «Наши ключи» и вставьте свои бесплатные ключи — без лимита.';
+const QUOTA = { reel: { limit: 10, key: 'vr_lite_hour_builds' } };
+const OWN_KEY_TIP = 'Или вставьте свои бесплатные ключи (Pexels, Pixabay и ИИ) и снимите галочку «Наши ключи» — со своими ключами без лимита.';
+P._ru_plural = function (n, one, few, many) { const a = Math.abs(n) % 100, b = a % 10; return a > 10 && a < 20 ? many : b === 1 ? one : b >= 2 && b <= 4 ? few : many; };
 P._PROD = 'lite';
 P._shared_limits = function () { return { limit: QUOTA.reel.limit, series_limit: QUOTA.series ? QUOTA.series.limit : 0, ai_limit: 40 }; };
-P._on_shared_stock = function () { return false; };   // площадка владельца — без лимитов
+P._on_shared_stock = function () { return false; };   // лимита в час нет — нагрузку держит очередь (4 старта в минуту на всех)
 P._hour_list = function (kind = 'reel') { let l = []; try { l = JSON.parse(store.get(QUOTA[kind].key) || '[]'); } catch (e) { } const t = Date.now(); return (Array.isArray(l) ? l : []).filter(x => typeof x === 'number' && x > t - HOUR_MS && x > (STOCK.reset || 0) && x <= t + 60000); };
 P._hour_quota_check = function (n = 1, kind = 'reel') {
   if (!QUOTA[kind] || !this._on_shared_stock()) return null;
   const lim = QUOTA[kind].limit, l = this._hour_list(kind).sort((a, b) => a - b);
   if (l.length + n <= lim) return null;
   const mins = Math.max(1, Math.ceil((l[l.length + n - lim - 1] + HOUR_MS - Date.now()) / 60000));
-  const what = kind === 'series' ? (lim === 1 ? '1 серия' : `${lim} серии`) : `${lim} ${lim === 1 ? 'ролик' : 'ролика'}`;
+  const what = `${lim} ${P._ru_plural(lim, 'ролик', 'ролика', 'роликов')}`;
   const next = kind === 'series' ? 'Следующую серию' : 'Следующий ролик';
   return { ok: false, code: 'hour_limit', msg: `Лимит на наших ключах: ${what} в час. ${next} можно будет собрать через ${mins} мин. ${OWN_KEY_TIP}` };
 };

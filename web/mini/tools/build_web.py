@@ -83,6 +83,10 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 # веб: клипы Pexels/Pixabay идут через наш общий ключ — в подсказках не просим вставлять ключи стоков
 STOCK_TEXT = [
+    ('aiKeyOn=!!(r&&(r.ai||r.gemini))', 'aiKeyOn=!!(r&&(r.ai||r.gemini||r.groq||r.shared))'),
+    ('aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0', 'aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0||!!(window.__vrShared&&window.__vrShared.on)'),
+    ('if(r&&(r.gemini||r.ai)){ finishGem(); }', 'if(r&&(r.gemini||r.ai||r.shared)){ finishGem(); }'),
+    ('if(r&&(r.pixabay||r.pexels)){ next(); }', 'if(r&&(r.pixabay||r.pexels||r.shared)){ next(); }'),
     ("ai_pick_fast:['⚡ Быстрый','⚡ Fast']", "ai_pick_fast:['🟣 Claude','🟣 Claude']"),
     ("ai_pick_smart:['🧠 Умный','🧠 Smart']", "ai_pick_smart:['🧠 Claude Opus','🧠 Claude Opus']"),
     ("ai_pick_free:['🔵 Бесплатный','🔵 Free']", "ai_pick_free:['🔵 Gemini','🔵 Gemini'],\n  ai_pick_groq:['🟠 Groq','🟠 Groq']"),
@@ -92,7 +96,7 @@ STOCK_TEXT = [
     ("renderGemQuota(hasGemini);", "renderGemQuota(hasGemini&&!window.__vrFreeIsGroq);"),
     ("Pixabay (клипы) + Gemini (текст).", "ключ ИИ — Gemini или Claude (текст); клипы уже подключены."),
     ("Для бесплатной проверки нужны 2 бесплатных ключа. Оба вставляются один раз, займёт ~2 минуты.", "Для бесплатной проверки нужен 1 бесплатный ключ ИИ — Gemini (или Claude). Клипы уже подключены."),
-    ("if(r&&r.gemini){ finishGem(); }", "if(r&&(r.gemini||r.ai)){ finishGem(); }"),
+    ("if(r&&r.gemini){ finishGem(); }", "if(r&&(r.gemini||r.ai||r.shared)){ finishGem(); }"),
     ("проверь, что вставлен Pixabay Key (блок ключей сверху)", "обнови страницу и попробуй ещё раз (клип сцены можно заменить своим файлом)"),
     ("добавь несколько ключей Pixabay и ElevenLabs (до 5 каждого)", "добавь несколько ключей ElevenLabs (до 5)"),
     ("Pixabay Key и ElevenLabs Key — до 5 ключей каждый", "ElevenLabs Key — до 5 ключей"),

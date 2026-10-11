@@ -2037,11 +2037,11 @@ function renderPxKeys(r){renderMultiKeys(r,{listId:'pxKeyList',removeApi:'remove
 function renderPexelsKeys(r){renderMultiKeys(r,{listId:'px2KeyList',removeApi:'remove_pexels_key',kind:'pexels',prefix:'px2',dotId:'px2Dot'});}
 function renderElKeys(r){renderMultiKeys(r,{listId:'elKeyList',removeApi:'remove_eleven_key',kind:'eleven',prefix:'el',dotId:'elDot'});}
 function renderGeminiKeys(r){renderMultiKeys(r,{listId:'gemKeyList',removeApi:'remove_gemini_key',kind:'gemini',prefix:'gem',dotId:'gemDot',
-  onKeys:(ks)=>{_aiKeyCnt.gemini=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0;if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
+  onKeys:(ks)=>{_aiKeyCnt.gemini=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0||!!(window.__vrShared&&window.__vrShared.on);if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
 function renderClaudeKeys(r){renderMultiKeys(r,{listId:'aiKeyList',removeApi:'remove_claude_key',kind:'claude',prefix:'ai',dotId:'aiDot',
   // AI-ключ есть, если есть ЛЮБОЙ: Claude или Gemini (раньше здесь учитывался только Claude —
   // плашка «Добавь AI-ключ» появлялась при сохранённом Gemini)
-  onKeys:(ks)=>{_aiKeyCnt.claude=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0;if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
+  onKeys:(ks)=>{_aiKeyCnt.claude=ks.length;aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0||!!(window.__vrShared&&window.__vrShared.on);if(typeof applyAiUI==='function')applyAiUI();if(typeof loadReelAi==='function')loadReelAi();}});}
 const _aiKeyCnt={claude:0,gemini:0};
 // 👁 показать/скрыть полный ключ + 📋 копировать (ключ отдаётся по клику, reveal_key)
 function keyActionBtns(kind,idx,maskSpan){
@@ -2108,7 +2108,7 @@ function loadKeysStatus(){api('get_keys_status').then(r=>{
   cstat('pxcatStat',(r&&r.pixabay?1:0)+(r&&r.pexels?1:0),2);
   cstat('voicecatStat',(r&&r.eleven?1:0),1);
   cstat('aicatStat',(r&&r.ai?1:0)+(r&&r.gemini?1:0),2);
-  aiKeyOn=!!(r&&(r.ai||r.gemini));applyAiUI();
+  aiKeyOn=!!(r&&(r.ai||r.gemini||r.groq||r.shared));applyAiUI();
   updateKeysSummary(r);
   const hasAnyKey=!!(r&&(r.pixabay||r.pexels||r.eleven||r.ai||r.gemini));
   let col=r&&r.collapsed;
@@ -4187,7 +4187,7 @@ function initReel(){
   musicExpanded=false;    // список музыки свёрнут при каждом входе
   renderReel();
   // обновляем наличие ключей -> кнопка «🤖 Сгенерировать» появляется при ключе
-  api('get_keys_status').then(r=>{aiKeyOn=!!(r&&(r.ai||r.gemini));applyAiUI();loadReelAi();});
+  api('get_keys_status').then(r=>{aiKeyOn=!!(r&&(r.ai||r.gemini||r.groq||r.shared));applyAiUI();loadReelAi();});
   loadScenario();         // тип сценария + статусы карандашиков
   loadReelAi();           // компактный селектор AI (если есть ключи)
   loadEmotion();          // подача голоса (эмоция)
@@ -6587,7 +6587,7 @@ function startTrial(){
     if(gk){ busy(t('trial_saving_key'));
       api('set_gemini_key',gk).then(finishGem).catch(()=>fail(t('trial_retry'))); }
     else{ api('get_keys_status').then(r=>{
-        if(r&&(r.gemini||r.ai)){ finishGem(); }
+        if(r&&(r.gemini||r.ai||r.shared)){ finishGem(); }
         else{ fail(t('trial_need_gem')); const f=$('licTrialGemKey'); if(f)f.focus(); }
       }).catch(finishGem); }
   };
@@ -6604,7 +6604,7 @@ function startTrial(){
       }).catch(()=>fail(t('trial_retry')));
     }else{                                   // поле пустое -> есть ли уже Pixabay-ключ?
       api('get_keys_status').then(r=>{
-        if(r&&(r.pixabay||r.pexels)){ next(); }
+        if(r&&(r.pixabay||r.pexels||r.shared)){ next(); }
         else{ fail(t('trial_need_px')); const f=$('licTrialPxKey'); if(f)f.focus(); }
       }).catch(()=>fail(t('trial_retry')));
     }
@@ -7328,6 +7328,7 @@ html.vrPhone .vrReelCredits{font-size:20px;max-width:none}
 html.vrPhone .vrSwapCredit{font-size:22px}
 /* общий ключ стоков (через наш сервер): онбординг «откуда брать видео» не показываем; свой ключ Pexels/Pixabay — по желанию (без лимита) */
 #mediaOnbModal{display:none!important}
+html.vrSharedOn #licTrialBox .trial-step,html.vrSharedOn #trialBox a[onclick^="openKeyGuide"]{display:none!important}
 .vrStockOpt{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.35);color:#9be7b4;font-size:12px;line-height:1.4}
 html.vrPhone .vrStockOpt{font-size:20px}
 .vrShared{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.45)}
@@ -7337,6 +7338,9 @@ html.vrPhone .vrStockOpt{font-size:20px}
 .vrGroq .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .vrGroq .km{display:flex;justify-content:space-between;font-size:12px;margin-top:4px}
 .vrAiPick{position:relative;display:inline-block}
+.vrQueue{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;background:#17132a;border:1px solid rgba(168,85,247,.6);border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:flex;gap:12px;align-items:center;font-weight:700;max-width:92vw}
+.vrQueue .t{font-size:20px;font-variant-numeric:tabular-nums;color:#c4b5fd}.vrQueue button{border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;border-radius:8px;padding:6px 10px;cursor:pointer}
+html.vrPhone .vrQueue{font-size:24px;padding:20px 24px}html.vrPhone .vrQueue .t{font-size:34px}
 .vrAiPick>button{padding:7px 14px;border-radius:999px;border:1px solid rgba(168,85,247,.55);background:rgba(168,85,247,.16);color:inherit;font-weight:800;cursor:pointer}
 .vrAiMenu{position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#17132a;border:1px solid rgba(168,85,247,.45);border-radius:12px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .vrAiMenu button{display:block;width:100%;text-align:left;padding:9px 12px;border:none;background:transparent;color:inherit;border-radius:8px;font-weight:700;cursor:pointer}
@@ -7377,8 +7381,13 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     });
   }
   // галочка «Наши ключи» (общие клипы + ИИ, с лимитом в час) + блок ключей Groq
-  function limitText(st){ if(!st)return ''; const r=st.limit||0, se=st.series_limit||0;
-    return 'до '+r+' '+(r===1?'ролика':'роликов')+(se?(' и '+se+' серии'):'')+' в час'; }
+  // окно лицензии: с галочкой «Наши ключи» триал без ключей — только кнопка
+  function trialMode(st){ const on=!!(st&&st.on&&st.ready); document.documentElement.classList.toggle('vrSharedOn',on);
+    document.querySelectorAll('[data-i18n="lic_trial_desc"]').forEach(function(el){
+      if(el.dataset.vrOrig==null)el.dataset.vrOrig=el.textContent;
+      if(on) el.textContent='1 бесплатное видео — все ключи уже подключены, просто нажми кнопку.';
+      else el.textContent=el.dataset.vrOrig+((st&&st.ready)?(' Или поставь галочку «Наши ключи» на главной и пользуйся нашими ключами — '+limitText(st)+'.'):''); }); }
+  function limitText(st){ return 'без лимита, при нагрузке — короткая очередь'; }
   function refreshAll(){ try{ if(typeof loadKeysStatus==='function')loadKeysStatus(); }catch(e){}
     try{ api('get_reel_ai').then(function(r){ if(!r)return; window.__vrFreeIsGroq=!!r.free_groq; if(typeof renderReelAi==='function')renderReelAi(r.has_claude,r.has_gemini); }); }catch(e){} }
   function sharedBox(){
@@ -7389,7 +7398,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       b.innerHTML='<label><input type="checkbox" id="vrSharedChk"> Наши ключи — клипы и ИИ уже подключены</label><div class="hint" id="vrSharedHint"></div>';
       const h3=panel.querySelector('h3'); panel.insertBefore(b,h3?h3.nextSibling:panel.firstChild);
       const chk=b.querySelector('#vrSharedChk'), hint=b.querySelector('#vrSharedHint');
-      const paint=function(st){ chk.checked=!!st.on; hint.textContent=st.on?'С галочкой работают наши ключи (Pexels, Pixabay, Groq, Gemini). Сними её — будут работать только твои ключи ниже.':'Работают только твои ключи. Поставь галочку, чтобы пользоваться нашими.'; };
+      const paint=function(st){ window.__vrShared=st; trialMode(st); chk.checked=!!st.on; hint.textContent=st.on?('С галочкой работают наши ключи (Pexels, Pixabay, Groq, Gemini) — '+limitText(st)+'. Сними её — будут работать только твои ключи ниже, без очереди.'):('Работают только твои ключи, без очереди. Поставь галочку, чтобы пользоваться нашими ('+limitText(st)+').'); };
       paint(st);
       chk.onchange=function(){ api('set_use_shared',chk.checked).then(function(s2){ paint(s2); stockOpt(true); refreshAll(); }); };
     }).catch(function(){});
@@ -7440,7 +7449,36 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       box.appendChild(m);
       setTimeout(function(){ document.addEventListener('click',function off(){ if(m.parentNode)m.remove(); document.removeEventListener('click',off); }); },0); };
   }
-  function boot(){ hook(); stockOpt(); sharedBox(); groqBox();
+  // сообщения интерфейса «ключ не задан» -> полная подсказка, когда галочка снята
+  const KEYMSG=['ai_no_key','gem_no_key','stock_key_needed_mine','need_media_key','cm_need_media_key','cm_msg_need_media_key','m1_no_key','m2_no_key','kg_missing','trial_need_px','trial_need_gem'];
+  function wrapT(){ if(typeof window.t!=='function'||window.t.__vrk)return; const t0=window.t;
+    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return 'Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).'; return t0.apply(this,arguments); };
+    nt.__vrk=1; window.t=nt; }
+  // Очередь на наших ключах: «Получить результат», клип-микс, серия — сначала место в очереди
+  // (4 старта в минуту на всех), при ожидании — обратный отсчёт, на нуле запуск сам.
+  const QUEUED={ai_generate_reel:1,clipmix_preview:1,build_clipmix:1,build_batch:'n',batch_preview:'n',build_batch_from_preview:'n'};
+  const QURL='https://videorils-tts.videorils.workers.dev/queue/join';
+  function qid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,10); }
+  async function qJoin(n){ let w=0, ahead=0;
+    for(let i=0;i<Math.max(1,Math.min(n,10));i++){ try{ const r=await fetch(QURL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:qid()})}); const j=await r.json(); w=Math.max(w,j.wait||0); if(i===0)ahead=j.ahead||0; }catch(e){} }
+    return {wait:w,ahead:ahead}; }
+  function qWait(q){ return new Promise(function(res){
+    if(!q||!q.wait){ res(true); return; }
+    const box=document.createElement('div'); box.className='vrQueue';
+    box.innerHTML='<span>⏳ Очередь на наших ключах — старт через</span><span class="t"></span><button type="button">Отмена</button>';
+    document.body.appendChild(box); const tEl=box.querySelector('.t'); const end=Date.now()+q.wait*1000;
+    const tick=function(){ const left=Math.max(0,Math.ceil((end-Date.now())/1000)); tEl.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+      if(left<=0){ clearInterval(iv); box.remove(); res(true); } };
+    const iv=setInterval(tick,250); tick();
+    box.querySelector('button').onclick=function(){ clearInterval(iv); box.remove(); res(false); }; }); }
+  function wrapApi(){ if(typeof window.api!=='function'||window.api.__vrq)return; const a0=window.api;
+    const na=function(method){ const args=arguments, kind=QUEUED[method], st=window.__vrShared;
+      if(!kind||!st||!st.on||!st.ready) return a0.apply(this,args);
+      let n=1; if(kind==='n'){ try{ n=method==='build_batch_from_preview'?5:String(args[1]||'').split('\n').filter(function(x){return x.trim();}).length||1; }catch(e){} }
+      const self=this;
+      return qJoin(n).then(qWait).then(function(go){ return go?a0.apply(self,args):{ok:false,msg:'Отменено — очередь'}; }); };
+    na.__vrq=1; window.api=na; }
+  function boot(){ hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });

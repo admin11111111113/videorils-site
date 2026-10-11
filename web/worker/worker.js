@@ -478,6 +478,40 @@ async function sharedKeys(env) {
   skCache = { at: Date.now(), v }; return v;
 }
 
+// Очередь сборок на наших ключах (Durable Object «BuildQueue», один на всех): не больше QUEUE_PER_MIN стартов
+// за любые 60 секунд. Пришёл — получил своё время старта (сразу или через N секунд с обратным отсчётом).
+// Повторный запрос с тем же билетом (id) возвращает то же место. Свои ключи — без очереди (решает клиент).
+export class BuildQueue {
+  constructor(state, env) { this.state = state; this.env = env; this.g = null; this.t = null; }
+  async fetch(req) {
+    if (this.g === null) { this.g = (await this.state.storage.get('g')) || []; this.t = (await this.state.storage.get('t')) || {}; }
+    const now = Date.now(); let d = {}; try { d = await req.json(); } catch (e) { }
+    const cap = Math.max(1, parseInt(this.env.QUEUE_PER_MIN || '4') || 4);
+    this.g = this.g.filter(x => x > now - 60000);
+    for (const k of Object.keys(this.t)) if (this.t[k] < now - 600000) delete this.t[k];
+    const id = String(d.id || '').slice(0, 48);
+    let slot = id && this.t[id];
+    if (!slot) {
+      const s = this.g.slice().sort((a, b) => a - b);
+      slot = s.length >= cap ? Math.max(now, s[s.length - cap] + 60000) : now;
+      this.g.push(slot); if (id) this.t[id] = slot;
+      await this.state.storage.put({ g: this.g, t: this.t });
+    }
+    const ahead = this.g.filter(x => x > now && x < slot).length;
+    return new Response(JSON.stringify({ wait: Math.max(0, Math.ceil((slot - now) / 1000)), ahead, per_min: cap }), { headers: { 'Content-Type': 'application/json' } });
+  }
+}
+async function queueJoin(req, env, origin) {
+  const h = Object.assign({ 'Content-Type': 'application/json' }, cors(origin));
+  if (!env.QUEUE) return new Response('{"wait":0}', { headers: h });
+  let body = '{}'; try { body = await req.text(); } catch (e) { }
+  try {
+    const stub = env.QUEUE.get(env.QUEUE.idFromName('global'));
+    const r = await stub.fetch('https://queue/join', { method: 'POST', body });
+    return new Response(await r.text(), { headers: h });
+  } catch (e) { return new Response('{"wait":0}', { headers: h }); }
+}
+
 export default {
   // раз в час: досылаем на сервер лицензий отметки триала, которые не дошли сразу.
   // Сервер НЕ будим впустую (бесплатные часы Render) — запрос только если есть что досылать.
@@ -494,6 +528,11 @@ export default {
     const fromSite = ALLOWED.some(r => r.test(origin));
     if (origin && !fromSite) return new Response('forbidden', { status: 403 });
     if (!origin && url.pathname === '/edge') return new Response('forbidden', { status: 403 });
+    if (url.pathname === '/queue/join') {
+      if (!fromSite) return new Response('forbidden', { status: 403 });
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
+      return await queueJoin(req, env, origin);
+    }
     if (url.pathname === '/ai/groq') {
       if (!fromSite) return new Response('forbidden', { status: 403 });
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });

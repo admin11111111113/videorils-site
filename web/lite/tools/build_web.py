@@ -102,6 +102,9 @@ for a, b in UI_PATCHES:
     s = s.replace(a, b)
 # веб: клипы Pexels/Pixabay идут через наш общий ключ — в подсказках не просим вставлять ключи стоков
 STOCK_TEXT = [
+    ('aiKeyOn=!!(r&&(r.ai||r.gemini))', 'aiKeyOn=!!(r&&(r.ai||r.gemini||r.groq||r.shared))'),
+    ('aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0', 'aiKeyOn=(_aiKeyCnt.claude+_aiKeyCnt.gemini)>0||!!(window.__vrShared&&window.__vrShared.on)'),
+    ("    if(!media||!gem){ openKeyGuide(); if($('kgHint'))$('kgHint').textContent=t('kg_missing'); return; }", "    if(!(ks&&ks.shared)&&(!media||!gem)){ openKeyGuide(); if($('kgHint'))$('kgHint').textContent=t('kg_missing'); return; }"),
     ("ai_pick_fast:['⚡ Быстрый','⚡ Fast']", "ai_pick_fast:['🟣 Claude','🟣 Claude']"),
     ("ai_pick_smart:['🧠 Умный','🧠 Smart']", "ai_pick_smart:['🧠 Claude Opus','🧠 Claude Opus']"),
     ("ai_pick_free:['🔵 Бесплатный','🔵 Free']", "ai_pick_free:['🔵 Gemini','🔵 Gemini'],\n  ai_pick_groq:['🟠 Groq','🟠 Groq']"),

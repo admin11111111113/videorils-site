@@ -102,7 +102,7 @@ P._notify_ai_limit = function () { try { call_js('aiLimitAsk', { has_paid: !!thi
 
 P._ai_call = async function (prompt, key = null, max_tokens = 4000, model = null, provider = null) {
   this._ai_last_reason = '';
-  if (!this.licensed) {   // триал: свой ключ Gemini или Claude
+  if (!this.licensed && (this.gemini_key || this.claude_key || !this._use_shared())) {   // триал: свой ключ Gemini или Claude (с галочкой «Наши ключи» — наши)
     if (!this.gemini_key && this.claude_key) return await this._claude_call(prompt, key, max_tokens, model);
     return await this._gemini_call(prompt, this.gemini_key, max_tokens, model);
   }

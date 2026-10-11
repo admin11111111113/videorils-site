@@ -413,7 +413,7 @@ P._build_reel_worker = async function (style_index, batch = false, out_name = nu
     vfs.write(out_path, res.blob); await vfs.flush(out_path);
     log(`  🎞 рендер: ${res.duration.toFixed(1)}s видео за ${(now() - t0).toFixed(1)}с, ${(res.blob.size / 1048576).toFixed(1)} МБ`);
     this.last_reel = out_path; this._reel_master_path = '';
-    if (!batch) this._hour_quota_mark();
+    this._hour_quota_mark();
     log(`✅ Рилс готов: ${out_name}`);
     this._ping_render();
     if (!batch && !this.licensed) { await this._mark_trial_used(); this.trial_active = false; call_js('trialUsed', {}); }
