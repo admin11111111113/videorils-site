@@ -282,13 +282,17 @@ export async function sha1Hex(s) { const b = await crypto.subtle.digest('SHA-1',
 // кто снял клип/фото -> подпись «Видео: автор / Pexels» в сценах и титры под готовым роликом.
 export const SHARED_STOCK = 'vr-shared-stock';
 export const STOCK = { pexels: false, pixabay: false, groq: false, reset: 0, checked: false };
+function _stock_apply(j) { STOCK.pexels = !!j.pexels; STOCK.pixabay = !!j.pixabay; STOCK.groq = !!j.groq; STOCK.reset = parseInt(j.reset) || 0; }
+async function _stock_fetch() {
+  const r = await fetch(CF_URL + '/stock/status', { cache: 'no-store' });
+  const j = r.ok ? await r.json() : {}; _stock_apply(j);
+  try { localStorage.setItem('vr_stock_status', JSON.stringify(j)); } catch (e) { }
+}
 export async function stock_shared_init() {
   if (STOCK.checked) return STOCK;
-  try {
-    const r = await fetch(CF_URL + '/stock/status', { cache: 'no-store' });
-    const j = r.ok ? await r.json() : {};
-    STOCK.pexels = !!j.pexels; STOCK.pixabay = !!j.pixabay; STOCK.groq = !!j.groq; STOCK.reset = parseInt(j.reset) || 0;
-  } catch (e) { }
+  let cached = null; try { cached = JSON.parse(localStorage.getItem('vr_stock_status') || 'null'); } catch (e) { }
+  if (cached) { _stock_apply(cached); _stock_fetch().catch(() => { }); }          // повторный заход: сразу, свежее — в фоне
+  else { try { await Promise.race([_stock_fetch(), new Promise((res) => setTimeout(res, 2500))]); } catch (e) { } }
   STOCK.checked = true; return STOCK;
 }
 const STOCK_CREDITS = new Map();

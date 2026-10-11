@@ -497,7 +497,7 @@ async function sharedKeys(env) {
 }
 
 // Очередь сборок на наших ключах (Durable Object «BuildQueue», один на всех): не больше QUEUE_PER_MIN стартов
-// за любые 60 секунд. Пришёл — получил своё время старта (сразу или через N секунд с обратным отсчётом).
+// за любые 60 секунд и не чаще одного старта в 60/QUEUE_PER_MIN секунд (без давки). Пришёл — получил своё время старта (сразу или через N секунд с обратным отсчётом).
 // Повторный запрос с тем же билетом (id) возвращает то же место. Свои ключи — без очереди (решает клиент).
 export class BuildQueue {
   constructor(state, env) { this.state = state; this.env = env; this.g = null; this.t = null; }
@@ -511,7 +511,9 @@ export class BuildQueue {
     let slot = id && this.t[id];
     if (!slot) {
       const s = this.g.slice().sort((a, b) => a - b);
-      slot = s.length >= cap ? Math.max(now, s[s.length - cap] + 60000) : now;
+      // не толпой: между стартами минимум 60/cap секунд (4 в минуту -> по одному каждые 15 с)
+      const gap = Math.floor(60000 / cap), last = s.length ? s[s.length - 1] : 0;
+      slot = Math.max(now, last ? last + gap : now, s.length >= cap ? s[s.length - cap] + 60000 : 0);
       this.g.push(slot); if (id) this.t[id] = slot;
       await this.state.storage.put({ g: this.g, t: this.t });
     }

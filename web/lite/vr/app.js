@@ -29,10 +29,13 @@ import { installTrialUX } from './trial_ux.js';
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
+    // слушаем «страница под контролем SW» ДО регистрации: событие приходит быстро и раньше пропускалось
+    // (тогда каждый первый заход ждал полный запасной таймаут 4 с)
+    const claimed = new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); });
     const reg = await navigator.serviceWorker.register(new URL('../sw.js', import.meta.url), { scope: new URL('../', import.meta.url).pathname });
     if (!navigator.serviceWorker.controller) {
       await navigator.serviceWorker.ready;
-      await new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); setTimeout(res, 4000); });
+      if (!navigator.serviceWorker.controller) await Promise.race([claimed, new Promise((res) => setTimeout(res, 1500))]);
       // первый заход: без контроллера temp/… не раздаётся — один раз перезагружаем страницу
       if (!navigator.serviceWorker.controller) {
         // и после Ctrl+F5 (жёсткое обновление отключает SW для вкладки): раньше перезагрузка была
