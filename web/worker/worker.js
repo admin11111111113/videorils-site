@@ -483,11 +483,27 @@ const WEB_EV = new Set(['open', 'visitor', 'get_result', 'build', 'reel_done', '
 const inc = { '.sv': { increment: 1 } };
 const fbKey = (x) => String(x || '').replace(/[.#$\[\]\/]/g, '|').slice(0, 90) || '|';
 const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|python|curl|wget|httpclient/i;
-async function siteEv(env, ctx, d, ua) {
+const BOT_KIND = [[/googlebot|google-inspectiontool|adsbot-google|mediapartners-google|google/i, 'google'], [/yandex/i, 'yandex'], [/bingbot|bingpreview|msnbot/i, 'bing'],
+  [/facebookexternalhit|facebot|meta-external/i, 'facebook'], [/telegrambot|twitterbot|vkshare|whatsapp|discordbot|slackbot/i, 'preview'],
+  [/ahrefs|semrush|mj12|dotbot|petalbot|bytespider|gptbot|claudebot|ccbot|amazonbot|applebot/i, 'crawler'], [/headless|python|curl|wget|httpclient|lighthouse/i, 'script']];
+const sidOk = (x) => /^[a-z0-9]{6,16}$/.test(String(x || ''));
+async function siteEv(env, ctx, d, ua, cf) {
   const day = new Date().toISOString().slice(0, 10), up = {};
   if (d.b || BOT_UA.test(ua || '')) {          // роботы и поисковики — отдельным счётчиком, людей не портят
     if (d.t) return;
-    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { bots: inc }).catch(() => { })); return;
+    const kind = (BOT_KIND.find(([re]) => re.test(ua || '')) || [, d.b ? 'browser_bot' : 'other'])[1];
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { bots: inc, ['bots_by/' + kind]: inc }).catch(() => { })); return;
+  }
+  // визит целиком (анонимно): откуда, страна, устройство, страница входа, страниц, время
+  if (sidOk(d.sid)) {
+    const su = {}, src0 = String(d.src || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
+    if (d.t) { su.tm = { '.sv': { increment: Math.max(1, Math.min(1800, Math.round(+d.t || 0))) } }; }
+    else {
+      su.pv = inc; su.last = new Date().toISOString().slice(11, 19);
+      su['pg/' + fbKey(String(d.u || '/').split('?')[0])] = inc;
+      if (d.s) { su.t0 = new Date().toISOString().slice(11, 19); su.src = src0 || 'direct'; su.ent = String(d.u || '/').split('?')[0].slice(0, 120); su.dev = d.dev === 'm' ? 'm' : 'd'; su.cc = String((cf && cf.country) || '').slice(0, 2); }
+    }
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_sess/${day}/${d.sid}`, su).catch(() => { }));
   }
   const csrc = String(d.src || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
   if (d.t) {                                   // время на странице, секунды (одно значение при уходе со страницы)
@@ -515,6 +531,11 @@ async function webEv(env, ctx, d) {
   ctx.waitUntil(fb(env, 'PATCH', `/videorils_web_stats/${day}/${prod}_${lang}`, { [e]: inc }).catch(() => { }));
   let src = String(d.src || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24) || 'direct'; if (src === 'internal') src = 'direct';
   ctx.waitUntil(fb(env, 'PATCH', `/videorils_web_src/${day}/${src}`, { [`${prod}_${e}`]: inc }).catch(() => { }));
+  if (sidOk(d.sid)) {                          // тот же визит: что человек сделал в приложении
+    const su = { [`${prod}_${e}`]: inc, last: new Date().toISOString().slice(11, 19) };
+    if (e === 'open') { su.app_src = src; su.dev = d.dev === 'm' ? 'm' : 'd'; }
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_sess/${day}/${d.sid}`, su).catch(() => { }));
+  }
 }
 
 // Счётчик запросов к общим ключам (для админки): /videorils_ai_stats/<день UTC>/<час UTC> {поле: +1}.
@@ -612,7 +633,7 @@ export default {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
       if (req.method === 'POST' && SITE_ONLY.test(origin) && fbOn(env)) {
         let d = {}; try { d = JSON.parse(await req.text()) || {}; } catch (e) { }
-        try { if (url.pathname === '/site/ev') await siteEv(env, ctx, d, req.headers.get('User-Agent') || ''); else await webEv(env, ctx, d); } catch (e) { }
+        try { if (url.pathname === '/site/ev') await siteEv(env, ctx, d, req.headers.get('User-Agent') || '', req.cf); else await webEv(env, ctx, d); } catch (e) { }
       }
       return new Response(null, { status: 204, headers: cors(origin) });
     }

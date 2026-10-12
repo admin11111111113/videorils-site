@@ -33,6 +33,8 @@
       else src = sessionStorage.getItem('vr_sv_s') || 'direct';
     } catch (e) { src = srcOf(); b.s = 1; entry = true; }
     b.src = src;
+    var sid = ''; try { sid = sessionStorage.getItem('vr_sv_sid') || ''; if (!sid) { sid = Math.random().toString(36).slice(2, 12); sessionStorage.setItem('vr_sv_sid', sid); } } catch (e) { }
+    b.sid = sid; b.dev = (matchMedia('(pointer:coarse)').matches || Math.min(screen.width, screen.height) < 700) ? 'm' : 'd';
     try { if (localStorage.getItem('vr_sv_d') !== d) { localStorage.setItem('vr_sv_d', d); b.v = 1; } if (!localStorage.getItem('vr_sv_f')) { localStorage.setItem('vr_sv_f', d); b.n = 1; } } catch (e) { }
     send(b);
     if (bot) return;
@@ -41,7 +43,7 @@
     var flush = function () {
       if (shown) { total += Date.now() - shown; shown = 0; }
       if (sent) return; var t = Math.round(total / 1000); if (t < 1) t = 1;
-      sent = true; send({ u: location.pathname, t: Math.min(t, 1800), src: src, e: entry ? 1 : 0 });
+      sent = true; send({ u: location.pathname, t: Math.min(t, 1800), src: src, e: entry ? 1 : 0, sid: sid });
     };
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'hidden') flush(); else if (!sent) shown = Date.now();

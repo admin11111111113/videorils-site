@@ -320,8 +320,9 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   const STAT_P=/\/lite\//.test(location.pathname)?'lite':'mini';
   let STAT_OPEN=0;
   function stat(e){ try{ fetch(STAT_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({p:STAT_P,e:e,l:(typeof uiLang!=='undefined'&&uiLang==='en')?'en':'ru',src:statSrc()})}).catch(function(){}); }catch(x){} }
+      body:JSON.stringify({p:STAT_P,e:e,l:(typeof uiLang!=='undefined'&&uiLang==='en')?'en':'ru',src:statSrc(),sid:statSid(),dev:(matchMedia('(pointer:coarse)').matches||Math.min(screen.width,screen.height)<700)?'m':'d'})}).catch(function(){}); }catch(x){} }
   // источник визита — тот же, что посчитал счётчик сайта в этой вкладке (vrstat.js); зашли сразу в приложение — «прямой»
+  function statSid(){ try{ let v=sessionStorage.getItem('vr_sv_sid'); if(!v){ v=Math.random().toString(36).slice(2,12); sessionStorage.setItem('vr_sv_sid',v); } return v; }catch(e){ return ''; } }
   function statSrc(){ try{ let v=sessionStorage.getItem('vr_sv_s'); if(v)return v;
       const q=new URLSearchParams(location.search); let h=''; try{ h=new URL(document.referrer).hostname; }catch(e){}
       v=q.get('yclid')?'yandex_ads':q.get('rb_clickid')?'vk_ads':q.get('gclid')?'google_ads':q.get('ttclid')?'tiktok_ads':(q.get('utm_source')||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24)
