@@ -191,7 +191,10 @@ async function mixClipmixAudio(vlen, musicBuf, music_db, hookBuf) {
 }
 P._build_clipmix_worker = async function () {
   this.busy = true; this._BUILD_DEGRADED = [];
-  const { _pix_reset_counters } = await import('./media.js'); _pix_reset_counters();
+  const { _pix_reset_counters } = await import('./media.js');
+  { // кадры одобренного превью уже скачаны — их авторов сохраняем для подписи под нарезкой
+    const core = await import('./core.js'); const keep = (this.clipmix_moments && this.clipmix_moments.length) ? core.stock_used_list() : [];
+    _pix_reset_counters(); core.stock_used_add(keep); }
   try {
     let moments, meta, base_dur, frames, theme;
     const approved = this.clipmix_moments;
@@ -285,6 +288,7 @@ P.clipmix_preview = function (theme) {
 };
 P._clipmix_preview_worker = async function () {
   this.busy = true;
+  try { (await import('./core.js')).stock_used_reset(); } catch (e) { }   // новое превью — новый список авторов
   try {
     const [moments, meta] = await this._clipmix_plan(this.clipmix_theme, true);
     this.clipmix_moments = moments; this._clipmix_meta = meta;

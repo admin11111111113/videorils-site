@@ -323,6 +323,7 @@ const STOCK_USED = new Map();
 export function stock_mark_used(u) { const c = stock_credit(u); if (c) STOCK_USED.set(c.source + '|' + c.page, c); }
 export function stock_used_reset() { STOCK_USED.clear(); }
 export function stock_used_list() { return [...STOCK_USED.values()]; }
+export function stock_used_add(list) { for (const c of (list || [])) if (c) STOCK_USED.set(c.source + '|' + c.page, c); }
 function _stock_kind(url) { return url.startsWith('https://api.pexels.com/') ? 'pexels' : url.startsWith('https://pixabay.com/api/') ? 'pixabay' : ''; }
 
 // --------------------------------------------------------------- HTTP (requests) --

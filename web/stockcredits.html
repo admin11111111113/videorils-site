@@ -341,7 +341,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     let d=box.querySelector('.vrReelCredits');
     if(!d){ d=document.createElement('div'); d.className='vrReelCredits'; box.appendChild(d); }
     d.innerHTML='';
-    api('get_reel_credits').then(function(r){
+    api('get_reel_credits',(box.id==='cmResultBox'||box.id==='cmColRight')?'clipmix':'').then(function(r){
       const l=(r&&r.credits)||[]; if(!l.length)return;
       const src=[...new Set(l.map(function(c){return c.source;}))].join(' · ');
       d.innerHTML='🎞 <b>'+L('Кадры','Footage')+' ('+esc(src)+'):</b> '+l.map(credit).join(', ');
