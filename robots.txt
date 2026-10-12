@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://videorils.com/sitemap.xml
+Sitemap: https://videorils.com/sitemap-en.xml
