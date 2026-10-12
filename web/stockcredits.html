@@ -293,6 +293,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   const ERR_IGN=/ResizeObserver loop|chrome-extension:|moz-extension:|safari-extension:|^Script error\.?$|Non-Error promise rejection captured|AbortError|The play\(\) request was interrupted|NotAllowedError: play\(\)/i;
   function repErr(type,msg,stage){
     try{ msg=String(msg||'').replace(/\s+/g,' ').trim().slice(0,200); if(!msg||ERR_IGN.test(msg))return;
+      if(/лицензи|license/i.test(msg)&&/триал|trial/i.test(msg))return;   // окно лицензии — не ошибка
       const k=type+'|'+msg; if(ERR_SEEN[k]||ERR_N>=15)return; ERR_SEEN[k]=1; ERR_N++;
       if(canApi()) api('report_client_error',type,msg,String(stage||'web').slice(0,24)); }catch(e){}
   }
@@ -308,8 +309,38 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     w('subsDone',function(p,err){ if(err)repErr('subs_failed',err,'subs_only'); });
     w('clipmixPreviewReady',function(r){ if(r&&r.ok===false)repErr('clipmix_preview_failed',r.msg||'','clipmix'); });
     w('batchDone',function(r){ if(r&&r.total&&r.done<r.total)repErr('batch_partial','собрано '+r.done+' из '+r.total,'batch'); });
-    w('aiFail',function(r){ repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
+    w('aiFail',function(r){ if(isGate(r)){ stat('paywall'); return; } repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
     w('edgeLimitAsk',function(){ repErr('tts_limit','бесплатный голос притормозил (Microsoft)','voice'); });
+  }
+  // ---------- статистика веб-версии (анонимно: событие + код браузера, без личных данных) ----------
+  const STAT_URL='https://videorils-tts.videorils.workers.dev/web/ev';
+  const STAT_P=/\/lite\//.test(location.pathname)?'lite':'mini';
+  let STAT_OPEN=0;
+  function stat(e){ try{ fetch(STAT_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({p:STAT_P,e:e,l:(typeof uiLang!=='undefined'&&uiLang==='en')?'en':'ru'})}).catch(function(){}); }catch(x){} }
+  function statInit(){
+    if(STAT_OPEN||!canApi())return; STAT_OPEN=1; stat('open');
+    try{ const k='vr_stat_day_'+STAT_P, d=new Date().toISOString().slice(0,10); if(localStorage.getItem(k)!==d){ localStorage.setItem(k,d); stat('visitor'); } }catch(e){}
+  }
+  window.vrStat=stat;
+  const STAT_EV={ai_generate_reel:'get_result',batch_preview:'get_result',clipmix_preview:'get_result',
+    build_reel:'build',build_clipmix:'build',build_batch:'build',build_batch_from_preview:'build',build_subs_only:'build'};
+  const isGate=function(r){ return !!(r&&(r.need_license||(r.ok===false&&/лицензи|license/i.test(String(r.msg||''))&&/триал|trial/i.test(String(r.msg||''))))); };
+  function wrapStat(){
+    if(typeof window.api!=='function'||window.api.__vrs)return; const a0=window.api;
+    const na=function(method){ const ev=STAT_EV[method]; if(ev)stat(ev);
+      const out=a0.apply(this,arguments);
+      if(ev&&out&&typeof out.then==='function') out.then(function(r){ if(isGate(r))stat('paywall'); }).catch(function(){});
+      return out; };
+    na.__vrs=1; window.api=na;
+    const w=function(name,fn){ const f=window[name]; if(typeof f!=='function'||f.__vrs)return;
+      const g=function(){ try{ fn.apply(null,arguments); }catch(e){} return f.apply(this,arguments); }; g.__vrs=1; window[name]=g; };
+    const done=function(ok){ if(!ok)return; stat('reel_done'); try{ if(window.__vrApi&&!window.__vrApi.licensed)stat('trial_reel'); }catch(e){} };
+    w('reelDone',function(path){ done(!!path); });
+    w('clipmixDone',function(path){ done(!!path); });
+    w('batchDone',function(r){ if(r&&r.done)for(let i=0;i<r.done;i++)done(true); });
+    w('startPurchase',function(){ stat('pay_click'); });
+    w('startBuy',function(){ stat('pay_click'); });
   }
   function langSync(){
     try{
@@ -332,7 +363,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       if(canApi()) try{ localStorage.setItem('vr_web_lang',uiLang); }catch(e){}
     }catch(e){}
   }
-  function boot(){ langSync(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
+  function boot(){ langSync(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); window.addEventListener('pywebviewready',function(){ boot(); setTimeout(boot,300); }); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });

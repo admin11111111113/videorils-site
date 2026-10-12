@@ -472,6 +472,37 @@ async function groq(req, env, origin, ctx) {
   return new Response('{"error":{"message":"shared AI busy"}}', { status: last ? last.status : 502, headers: h });
 }
 
+// ---------- своя статистика (анонимно, только счётчики; без IP и без кодов браузера) ----------
+// Сайт: /videorils_site_stats/<день UTC> {views, visits, visitors, newv, src/<источник>, pg/<страница>, ent/<страница входа>}
+// Веб-приложения: /videorils_web_stats/<день UTC>/<mini|lite>_<ru|en> {<событие>: n}
+const SITE_ONLY = /^https:\/\/(www\.)?videorils\.com$/;     // тесты с localhost статистику не портят
+const SRC = [[/google\./, 'google'], [/yandex\.|ya\.ru$/, 'yandex'], [/bing\.com$/, 'bing'], [/duckduckgo\./, 'duckduckgo'],
+  [/yahoo\./, 'yahoo'], [/tiktok\.com$/, 'tiktok'], [/instagram\.com$/, 'instagram'], [/facebook\.com$|fb\.com$/, 'facebook'],
+  [/youtube\.com$|youtu\.be$/, 'youtube'], [/t\.me$|telegram\./, 'telegram'], [/vk\.com$|vk\.ru$/, 'vk'], [/(^|\.)videorils\.com$/, 'internal']];
+const WEB_EV = new Set(['open', 'visitor', 'get_result', 'build', 'reel_done', 'trial_reel', 'paywall', 'pay_click']);
+const inc = { '.sv': { increment: 1 } };
+const fbKey = (x) => String(x || '').replace(/[.#$\[\]\/]/g, '|').slice(0, 90) || '|';
+async function siteEv(env, ctx, d) {
+  const day = new Date().toISOString().slice(0, 10), up = {};
+  let path = String(d.u || '/').split('?')[0].split('#')[0]; if (!path.startsWith('/')) path = '/' + path;
+  up.views = inc; up['pg/' + fbKey(path)] = inc;
+  if (d.s) {                                   // первая страница визита: источник + страница входа
+    let host = ''; try { host = new URL(String(d.r || '')).hostname.toLowerCase(); } catch (e) { }
+    let src = String(d.utm || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
+    if (!src) src = host ? ((SRC.find(([re]) => re.test(host)) || [, 'other'])[1]) : 'direct';
+    up.visits = inc; up['src/' + src] = inc; up['ent/' + fbKey(path)] = inc;
+  }
+  if (d.v) up.visitors = inc;                  // первый заход за день (флаг в браузере)
+  if (d.n) up.newv = inc;                      // первый заход вообще
+  ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, up).catch(() => { }));
+}
+async function webEv(env, ctx, d) {
+  const e = String(d.e || ''); if (!WEB_EV.has(e)) return;
+  const prod = d.p === 'lite' ? 'lite' : 'mini', lang = d.l === 'en' ? 'en' : 'ru';
+  const day = new Date().toISOString().slice(0, 10);
+  ctx.waitUntil(fb(env, 'PATCH', `/videorils_web_stats/${day}/${prod}_${lang}`, { [e]: inc }).catch(() => { }));
+}
+
 // Счётчик запросов к общим ключам (для админки): /videorils_ai_stats/<день UTC>/<час UTC> {поле: +1}.
 // Пишем фоном (ctx.waitUntil), ответ пользователю не ждёт.
 function aiStat(env, ctx, field) {
@@ -563,6 +594,14 @@ export default {
     const fromSite = ALLOWED.some(r => r.test(origin));
     if (origin && !fromSite) return new Response('forbidden', { status: 403 });
     if (!origin && url.pathname === '/edge') return new Response('forbidden', { status: 403 });
+    if (url.pathname === '/site/ev' || url.pathname === '/web/ev') {
+      if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
+      if (req.method === 'POST' && SITE_ONLY.test(origin) && fbOn(env)) {
+        let d = {}; try { d = JSON.parse(await req.text()) || {}; } catch (e) { }
+        try { if (url.pathname === '/site/ev') await siteEv(env, ctx, d); else await webEv(env, ctx, d); } catch (e) { }
+      }
+      return new Response(null, { status: 204, headers: cors(origin) });
+    }
     if (url.pathname === '/queue/join') {
       if (!fromSite) return new Response('forbidden', { status: 403 });
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
