@@ -489,15 +489,18 @@ async function siteEv(env, ctx, d, ua) {
     if (d.t) return;
     ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { bots: inc }).catch(() => { })); return;
   }
+  const csrc = String(d.src || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
   if (d.t) {                                   // время на странице, секунды (одно значение при уходе со страницы)
-    const t = Math.max(1, Math.min(1800, Math.round(+d.t || 0)));
-    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { time: { '.sv': { increment: t } }, tn: inc }).catch(() => { })); return;
+    const t = Math.max(1, Math.min(1800, Math.round(+d.t || 0))), tu = { time: { '.sv': { increment: t } }, tn: inc };
+    if (csrc) { tu['srct/' + csrc] = { '.sv': { increment: t } }; if (d.e && t < 5) tu['srcq/' + csrc] = inc; }
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, tu).catch(() => { })); return;
   }
+  if (csrc) up['srcv/' + csrc] = inc;          // просмотры по источнику визита (для глубины)
   let path = String(d.u || '/').split('?')[0].split('#')[0]; if (!path.startsWith('/')) path = '/' + path;
   up.views = inc; up['pg/' + fbKey(path)] = inc;
   if (d.s) {                                   // первая страница визита: источник + страница входа
     let host = ''; try { host = new URL(String(d.r || '')).hostname.toLowerCase(); } catch (e) { }
-    let src = String(d.utm || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
+    let src = csrc || String(d.utm || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
     if (!src) src = host ? ((SRC.find(([re]) => re.test(host)) || [, 'other'])[1]) : 'direct';
     up.visits = inc; up['src/' + src] = inc; up['ent/' + fbKey(path)] = inc;
   }
