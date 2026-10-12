@@ -11849,7 +11849,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   // сообщения интерфейса «ключ не задан» -> полная подсказка, когда галочка снята
   const KEYMSG=['ai_no_key','gem_no_key','stock_key_needed_mine','need_media_key','cm_need_media_key','cm_msg_need_media_key','m1_no_key','m2_no_key','kg_missing','trial_need_px','trial_need_gem'];
   function wrapT(){ if(typeof window.t!=='function'||window.t.__vrk)return; const t0=window.t;
-    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return L('Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).','No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, '+limitText(st)+'. Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'); return t0.apply(this,arguments); };
+    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return L('Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).','No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, '+limitText(st)+'. Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'); const out=t0.apply(this,arguments); return (typeof out==='string')?out.replace(/на этом ПК/g,'в этом браузере').replace(/this PC/g,'this browser'):out; };
     nt.__vrk=1; window.t=nt; }
   // Очередь на наших ключах: «Получить результат», клип-микс, серия — сначала место в очереди
   // (4 старта в минуту на всех), при ожидании — обратный отсчёт, на нуле запуск сам.
@@ -12005,7 +12005,8 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   const ERR_SEEN={}; let ERR_N=0;
   const ERR_IGN=/ResizeObserver loop|chrome-extension:|moz-extension:|safari-extension:|^Script error\.?$|Non-Error promise rejection captured|AbortError|The play\(\) request was interrupted|NotAllowedError: play\(\)/i;
   function repErr(type,msg,stage){
-    try{ msg=String(msg||'').replace(/\s+/g,' ').trim().slice(0,200); if(!msg||ERR_IGN.test(msg))return;
+    try{ if(!/(^|[.])videorils[.]com$/.test(location.hostname))return;   // тесты с localhost в админку и Telegram не шлём
+      msg=String(msg||'').replace(/\s+/g,' ').trim().slice(0,200); if(!msg||ERR_IGN.test(msg))return;
       if(/лицензи|license/i.test(msg)&&/триал|trial/i.test(msg))return;   // окно лицензии — не ошибка
       const k=type+'|'+msg; if(ERR_SEEN[k]||ERR_N>=15)return; ERR_SEEN[k]=1; ERR_N++;
       if(canApi()) api('report_client_error',type,msg,String(stage||'web').slice(0,24)); }catch(e){}
@@ -12050,6 +12051,8 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     const na=function(method){ const ev=STAT_EV[method]; if(ev)stat(ev);
       const out=a0.apply(this,arguments);
       if(ev&&out&&typeof out.then==='function') out.then(function(r){ if(isGate(r))stat('paywall'); }).catch(function(){});
+      // реальная оплата: сервер подтвердил платёж и выдал ключ (один раз на вкладку)
+      if(method==='check_payment'&&out&&typeof out.then==='function') out.then(function(r){ if(r&&r.paid&&!window.__vrPaidStat){ window.__vrPaidStat=1; stat('paid'); } }).catch(function(){});
       return out; };
     na.__vrs=1; window.api=na;
     const w=function(name,fn){ const f=window[name]; if(typeof f!=='function'||f.__vrs)return;

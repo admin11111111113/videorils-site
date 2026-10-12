@@ -479,7 +479,7 @@ const SITE_ONLY = /^https:\/\/(www\.)?videorils\.com$/;     // тесты с loc
 const SRC = [[/google\./, 'google'], [/yandex\.|ya\.ru$/, 'yandex'], [/bing\.com$/, 'bing'], [/duckduckgo\./, 'duckduckgo'],
   [/yahoo\./, 'yahoo'], [/tiktok\.com$/, 'tiktok'], [/instagram\.com$/, 'instagram'], [/facebook\.com$|fb\.com$/, 'facebook'],
   [/youtube\.com$|youtu\.be$/, 'youtube'], [/t\.me$|telegram\./, 'telegram'], [/vk\.com$|vk\.ru$/, 'vk'], [/(^|\.)videorils\.com$/, 'internal']];
-const WEB_EV = new Set(['open', 'visitor', 'get_result', 'build', 'reel_done', 'trial_reel', 'paywall', 'pay_click']);
+const WEB_EV = new Set(['open', 'visitor', 'get_result', 'build', 'reel_done', 'trial_reel', 'paywall', 'pay_click', 'paid']);
 const inc = { '.sv': { increment: 1 } };
 const fbKey = (x) => String(x || '').replace(/[.#$\[\]\/]/g, '|').slice(0, 90) || '|';
 const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|python|curl|wget|httpclient/i;
