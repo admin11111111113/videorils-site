@@ -1,4 +1,5 @@
 <style id="vrCreditsCss">
+#licActivateBox{display:block!important}#licPromoHint{display:none!important}
 .vrCredit{margin-top:6px;font-size:11px;line-height:1.35;color:#8b86a6;word-break:break-word}
 .vrCredit a,.vrReelCredits a,.vrSwapCredit a{color:#a99cff;text-decoration:none}
 .vrCredit a:hover,.vrReelCredits a:hover,.vrSwapCredit a:hover{text-decoration:underline}
@@ -10,7 +11,8 @@ html.vrPhone .vrSwapCredit{font-size:22px}
 /* общий ключ стоков (через наш сервер): онбординг «откуда брать видео» не показываем; свой ключ Pexels/Pixabay — по желанию (без лимита) */
 #mediaOnbModal{display:none!important}
 #rulesModal .modal-body .rsec:not(#vrRulesWeb .rsec){display:none!important}
-html.vrSharedOn #licTrialBox .trial-step,html.vrSharedOn #trialBox a[onclick^="openKeyGuide"]{display:none!important}
+html.vrSharedOn #licTrialBox .trial-step:not(:has(#licTrialStart)),html.vrSharedOn #trialBox a[onclick^="openKeyGuide"]{display:none!important}
+html.vrSharedOn #licTrialBox .trial-step:has(#licTrialStart) .trial-num,html.vrSharedOn #licTrialBox [data-i18n="trial_step3"],html.vrSharedOn #licTrialBox [data-i18n="trial_pexels_opt"]{display:none!important}
 .vrStockOpt{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.35);color:#9be7b4;font-size:12px;line-height:1.4}
 html.vrPhone .vrStockOpt{font-size:20px}
 .vrShared{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:rgba(168,85,247,.10);border:1px solid rgba(168,85,247,.45)}
@@ -372,7 +374,25 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       if(canApi()) try{ localStorage.setItem('vr_web_lang',uiLang); }catch(e){}
     }catch(e){}
   }
-  function boot(){ langSync(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
+  // окно лицензии: поле «Уже купил? Введи ключ» видно сразу (сразу под согласием), промокод — отдельной кнопкой, не тут
+  function licFix(){
+    const box=document.getElementById('licActivateBox'), cb=document.getElementById('consentBox');
+    if(!box||box.dataset.vrfix)return; box.dataset.vrfix='1';
+    const lp=document.getElementById('licPlans');   // ключ — после тарифов (сначала триал и оплата)
+    if(lp&&lp.parentNode) lp.parentNode.insertBefore(box, lp.nextSibling); else if(cb&&cb.parentNode) cb.parentNode.insertBefore(box, cb.nextSibling);
+    const f=window.doActivate;
+    if(typeof f==='function'&&!f.__vrc){ const g=function(){ if(typeof requireConsent==='function'&&!requireConsent())return; return f.apply(this,arguments); }; g.__vrc=1; window.doActivate=g; }
+  }
+  // без лицензии всё нужное видно сразу: триал, тарифы, ключ (согласие спросим при нажатии — requireConsent)
+  function licShowAll(){
+    try{ if(typeof access==='undefined'||access.licensed)return;
+      const g=document.getElementById('gatedActivation'); if(g) g.style.display='block';                 // Мини: триал + ключ
+      const lp=document.getElementById('licPlans'); if(lp&&lp.style.display==='none') lp.style.display=/\/lite\//.test(location.pathname)?'flex':''; // Лайт: тарифы
+    }catch(e){}
+  }
+  function licGateWrap(){ const f=window.applyConsentGate; if(typeof f!=='function'||f.__vrg)return;
+    const g=function(){ const r=f.apply(this,arguments); licShowAll(); return r; }; g.__vrg=1; window.applyConsentGate=g; }
+  function boot(){ langSync(); licFix(); licGateWrap(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); window.addEventListener('pywebviewready',function(){ boot(); setTimeout(boot,300); }); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
