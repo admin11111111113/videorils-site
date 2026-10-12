@@ -482,8 +482,17 @@ const SRC = [[/google\./, 'google'], [/yandex\.|ya\.ru$/, 'yandex'], [/bing\.com
 const WEB_EV = new Set(['open', 'visitor', 'get_result', 'build', 'reel_done', 'trial_reel', 'paywall', 'pay_click']);
 const inc = { '.sv': { increment: 1 } };
 const fbKey = (x) => String(x || '').replace(/[.#$\[\]\/]/g, '|').slice(0, 90) || '|';
-async function siteEv(env, ctx, d) {
+const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|preview|facebookexternalhit|python|curl|wget|httpclient/i;
+async function siteEv(env, ctx, d, ua) {
   const day = new Date().toISOString().slice(0, 10), up = {};
+  if (d.b || BOT_UA.test(ua || '')) {          // роботы и поисковики — отдельным счётчиком, людей не портят
+    if (d.t) return;
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { bots: inc }).catch(() => { })); return;
+  }
+  if (d.t) {                                   // время на странице, секунды (одно значение при уходе со страницы)
+    const t = Math.max(1, Math.min(1800, Math.round(+d.t || 0)));
+    ctx.waitUntil(fb(env, 'PATCH', `/videorils_site_stats/${day}`, { time: { '.sv': { increment: t } }, tn: inc }).catch(() => { })); return;
+  }
   let path = String(d.u || '/').split('?')[0].split('#')[0]; if (!path.startsWith('/')) path = '/' + path;
   up.views = inc; up['pg/' + fbKey(path)] = inc;
   if (d.s) {                                   // первая страница визита: источник + страница входа
@@ -598,7 +607,7 @@ export default {
       if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
       if (req.method === 'POST' && SITE_ONLY.test(origin) && fbOn(env)) {
         let d = {}; try { d = JSON.parse(await req.text()) || {}; } catch (e) { }
-        try { if (url.pathname === '/site/ev') await siteEv(env, ctx, d); else await webEv(env, ctx, d); } catch (e) { }
+        try { if (url.pathname === '/site/ev') await siteEv(env, ctx, d, req.headers.get('User-Agent') || ''); else await webEv(env, ctx, d); } catch (e) { }
       }
       return new Response(null, { status: 204, headers: cors(origin) });
     }
