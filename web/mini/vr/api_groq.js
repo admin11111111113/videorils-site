@@ -34,6 +34,8 @@ P._groq_check = async function (key) {
     return [false, r.status_code];
   } catch (e) { return [false, 0]; }
 };
+// есть ли ИИ для текста: свои ключи Claude/Gemini/Groq или наш общий ИИ (галочка «Наши ключи»)
+P._has_ai = function () { return !!(this.claude_key || this.gemini_key || this.groq_key || (this._use_shared() && STOCK.groq)); };
 P.get_groq_keys = function () { return { keys: this._groq_keys_load().map(k => ({ mask: Api._mask(k) })), max: 5 }; };
 P.add_groq_key = async function (key) {
   key = (this._clean_key ? this._clean_key(key) : String(key || '').trim());

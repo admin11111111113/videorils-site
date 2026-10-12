@@ -44,7 +44,7 @@ P._batch_checks = function (topics_text) {
   if (!this._has_access()) return [null, { ok: false, need_license: true, msg: this._t('lic_need') }];
   const topics = String(topics_text || '').split('\n').map(l => l.trim()).filter(Boolean);
   if (!topics.length) return [null, { ok: false, msg: this._t('batch_need_topics') }];
-  if (!(this.claude_key || this.gemini_key)) return [null, { ok: false, msg: this._t('ai_no_key') }];
+  if (!this._has_ai()) return [null, { ok: false, msg: this._t('ai_no_key') }];
   if (!this._has_stock()) return [null, { ok: false, msg: this._t('stock_key_needed') }];
   if (this.tts_engine === 'myvoice') return [null, { ok: false, msg: this._t('batch_no_myvoice') }];
   return [topics, null];
@@ -180,7 +180,7 @@ P.series_split = async function (theme) {
   theme = String(theme || '').trim();
   if (!theme) return { ok: false, msg: this._t('series_need_theme') };
   this._series_theme = theme; this._series_gender = this._pick_series_gender(theme);
-  if (!(this.claude_key || this.gemini_key)) return { ok: false, msg: this._t('ai_no_key'), manual: true };
+  if (!this._has_ai()) return { ok: false, msg: this._t('ai_no_key'), manual: true };
   const prompt = `Раздели широкую тему «${theme}» на 4 последовательные подтемы для СЕРИИ коротких вертикальных рилсов — по одному ролику на подтему. Подтемы идут в логичном порядке (от простого к сильному), каждая самостоятельна и цепляет. Верни РОВНО 4 строки — по одной короткой теме ролика (3-8 слов) в каждой, без нумерации, кавычек и пояснений.`;
   const [ok, out] = await this._ai_call(prompt, null, 800);
   if (!ok) return { ok: false, msg: out, manual: true };

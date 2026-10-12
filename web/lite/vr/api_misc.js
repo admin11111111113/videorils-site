@@ -25,7 +25,7 @@ P.use_trending_idea = async function (idea) {
   const title = (idea.title || '').trim();
   const base = (idea.adapted_text || idea.adapted_title || title).trim();
   let text = base, unique = false;
-  if ((this.claude_key || this.gemini_key) && title) {
+  if (this._has_ai() && title) {
     const prompt = `Трендовая тема из TikTok/Shorts: «${title}».\nБазовая идея: ${base}\nПридумай УНИКАЛЬНЫЙ короткий вариант ТЕМЫ для вертикального ролика (1–2 предложения, на русском): другой угол, другие акценты и примеры, но та же общая тема тренда. Ролик снимается БЕЗ лица в кадре — только стоковые видео и закадровый голос. Верни ТОЛЬКО текст темы, без пояснений и кавычек.`;
     try {
       const [ok, out] = await this._ai_call(prompt, null, 800);
