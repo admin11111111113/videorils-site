@@ -12030,7 +12030,13 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   const STAT_P=/\/lite\//.test(location.pathname)?'lite':'mini';
   let STAT_OPEN=0;
   function stat(e){ try{ fetch(STAT_URL,{method:'POST',keepalive:true,headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({p:STAT_P,e:e,l:(typeof uiLang!=='undefined'&&uiLang==='en')?'en':'ru'})}).catch(function(){}); }catch(x){} }
+      body:JSON.stringify({p:STAT_P,e:e,l:(typeof uiLang!=='undefined'&&uiLang==='en')?'en':'ru',src:statSrc()})}).catch(function(){}); }catch(x){} }
+  // источник визита — тот же, что посчитал счётчик сайта в этой вкладке (vrstat.js); зашли сразу в приложение — «прямой»
+  function statSrc(){ try{ let v=sessionStorage.getItem('vr_sv_s'); if(v)return v;
+      const q=new URLSearchParams(location.search); let h=''; try{ h=new URL(document.referrer).hostname; }catch(e){}
+      v=q.get('yclid')?'yandex_ads':q.get('rb_clickid')?'vk_ads':q.get('gclid')?'google_ads':q.get('ttclid')?'tiktok_ads':(q.get('utm_source')||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24)
+        ||(!h?'direct':/google[.]/.test(h)?'google':/yandex[.]|(^|[.])ya[.]ru$/.test(h)?'yandex':/(^|[.])ads[.]vk[.]com$/.test(h)?'vk_ads':/(^|[.])vk[.](com|ru)$/.test(h)?'vk':/tiktok[.]com$/.test(h)?'tiktok':/instagram[.]com$/.test(h)?'instagram':/youtube[.]com$|youtu[.]be$/.test(h)?'youtube':/(^|[.])t[.]me$|telegram/.test(h)?'telegram':/videorils[.]com$/.test(h)?'direct':'other');
+      sessionStorage.setItem('vr_sv_s',v); return v; }catch(e){ return 'direct'; } }
   function statInit(){
     if(STAT_OPEN||!canApi())return; STAT_OPEN=1; stat('open');
     try{ const k='vr_stat_day_'+STAT_P, d=new Date().toISOString().slice(0,10); if(localStorage.getItem(k)!==d){ localStorage.setItem(k,d); stat('visitor'); } }catch(e){}

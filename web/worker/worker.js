@@ -513,6 +513,8 @@ async function webEv(env, ctx, d) {
   const prod = d.p === 'lite' ? 'lite' : 'mini', lang = d.l === 'en' ? 'en' : 'ru';
   const day = new Date().toISOString().slice(0, 10);
   ctx.waitUntil(fb(env, 'PATCH', `/videorils_web_stats/${day}/${prod}_${lang}`, { [e]: inc }).catch(() => { }));
+  let src = String(d.src || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24) || 'direct'; if (src === 'internal') src = 'direct';
+  ctx.waitUntil(fb(env, 'PATCH', `/videorils_web_src/${day}/${src}`, { [`${prod}_${e}`]: inc }).catch(() => { }));
 }
 
 // Счётчик запросов к общим ключам (для админки): /videorils_ai_stats/<день UTC>/<час UTC> {поле: +1}.
