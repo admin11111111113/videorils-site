@@ -7712,6 +7712,18 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     }catch(e){}
   }
   // окно лицензии: поле «Уже купил? Введи ключ» видно сразу (сразу под согласием), промокод — отдельной кнопкой, не тут
+  // окно лицензии: тексты, вписанные прямо в HTML (без перевода) — на языке интерфейса
+  function licTexts(){
+    try{
+      document.querySelectorAll('button[onclick^="copyLicKey"]').forEach(function(bt){ if(!/✓/.test(bt.textContent)) bt.textContent=L('📋 Скопировать ключ','📋 Copy key'); });
+      document.querySelectorAll('.vrLicRightHead').forEach(function(h){ h.textContent=L('💳 Тарифы — оплата сразу','💳 Plans — pay now'); });
+      ['licKeyHint','licstKeyHint'].forEach(function(id){ const e=document.getElementById(id); if(e) e.textContent=L('Сохраните ключ — с ним лицензия восстанавливается в браузере на этом устройстве.','Save this key — it restores your license in the browser on this device.'); });
+      const f=window.copyLicKey;
+      if(typeof f==='function'&&!f.__vrt){ const g=function(btn,src){ const k=((document.getElementById(src||'licKeyFull')||{}).textContent||'').trim(); if(!k||k==='—')return;
+          api('copy_text',k).then(function(){ const o=btn.textContent; btn.textContent=L('✓ Скопировано','✓ Copied'); setTimeout(function(){ btn.textContent=o; },1600); }).catch(function(){}); };
+        g.__vrt=1; window.copyLicKey=g; }
+    }catch(e){}
+  }
   function licFix(){
     const box=document.getElementById('licActivateBox'), cb=document.getElementById('consentBox'), lp=document.getElementById('licPlans');
     if(!box||box.dataset.vrfix)return; box.dataset.vrfix='1';
@@ -7741,12 +7753,12 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   // открыли окно лицензии — тарифы рисуем СРАЗУ (запомненные/базовые цены), не дожидаясь ответа сервера
   function licPlansNow(){ try{ const lp=document.getElementById('licPlans'); if(lp&&!lp.querySelector('.vrSub')&&typeof window.renderPlans==='function') window.renderPlans(); }catch(e){} }
   function licOpenWrap(){ ['openLic','showLic'].forEach(function(n){ const f=window[n]; if(typeof f!=='function'||f.__vro)return;
-      const g=function(){ const r=f.apply(this,arguments); licFix(); licPlansNow(); setTimeout(licPlansNow,400); return r; }; g.__vro=1; window[n]=g; }); }
+      const g=function(){ const r=f.apply(this,arguments); licFix(); licTexts(); licPlansNow(); setTimeout(licPlansNow,400); setTimeout(licTexts,600); return r; }; g.__vro=1; window[n]=g; }); }
   function licGateWrap(){ licOpenWrap(); const f=window.applyConsentGate; if(typeof f!=='function'||f.__vrg)return;
     const g=function(){ const r=f.apply(this,arguments); licShowAll(); licRightToggle(); return r; }; g.__vrg=1; window.applyConsentGate=g; }
   // «Навсегда» — покупать нечего: правую колонку тарифов прячем целиком (без пустого заголовка)
   function licRightToggle(){ try{ const r=document.getElementById('vrLicRight'); if(!r||typeof access==='undefined')return; const life=access.licensed&&(access.key_type||'lifetime')==='lifetime'; r.style.display=life?'none':''; }catch(e){} }
-  function boot(){ langSync(); licFix(); licGateWrap(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
+  function boot(){ langSync(); licFix(); licTexts(); licGateWrap(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
   hook(); document.addEventListener('DOMContentLoaded',boot); window.addEventListener('pywebviewready',function(){ boot(); setTimeout(boot,300); }); [1500,4000,8000].forEach(function(t){ setTimeout(boot,t); });
