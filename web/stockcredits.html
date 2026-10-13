@@ -138,7 +138,9 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   // сообщения интерфейса «ключ не задан» -> полная подсказка, когда галочка снята
   const KEYMSG=['ai_no_key','gem_no_key','stock_key_needed_mine','need_media_key','cm_need_media_key','cm_msg_need_media_key','m1_no_key','m2_no_key','kg_missing','trial_need_px','trial_need_gem'];
   function wrapT(){ if(typeof window.t!=='function'||window.t.__vrk)return; const t0=window.t;
-    const nt=function(k){ const st=window.__vrShared; if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return L('Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).','No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, '+limitText(st)+'. Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'); const out=t0.apply(this,arguments); return (typeof out==='string')?out.replace(/на этом ПК/g,'в этом браузере').replace(/this PC/g,'this browser'):out; };
+    const nt=function(k){ const st=window.__vrShared;
+      if(k==='pay_pending'&&!isEn()) return '⏳ Оплата пока не поступила. Если уже оплатил картой — подожди минуту и нажми «Проверить» ещё раз.';   // RU — оплата картой, не крипта
+      if(st&&st.ready&&!st.on&&KEYMSG.indexOf(k)>=0) return L('Нет ключей. Включите галочку «Наши ключи» на главной странице (раздел «Ключи») — наши ключи, '+limitText(st)+'. Или вставьте свои ключи Pexels, Pixabay и бесплатного ИИ (Gemini или Groq).','No keys. Turn on the “Our keys” tick on the home screen (the “Keys” section) — our keys, '+limitText(st)+'. Or paste your own Pexels, Pixabay and free AI (Gemini or Groq) keys.'); const out=t0.apply(this,arguments); return (typeof out==='string')?out.replace(/на этом ПК/g,'в этом браузере').replace(/this PC/g,'this browser'):out; };
     nt.__vrk=1; window.t=nt; }
   // Очередь на наших ключах: «Получить результат», клип-микс, серия — сначала место в очереди
   // (4 старта в минуту на всех), при ожидании — обратный отсчёт, на нуле запуск сам.
