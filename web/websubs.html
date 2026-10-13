@@ -62,7 +62,9 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
     const lic=(typeof access!=='undefined')&&access&&access.licensed;
     if(lic&&(access.key_type||'lifetime')==='lifetime'){ box.innerHTML=''; return; }   // ключ «навсегда» из программы — продлевать нечего
     const getp=(typeof api==='function')?api('get_plans'):Promise.resolve(null);
-    Promise.resolve(getp).catch(()=>null).then(pr=>{
+    // тарифы рисуем СРАЗУ (последние известные цены из браузера или цены по умолчанию), а ответ сервера
+    // (холодный Render — до минуты) только обновляет цифры: раньше окно открывалось пустым
+    const paint=(pr)=>{
       const P=plansOf(pr); const w=P.web_week.rub, m=P.web_month.rub, y=P.web_year.rub;
       const wu=P.web_week.usd, mu=P.web_month.usd, yu=P.web_year.usd;
       const save=Math.max(0,Math.round((1-y/(m*12))*100));
@@ -79,6 +81,13 @@ html.vrPhone #vrSubEnd .box{font-size:22px}html.vrPhone #vrSubEnd h3{font-size:3
         +'</div><div class="vrSubsNote">'+L('Без автосписаний: оплатил срок — пользуешься. Ключ придёт и вставится сам.','No auto-renewal: pay for the period and use it. Payment in USDT (TRC-20) at our rate; the key arrives and is inserted automatically.')
         +(lic?L(' Продление прибавит дни к текущему сроку.',' Renewing adds days to your current period.'):'')+'</div>';
       const sb=document.getElementById('scarBanner'); if(sb)sb.style.display='none';
+    };
+    let cached=null; try{ cached=JSON.parse(localStorage.getItem('vr_web_plans_'+(/[/]lite[/]/.test(location.pathname)?'lite':'mini'))||'null'); }catch(e){}
+    paint(cached);
+    Promise.resolve(getp).catch(()=>null).then(pr=>{
+      if(!pr||!pr.web_plans) return;
+      try{ localStorage.setItem('vr_web_plans_'+(/[/]lite[/]/.test(location.pathname)?'lite':'mini'),JSON.stringify({web_plans:pr.web_plans})); }catch(e){}
+      paint(pr);
     });
   }
 

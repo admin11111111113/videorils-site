@@ -1,5 +1,5 @@
 <style id="vrCreditsCss">
-#licActivateBox{display:block!important}#licPromoHint{display:none!important}
+#licActivateBox{display:block!important}.vrLicRight{border-left:1px solid var(--line);padding-left:14px}.vrLicRightHead{margin:0 0 10px;font-weight:800}.vrLicRight #licPlans{display:flex!important;flex-direction:column}#licPromoHint{display:none!important}
 .vrCredit{margin-top:6px;font-size:11px;line-height:1.35;color:#8b86a6;word-break:break-word}
 .vrCredit a,.vrReelCredits a,.vrSwapCredit a{color:#a99cff;text-decoration:none}
 .vrCredit a:hover,.vrReelCredits a:hover,.vrSwapCredit a:hover{text-decoration:underline}
@@ -377,22 +377,35 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   }
   // окно лицензии: поле «Уже купил? Введи ключ» видно сразу (сразу под согласием), промокод — отдельной кнопкой, не тут
   function licFix(){
-    const box=document.getElementById('licActivateBox'), cb=document.getElementById('consentBox');
+    const box=document.getElementById('licActivateBox'), cb=document.getElementById('consentBox'), lp=document.getElementById('licPlans');
     if(!box||box.dataset.vrfix)return; box.dataset.vrfix='1';
-    const lp=document.getElementById('licPlans');   // ключ — после тарифов (сначала триал и оплата)
-    if(lp&&lp.parentNode) lp.parentNode.insertBefore(box, lp.nextSibling); else if(cb&&cb.parentNode) cb.parentNode.insertBefore(box, cb.nextSibling);
+    // слева: согласие, триал, «Уже купил? Введи ключ»
+    const after=document.getElementById('trialBox')||document.getElementById('gatedActivation')||cb;
+    if(after&&after.parentNode) after.parentNode.insertBefore(box, after.nextSibling);
+    // справа: тарифы с «Оплатить» — отдельной колонкой окна, сразу видно
+    const cols=lp&&lp.closest('.licCols');
+    if(cols&&!document.getElementById('vrLicRight')){
+      const right=document.createElement('div'); right.className='reelCol vrLicRight'; right.id='vrLicRight';
+      const block=lp.closest('.rsec')||lp;      // Мини — секция с заголовком, Лайт — сами карточки
+      if(block===lp){ const h=document.createElement('h4'); h.className='vrLicRightHead'; h.textContent=L('💳 Тарифы — оплата сразу','💳 Plans — pay now'); right.appendChild(h); }
+      right.appendChild(block); const sb=document.getElementById('scarBanner'); if(sb&&block===lp) right.appendChild(sb);
+      cols.appendChild(right);
+    }
     const f=window.doActivate;
     if(typeof f==='function'&&!f.__vrc){ const g=function(){ if(typeof requireConsent==='function'&&!requireConsent())return; return f.apply(this,arguments); }; g.__vrc=1; window.doActivate=g; }
   }
   // без лицензии всё нужное видно сразу: триал, тарифы, ключ (согласие спросим при нажатии — requireConsent)
   function licShowAll(){
-    try{ if(typeof access==='undefined'||access.licensed)return;
+    try{ ['returningNote','licTrialUsed'].forEach(function(id){ const e=document.getElementById(id); if(e&&/этом ПК|this PC/.test(e.textContent)) e.textContent=e.textContent.replace(/на этом ПК/g,'в этом браузере').replace(/this PC/g,'this browser'); });
+      if(typeof access==='undefined'||access.licensed)return;
       const g=document.getElementById('gatedActivation'); if(g) g.style.display='block';                 // Мини: триал + ключ
       const lp=document.getElementById('licPlans'); if(lp&&lp.style.display==='none') lp.style.display=/\/lite\//.test(location.pathname)?'flex':''; // Лайт: тарифы
     }catch(e){}
   }
   function licGateWrap(){ const f=window.applyConsentGate; if(typeof f!=='function'||f.__vrg)return;
-    const g=function(){ const r=f.apply(this,arguments); licShowAll(); return r; }; g.__vrg=1; window.applyConsentGate=g; }
+    const g=function(){ const r=f.apply(this,arguments); licShowAll(); licRightToggle(); return r; }; g.__vrg=1; window.applyConsentGate=g; }
+  // «Навсегда» — покупать нечего: правую колонку тарифов прячем целиком (без пустого заголовка)
+  function licRightToggle(){ try{ const r=document.getElementById('vrLicRight'); if(!r||typeof access==='undefined')return; const life=access.licensed&&(access.key_type||'lifetime')==='lifetime'; r.style.display=life?'none':''; }catch(e){} }
   function boot(){ langSync(); licFix(); licGateWrap(); wrapStat(); statInit(); hook(); stockOpt(); sharedBox(); groqBox(); wrapT(); wrapApi(); rulesWeb(); wrapErrCallbacks(); wrap('openRules',function(){ rulesWeb(); }); if(canApi())api('get_shared_state').then(function(st){ if(st){ window.__vrShared=st; trialMode(st); } });
     wrap('renderReelAi',function(){ aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); });
     aiDropdown(document.getElementById('reelAiTabs')); aiDropdown(document.getElementById('cmAiTabs')); }
