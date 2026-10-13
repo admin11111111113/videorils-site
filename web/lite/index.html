@@ -12124,7 +12124,11 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       const lp=document.getElementById('licPlans'); if(lp&&lp.style.display==='none') lp.style.display=/\/lite\//.test(location.pathname)?'flex':''; // Лайт: тарифы
     }catch(e){}
   }
-  function licGateWrap(){ const f=window.applyConsentGate; if(typeof f!=='function'||f.__vrg)return;
+  // открыли окно лицензии — тарифы рисуем СРАЗУ (запомненные/базовые цены), не дожидаясь ответа сервера
+  function licPlansNow(){ try{ const lp=document.getElementById('licPlans'); if(lp&&!lp.querySelector('.vrSub')&&typeof window.renderPlans==='function') window.renderPlans(); }catch(e){} }
+  function licOpenWrap(){ ['openLic','showLic'].forEach(function(n){ const f=window[n]; if(typeof f!=='function'||f.__vro)return;
+      const g=function(){ const r=f.apply(this,arguments); licFix(); licPlansNow(); setTimeout(licPlansNow,400); return r; }; g.__vro=1; window[n]=g; }); }
+  function licGateWrap(){ licOpenWrap(); const f=window.applyConsentGate; if(typeof f!=='function'||f.__vrg)return;
     const g=function(){ const r=f.apply(this,arguments); licShowAll(); licRightToggle(); return r; }; g.__vrg=1; window.applyConsentGate=g; }
   // «Навсегда» — покупать нечего: правую колонку тарифов прячем целиком (без пустого заголовка)
   function licRightToggle(){ try{ const r=document.getElementById('vrLicRight'); if(!r||typeof access==='undefined')return; const life=access.licensed&&(access.key_type||'lifetime')==='lifetime'; r.style.display=life?'none':''; }catch(e){} }
