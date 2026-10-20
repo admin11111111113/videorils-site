@@ -185,7 +185,8 @@ html.vrPhone .pcard .gobtn{padding:18px 40px!important;font-size:20px!important;
 WEBSUBS = ('<script>window.__vrWebPlansFB={web_week:{type:"weekly",rub:539,days:7},web_month:{type:"monthly",rub:1199,days:30},web_year:{type:"yearly",rub:8990,days:365}};</script>\n'
            + io.open(os.path.join(os.path.dirname(OUT), "..", "websubs.html"), encoding="utf-8").read())
 CREDITS = io.open(os.path.join(os.path.dirname(OUT), "..", "stockcredits.html"), encoding="utf-8").read()
-s = s[:i] + MOBILE_CSS + WEBSUBS + CREDITS + SHIM + s[i:]
+NEWBIE = io.open(os.path.join(os.path.dirname(OUT), "..", "newbie.html"), encoding="utf-8").read()   # новичку сразу «1 ролик бесплатно»
+s = s[:i] + MOBILE_CSS + WEBSUBS + CREDITS + NEWBIE + SHIM + s[i:]
 s = s.replace("<title>", "<title>Веб · ", 1)
 s = s.replace("<head>", '<head>\n<meta name="robots" content="noindex, nofollow">', 1)
 io.open(OUT, "w", encoding="utf-8").write(s)

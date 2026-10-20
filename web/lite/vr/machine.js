@@ -22,10 +22,24 @@ async function platform() {
 }
 async function sha(s) { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(d)].map(x => x.toString(16).padStart(2, '0')).join(''); }
 
+// рисунок текста на canvas: шрифты/сглаживание системы — у разных ПК с одинаковым железом отличается
+function canvasMark() {
+  try {
+    const c = document.createElement('canvas'); c.width = 240; c.height = 40; const x = c.getContext('2d');
+    x.textBaseline = 'top'; x.font = '16px Arial, sans-serif'; x.fillStyle = '#f60'; x.fillRect(2, 2, 60, 20);
+    x.fillStyle = '#069'; x.fillText('ВидеоРилс·Reels 😀 1.2', 4, 6); x.fillStyle = 'rgba(102,204,0,.7)'; x.font = '13px Georgia, serif'; x.fillText('Tuy Hòa ✓', 90, 20);
+    return c.toDataURL().slice(-120);
+  } catch (e) { return ''; }
+}
+// раньше хватало железа + часового пояса — у одинаковых ноутбуков в одном поясе id совпадал
+// (новичок видел «бесплатный ролик уже использован»). Теперь + экран, масштаб, язык, рисунок шрифтов.
+// Уже сохранённый id (localStorage/IndexedDB/cookie) не меняется.
 export async function hardwareId(salt) {
+  const sw = Math.min(screen.width, screen.height), sh = Math.max(screen.width, screen.height);
   const parts = [await platform(), gpu(), navigator.hardwareConcurrency || 0, navigator.deviceMemory || 0,
-    (Intl.DateTimeFormat().resolvedOptions().timeZone || ''), Math.max(screen.width, screen.height) * Math.min(screen.width, screen.height) > 0 && /Android|iPhone|iPad/.test(navigator.userAgent) ? `${Math.min(screen.width, screen.height)}x${Math.max(screen.width, screen.height)}` : ''];
-  return (await sha(salt + '|' + parts.join('|'))).slice(0, 32);
+    (Intl.DateTimeFormat().resolvedOptions().timeZone || ''), `${sw}x${sh}`, window.devicePixelRatio || 1,
+    (navigator.languages || [navigator.language || '']).join(','), screen.colorDepth || 0, await sha(canvasMark())];
+  return (await sha(salt + '|v2|' + parts.join('|'))).slice(0, 32);
 }
 
 function idbGet() {

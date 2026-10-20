@@ -12170,6 +12170,87 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   };
 })();
 </script>
+<style id="vrNewbieCss">
+.vrFreeHome{margin:14px auto 0;max-width:620px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px 16px;border:1px solid rgba(52,211,153,.55);border-radius:14px;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,211,238,.10));font-size:14.5px;font-weight:700;color:var(--txt)}
+.vrFreeHome button{border:0;border-radius:10px;padding:9px 16px;font-weight:900;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#22c55e,#22d3ee);color:#05221a}
+#btnLicense.vrFreeBtn{border-color:rgba(52,211,153,.8)!important;color:#34d399!important;box-shadow:0 0 14px rgba(52,211,153,.35)}
+#vrFreeTop{margin:0 0 16px;padding:16px 18px;border:2px solid rgba(52,211,153,.7);border-radius:14px;background:linear-gradient(135deg,rgba(52,211,153,.16),rgba(34,211,238,.08))}
+#vrFreeTop .h{font-size:19px;font-weight:900;color:#34d399}
+#vrFreeTop .d{margin:6px 0 12px;font-size:14px;line-height:1.45}
+#vrFreeGo{width:100%;border:0;border-radius:12px;padding:14px 18px;font-size:17px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#22c55e,#22d3ee);color:#05221a}
+#vrFreeGo[disabled]{opacity:.7;cursor:wait}
+#vrFreeTop .legal{margin-top:8px;font-size:11.5px;color:var(--mut);line-height:1.4}
+#vrFreeTop .legal a{color:var(--cyan)}
+#vrFreeTop .st{margin-top:8px;font-size:13px;font-weight:700;min-height:1px}
+.vrFresh #licTrialBox,.vrFresh #trialBox{display:none!important}   /* галочки согласия остаются — нужны тем, кто сразу покупает */
+</style>
+<script>/* веб: новичок сразу видит «первый ролик бесплатно» — на главной, в шапке и первым блоком окна лицензии
+   (одна кнопка: согласие с документами по нажатию + запуск бесплатного ролика). Лицензия/промо/израсходованный триал — как было. */
+(function(){
+  var L=function(r,e){ return (typeof uiLang!=='undefined'&&uiLang==='en')?e:r; };
+  var ST=null;
+  function fresh(){ return !!(ST&&!ST.licensed&&!ST.promo_active&&ST.trial_available&&!ST.trial_active); }
+  function refresh(){ var A=window.__vrApi; if(!A||typeof A.get_access_status!=='function')return Promise.resolve();
+    return Promise.resolve(A.get_access_status()).then(function(s){ ST=s||ST; paint(); }).catch(function(){}); }
+  function openLicWin(){ try{ if(typeof onLicenseBtn==='function')onLicenseBtn(); else if(typeof showLic==='function')showLic(); }catch(e){} }
+  function paint(){
+    var b=document.getElementById('btnLicense');
+    if(b){ if(fresh()){ if(b.dataset.vrFree!=='1'){ b.dataset.vrOrig=b.textContent; } b.dataset.vrFree='1'; var tx=L('🎁 1 ролик бесплатно','🎁 1 free reel'); if(b.textContent!==tx)b.textContent=tx; b.classList.add('vrFreeBtn'); }
+      else if(b.dataset.vrFree==='1'){ b.dataset.vrFree=''; b.classList.remove('vrFreeBtn'); if(typeof refreshAccess==='function')refreshAccess(); } }
+    var sub=document.querySelector('[data-i18n="home_sub"]'), ban=document.getElementById('vrFreeHome');
+    if(sub&&fresh()&&!ban){ ban=document.createElement('div'); ban.id='vrFreeHome'; ban.className='vrFreeHome';
+      ban.innerHTML='<span>🎁 '+L('Первый ролик — бесплатно. Без регистрации и без карты, ключи уже подключены.','Your first reel is free. No sign-up, no card — keys are already connected.')+'</span>';
+      var bt=document.createElement('button'); bt.type='button'; bt.textContent=L('Попробовать бесплатно','Try for free'); bt.onclick=openLicWin; ban.appendChild(bt);
+      sub.parentNode.insertBefore(ban,sub.nextSibling); }
+    if(ban&&!fresh())ban.remove();
+  }
+  // окно лицензии: для новичка — первым блоком большая кнопка бесплатного ролика
+  function licModal(){ var cb=document.getElementById('consentBox'); return cb?cb.closest('.modal'):null; }
+  function decorate(){
+    var m=licModal(); if(!m)return;
+    var bg=m.closest('.modal-bg')||m.parentNode, shown=bg&&bg.classList.contains('show');
+    if(!shown)return;
+    refresh().then(function(){
+      var top=document.getElementById('vrFreeTop');
+      if(!fresh()){ m.classList.remove('vrFresh'); if(top)top.remove(); return; }
+      m.classList.add('vrFresh');
+      if(top)return;
+      top=document.createElement('div'); top.id='vrFreeTop';
+      top.innerHTML='<div class="h">🎁 '+L('Первый ролик — бесплатно','Your first reel is free')+'</div>'
+        +'<div class="d">'+L('Ничего вставлять не нужно: клипы, ИИ и голос уже подключены. Нажми кнопку — и собери ролик. Платить — только если понравится.','Nothing to paste: clips, AI and voice are already connected. Press the button and build your reel. Pay only if you like it.')+'</div>'
+        +'<button type="button" id="vrFreeGo">🎁 '+L('Сделать ролик бесплатно','Make a reel for free')+'</button>'
+        +'<div class="legal">'+L('Нажимая кнопку, ты принимаешь <a href="#" data-vr-legal>Условия использования, Отказ от ответственности и Политику конфиденциальности</a>.','By pressing the button you accept the <a href="#" data-vr-legal>Terms of Use, Disclaimer and Privacy Policy</a>.')+'</div>'
+        +'<div class="st" id="vrFreeSt"></div>';
+      var body=m.querySelector('.modal-body')||m; body.insertBefore(top,body.firstChild);
+      var lg=top.querySelector('[data-vr-legal]'); if(lg)lg.onclick=function(e){ if(typeof openLegal==='function')openLegal(e); else e.preventDefault(); };
+      var st=top.querySelector('#vrFreeSt'), go=top.querySelector('#vrFreeGo');
+      var lm=document.getElementById('licMsg');
+      if(lm&&window.MutationObserver) new MutationObserver(function(){ st.textContent=lm.textContent; st.style.color=lm.style.color||''; if(/./.test(lm.textContent)&&!/⏳|Готов|Сохраня|Saving|Prepar/i.test(lm.textContent))go.disabled=false; }).observe(lm,{childList:true,characterData:true,subtree:true,attributes:true});
+      go.onclick=function(){
+        go.disabled=true; st.style.color='var(--cyan)'; st.textContent='⏳ '+L('Готовлю бесплатный ролик…','Preparing your free reel…');
+        document.querySelectorAll('.consentChk').forEach(function(c){ c.checked=true; });
+        api('set_consent',true).then(function(r){
+          try{ consentOk=true; }catch(e){}
+          try{ if(typeof applyConsentGate==='function')applyConsentGate(); }catch(e){}
+          if(typeof startTrial==='function')startTrial(); else go.disabled=false;
+          setTimeout(refresh,3000); setTimeout(refresh,12000);
+          setTimeout(function(){ go.disabled=false; }, 20000);
+        }).catch(function(){ go.disabled=false; st.style.color='var(--pink)'; st.textContent=L('Нет связи — нажми ещё раз.','No connection — press again.'); });
+      };
+    });
+  }
+  function boot(){
+    if(!window.__vrApi||typeof window.api!=='function'){ setTimeout(boot,500); return; }
+    refresh();
+    var b=document.getElementById('btnLicense');
+    if(b&&window.MutationObserver) new MutationObserver(function(){ if(fresh()&&b.dataset.vrFree==='1'&&b.textContent!==L('🎁 1 ролик бесплатно','🎁 1 free reel'))paint(); }).observe(b,{childList:true,characterData:true,subtree:true});
+    var m=licModal(), bg=m&&(m.closest('.modal-bg')||m.parentNode);
+    if(bg&&window.MutationObserver) new MutationObserver(decorate).observe(bg,{attributes:true,attributeFilter:['class','style']});
+    // после бесплатного ролика / оплаты / промо статус меняется — перерисовать
+    var iv=setInterval(function(){ if(!fresh()){ clearInterval(iv); return; } refresh(); },60000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+})();</script>
 <script type="module" src="./vr/app.js"></script>
 </body>
 </html>
