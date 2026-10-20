@@ -12042,7 +12042,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     w('subsDone',function(p,err){ if(err)repErr('subs_failed',err,'subs_only'); });
     w('clipmixPreviewReady',function(r){ if(r&&r.ok===false)repErr('clipmix_preview_failed',r.msg||'','clipmix'); });
     w('batchDone',function(r){ if(r&&r.total&&r.done<r.total)repErr('batch_partial','собрано '+r.done+' из '+r.total,'batch'); });
-    w('aiFail',function(r){ if(isGate(r)){ stat('paywall'); return; } repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
+    w('aiFail',function(r){ if(isGate(r)){ stat('paywall'); return; } if(r&&/^(Отменено — очередь|Cancelled — queue)$/.test(r.msg||''))return; repErr('ai_failed',(r&&(r.msg||r.error))||'нет ответа','get_result'); });
     w('edgeLimitAsk',function(){ repErr('tts_limit','бесплатный голос притормозил (Microsoft)','voice'); });
   }
   // ---------- статистика веб-версии (анонимно: событие + код браузера, без личных данных) ----------
