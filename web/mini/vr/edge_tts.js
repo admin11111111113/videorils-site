@@ -1,9 +1,10 @@
 // Edge-TTS (бесплатные голоса Microsoft Edge «Read aloud») — порт python-пакета
-// edge_tts 7.2.8: тот же websocket, Sec-MS-GEC, speech.config и SSML. Из браузера
+// edge_tts 7.3.1: тот же websocket, Sec-MS-GEC, speech.config и SSML. Из браузера
 // работает напрямую (Origin не проверяется — проверено 2026-10-08).
+import { secMsGecV2FromTicks } from './edge_gec2.js';
 const TRUSTED_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
 const CHROMIUM_FULL_VERSION = '143.0.3650.75';
-const SEC_MS_GEC_VERSION = `1-${CHROMIUM_FULL_VERSION}`;
+const SEC_MS_GEC_VERSION = `2-${CHROMIUM_FULL_VERSION}`;   // v2 токен — с 20.10.2026 старый (SHA256) даёт 403
 const WSS_DIRECT = `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1`;
 const WIN_EPOCH = 11644473600;
 let clockSkew = 0;
@@ -14,10 +15,8 @@ async function secMsGec() {
   let ticks = Date.now() / 1000 + clockSkew + WIN_EPOCH;
   ticks -= ticks % 300;
   ticks *= 1e9 / 100;
-  // f"{ticks:.0f}" — целое без экспоненты
-  const s = BigInt(Math.round(ticks)).toString() + TRUSTED_CLIENT_TOKEN;
-  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
-  return [...new Uint8Array(d)].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  // f"{ticks:.0f}" — целое без экспоненты; токен v2 (edge_tts 7.3.1)
+  return secMsGecV2FromTicks(BigInt(Math.round(ticks)).toString(), TRUSTED_CLIENT_TOKEN);
 }
 const hex = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '');
 function dateToString() {
