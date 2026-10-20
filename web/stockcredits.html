@@ -159,7 +159,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
       if(left<=0){ clearInterval(iv); box.remove(); res(true); } };
     const iv=setInterval(tick,250); tick();
     box.querySelector('button').onclick=function(){ clearInterval(iv); box.remove(); res(false); }; }); }
-  function wrapApi(){ if(typeof window.api!=='function'||window.api.__vrq)return; const a0=window.api;
+  function wrapApi(){ if(typeof window.api!=='function'||window.__vrQWrapped)return; window.__vrQWrapped=1; const a0=window.api;   // один раз: boot() идёт ~6 раз, раньше слои очереди накапливались (ожидание ×5)
     const na=function(method){ const args=arguments, kind=QUEUED[method], st=window.__vrShared;
       if(!kind||!st||!st.on||!st.ready) return a0.apply(this,args);
       { const A=window.__vrApi; if(A&&typeof A._has_access==='function'&&!A._has_access()) return a0.apply(this,args); }   // без лицензии/триала — сразу окно триала, без очереди
@@ -346,7 +346,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
     build_reel:'build',build_clipmix:'build',build_batch:'build',build_batch_from_preview:'build',build_subs_only:'build'};
   const isGate=function(r){ return !!(r&&(r.need_license||(r.ok===false&&/лицензи|license/i.test(String(r.msg||''))&&/триал|trial/i.test(String(r.msg||''))))); };
   function wrapStat(){
-    if(typeof window.api!=='function'||window.api.__vrs)return; const a0=window.api;
+    if(typeof window.api!=='function'||window.__vrSWrapped)return; window.__vrSWrapped=1; const a0=window.api;   // один раз (иначе события считались по нескольку раз)
     const na=function(method){ const ev=STAT_EV[method]; if(ev)stat(ev);
       const out=a0.apply(this,arguments);
       if(ev&&out&&typeof out.then==='function') out.then(function(r){ if(isGate(r))stat('paywall'); }).catch(function(){});
