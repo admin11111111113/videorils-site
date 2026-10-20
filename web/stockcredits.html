@@ -162,6 +162,7 @@ html.vrPhone .vrAiPick>button{font-size:26px;padding:12px 22px}html.vrPhone .vrA
   function wrapApi(){ if(typeof window.api!=='function'||window.api.__vrq)return; const a0=window.api;
     const na=function(method){ const args=arguments, kind=QUEUED[method], st=window.__vrShared;
       if(!kind||!st||!st.on||!st.ready) return a0.apply(this,args);
+      { const A=window.__vrApi; if(A&&typeof A._has_access==='function'&&!A._has_access()) return a0.apply(this,args); }   // без лицензии/триала — сразу окно триала, без очереди
       let n=1; if(kind==='n'){ try{ n=method==='build_batch_from_preview'?5:String(args[1]||'').split('\n').filter(function(x){return x.trim();}).length||1; }catch(e){} }
       const self=this;
       return qJoin(n).then(qWait).then(function(go){ return go?a0.apply(self,args):{ok:false,msg:L('Отменено — очередь','Cancelled — queue')}; }); };
