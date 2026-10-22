@@ -18,14 +18,14 @@ P.switch_reel_source = function (mode) {
   mode = mode === 'foreign' ? 'foreign' : 'scratch';
   const old = this.reel_source;
   if (!this._src_stash) this._src_stash = {};
-  if (mode === old) return { ok: true, scenes: this.get_scenes() };
+  if (mode === old) return { ok: true, scenes: this.get_scenes().scenes };
   this._src_stash[old] = { scenes: this.reel_scenes.map(s => Object.assign({}, s)), phrases: [...this.reel_phrases], caption: this.reel_caption, hashtags: this.reel_hashtags, topic: this.reel_topic };
   const st = this._src_stash[mode] || {};
   this.reel_scenes = (st.scenes || []).map(s => Object.assign({}, s));
   this.reel_phrases = [...(st.phrases || [])];
   this.reel_caption = st.caption || ''; this.reel_hashtags = st.hashtags || ''; this.reel_topic = st.topic || '';
   this.reel_source = mode; this._persist();
-  return { ok: true, scenes: this.get_scenes() };
+  return { ok: true, scenes: this.get_scenes().scenes };
 };
 P.get_foreign_info = function () {
   const full = this.foreign_segments.map(s => s.text.trim()).join(' ').trim();
